@@ -22,7 +22,7 @@
         {
             // TODO(kookehs): Figure out HUD transform for canvas and scaling
             Parent = RoR2Application.instance.mainCanvas.transform;
-            RootObject = Instantiate(Resources.Load<GameObject>("Prefabs/NotificationPanel2"));
+            RootObject = Instantiate(Resources.Load<GameObject>("prefabs/notificationpanel2"));
             GenericNotification = RootObject.GetComponent<GenericNotification>();
             GenericNotification.transform.SetParent(Parent);
             GenericNotification.iconImage.enabled = false;

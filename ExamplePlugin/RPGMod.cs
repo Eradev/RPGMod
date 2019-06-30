@@ -1,5 +1,7 @@
 ﻿using BepInEx;
+using MonoMod.Cil;
 using RoR2;
+using RoR2.CharacterAI;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -43,13 +45,15 @@ namespace RPGMod
         public int Progress;
     }
 
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.3")]
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.4")]
 
     public class RPGMod : BaseUnityPlugin
     {
        
         // Misc params
         public System.Random random = new System.Random();
+        public CharacterMaster cMaster;
+
         // public SpawnCard chest2 = Resources.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscchest2");
         public GameObject targetBody;
         public bool isLoaded = false;
@@ -301,6 +305,11 @@ namespace RPGMod
                 Notification.GetDescription = () => questMessage.Description;
                 Notification.GenericNotification.fadeTime = 1f;
                 Notification.GenericNotification.duration = 86400f;
+                foreach (var fadeRenderer in Notification.GenericNotification.fadeRenderers) {
+                    Debug.Log(fadeRenderer.GetAlpha());
+                    Debug.Log(fadeRenderer.GetColor());
+                    Debug.Log(fadeRenderer.materialCount);
+                }
                 Notification.SetSize(sizeX, sizeY);
                 resetUI = false;
             }
@@ -564,13 +573,35 @@ namespace RPGMod
                                 //}
                             }
                         }
-                        else
-                        {
-                            isSuicide = false;
-                        }
                     }
                 }
-            orig(self, damageReport);
+                else
+                {
+                    isSuicide = false;
+                }
+                orig(self, damageReport);
+            };
+
+            // Credit to iDeathHD
+            IL.RoR2.CharacterBody.HandleConstructTurret += (il) =>
+            {
+                ILCursor cursor = new ILCursor(il);
+
+                cursor.GotoNext(x => x.MatchStloc(2));
+                cursor.EmitDelegate<Func<CharacterMaster, CharacterMaster>>((master) => {
+                    cMaster = master;
+                    return master;
+                });
+
+                cursor.GotoNext(x => x.MatchStloc(4));
+                cursor.EmitDelegate<Func<CharacterMaster, CharacterMaster>>((turret) => {
+                    if (turret.gameObject.GetComponent<AIOwnership>() != null)
+                        return turret;
+
+                    turret.gameObject.AddComponent<AIOwnership>().ownerMaster = cMaster;
+                    return turret;
+                });
+
             };
 
             if (isChests)
