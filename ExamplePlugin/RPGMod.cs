@@ -1,7 +1,5 @@
 ﻿using BepInEx;
-using MonoMod.Cil;
 using RoR2;
-using RoR2.CharacterAI;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -45,7 +43,7 @@ namespace RPGMod
         public int Progress;
     }
 
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.4")]
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.5")]
 
     public class RPGMod : BaseUnityPlugin
     {
@@ -54,7 +52,6 @@ namespace RPGMod
         public System.Random random = new System.Random();
         public CharacterMaster cMaster;
 
-        // public SpawnCard chest2 = Resources.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscchest2");
         public GameObject targetBody;
         public bool isLoaded = false;
         public bool isDebug = false;
@@ -148,8 +145,6 @@ namespace RPGMod
             // UI params
             screenPosX = Config.Wrap("UI", "Screen Pos X", "UI location on the x axis (percentage of screen width) (int)", 89).Value;
             screenPosY = Config.Wrap("UI", "Screen Pos Y", "UI location on the y axis (percentage of screen height) (int)", 50).Value;
-            //titleFontSize = Config.Wrap("UI", "Title Font Size", "UI title font size (int)", 18).Value;
-            //descriptionFontSize = Config.Wrap("UI", "Description Font Size", "UI description font size (int)", 14).Value;
             sizeX = Config.Wrap("UI", "Size X", "Size of UI on the x axis (pixels)", 300).Value;
             sizeY = Config.Wrap("UI", "Size Y", "Size of UI on the x axis (pixels) (int)", 80).Value;
 
@@ -165,7 +160,6 @@ namespace RPGMod
             isChests = Convert.ToBoolean(Config.Wrap("Director", "Interactables", "Use banned director spawns (bool)", "true").Value);
 
             // Feature params
-            // isBossChests = Convert.ToBoolean(Config.Wrap("Features", "Boss Chests", "Boss loot chests (recommended to turn off when enabling interactables) (bool)", "false").Value);
             isQuesting = Convert.ToBoolean(Config.Wrap("Features", "Questing", "Questing system (bool)", "true").Value);
             isEnemyDrops = Convert.ToBoolean(Config.Wrap("Features", "Enemy Drops", "Enemies drop items (bool)", "true").Value);
             isQuestResetting = Convert.ToBoolean(Config.Wrap("Features", "Quest Resetting", "Determines whether quests reset over stage advancement (bool)", "false").Value);
@@ -294,8 +288,6 @@ namespace RPGMod
                     Debug.Log(Screen.width * screenPosX / 100f);
                     Debug.Log(Screen.height * screenPosY / 100f);
                     Debug.Log(questMessage.Description);
-                    //Debug.Log(titleFontSize);
-                    //Debug.Log(descriptionFontSize);
                 }
 
                 Notification = CachedCharacterBody.gameObject.AddComponent<Notification>();
@@ -303,13 +295,8 @@ namespace RPGMod
                 Notification.SetPosition(new Vector3((float)(Screen.width * screenPosX / 100f), (float)(Screen.height * screenPosY / 100f), 0));
                 Notification.GetTitle = () => "QUEST";
                 Notification.GetDescription = () => questMessage.Description;
-                Notification.GenericNotification.fadeTime = 1f;
-                Notification.GenericNotification.duration = 86400f;
-                foreach (var fadeRenderer in Notification.GenericNotification.fadeRenderers) {
-                    Debug.Log(fadeRenderer.GetAlpha());
-                    Debug.Log(fadeRenderer.GetColor());
-                    Debug.Log(fadeRenderer.materialCount);
-                }
+                Notification.QuestHolder.fadeTime = 1f;
+                Notification.QuestHolder.duration = 86400f;
                 Notification.SetSize(sizeX, sizeY);
                 resetUI = false;
             }
@@ -459,17 +446,6 @@ namespace RPGMod
                 };
             }
 
-            //if (isBossChests)
-            //{
-            //    // Edit chest behavior
-            //    On.RoR2.ChestBehavior.ItemDrop += (orig, self) =>
-            //    {
-            //        self.tier2Chance = bossChestChanceUncommon;
-            //        self.tier3Chance = bossChestChanceLegendary;
-            //        orig(self);
-            //    };
-            //}
-
             On.RoR2.SceneDirector.PopulateScene += (orig, self) =>
             {
                 int credit = self.GetFieldValue<int>("interactableCredit");
@@ -565,13 +541,6 @@ namespace RPGMod
                                 // Spawn item
                                 PickupDropletController.CreatePickupDroplet(item, enemyBody.transform.position, Vector3.up * 20f);
                             }
-                            else
-                            {
-                                //if (isBossChests)
-                                //{
-                                //    DropBoss(chest2, damageReport.victim.transform);
-                                //}
-                            }
                         }
                     }
                 }
@@ -580,28 +549,6 @@ namespace RPGMod
                     isSuicide = false;
                 }
                 orig(self, damageReport);
-            };
-
-            // Credit to iDeathHD
-            IL.RoR2.CharacterBody.HandleConstructTurret += (il) =>
-            {
-                ILCursor cursor = new ILCursor(il);
-
-                cursor.GotoNext(x => x.MatchStloc(2));
-                cursor.EmitDelegate<Func<CharacterMaster, CharacterMaster>>((master) => {
-                    cMaster = master;
-                    return master;
-                });
-
-                cursor.GotoNext(x => x.MatchStloc(4));
-                cursor.EmitDelegate<Func<CharacterMaster, CharacterMaster>>((turret) => {
-                    if (turret.gameObject.GetComponent<AIOwnership>() != null)
-                        return turret;
-
-                    turret.gameObject.AddComponent<AIOwnership>().ownerMaster = cMaster;
-                    return turret;
-                });
-
             };
 
             if (isChests)
