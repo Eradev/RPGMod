@@ -43,7 +43,7 @@ namespace RPGMod
         public int Progress;
     }
 
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.5")]
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.2.6")]
 
     public class RPGMod : BaseUnityPlugin
     {
@@ -455,7 +455,7 @@ namespace RPGMod
 
             On.RoR2.HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride) =>
             {
-                if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().GetUserName() == "Engineer Turret")
+                if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().master.name == "EngiTurretMaster(Clone)")
                 {
                     isSuicide = true;
                 }
@@ -503,10 +503,10 @@ namespace RPGMod
                             }
                         }
 
-                        chance *= (1 - dropsPlayerScaling + (dropsPlayerScaling * Run.instance.participatingPlayerCount));
-                        if (gameStartScaling - (Run.instance.difficultyCoefficient - 1) > 1)
+                        chance *= ((1 - dropsPlayerScaling) + (dropsPlayerScaling * Run.instance.participatingPlayerCount));
+                        if (gameStartScaling - Run.instance.difficultyCoefficient > 0)
                         {
-                            chance *= (gameStartScaling -= (Run.instance.difficultyCoefficient - 1));
+                            chance *= (gameStartScaling - (Run.instance.difficultyCoefficient - 1));
                         }
 
                         // rng check
