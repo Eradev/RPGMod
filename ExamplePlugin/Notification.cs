@@ -15,6 +15,8 @@
         public Func<string> GetTitle { get; set; }
         public Func<string> GetDescription { get; set; }
         public Transform Parent { get; set; }
+        public float startTime;
+        public int index;
 
         private void Awake()
         {
@@ -23,6 +25,7 @@
             QuestHolder = RootObject.GetComponent<GenericNotification>();
             QuestHolder.transform.SetParent(Parent);
             QuestHolder.iconImage.enabled = true;
+            startTime = Time.time;
         }
 
         private void Update()
@@ -37,6 +40,11 @@
             typeof(LanguageTextMeshController).GetMethod("UpdateLabel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(QuestHolder.titleText, new object[] { });
             typeof(LanguageTextMeshController).GetField("resolvedString", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(QuestHolder.descriptionText, GetDescription());
             typeof(LanguageTextMeshController).GetMethod("UpdateLabel", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(QuestHolder.descriptionText, new object[] { });
+            float num = (Time.time - startTime) / 0.8f;
+            if (num < 1)
+            {
+                SetPosition(new Vector3(Mathf.SmoothStep((float)(Screen.width * 1.3f), (float)(Screen.width * ModConfig.screenPosX / 100f), num), (Screen.height * ModConfig.screenPosY / 100f) - (ModConfig.sizeY * index), 0));
+            }
         }
 
         private void OnDestroy()
