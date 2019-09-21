@@ -10,88 +10,146 @@ using UnityEngine.Networking;
 
 namespace RPGMod
 {
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "1.3.0")]
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "2.0.0")]
 
     public class RPGMod : BaseUnityPlugin
-    {   
-        // Networking params
-        public short msgQuestDrop = 1337;
-        public bool isClientRegistered = false;
-
-        // Misc params
+    {
+        public QuestDefs QuestDefs = new QuestDefs();
+        public bool clientRegistered = false;
         public System.Random random = new System.Random();
-        public CharacterMaster cMaster;
 
-        public GameObject targetBody;
-        public bool isLoaded = false;
+        public bool gameStarted = false;
         public bool isDebug = true;
         public bool isSuicide = false;
-        public bool Persistent = true;
-        public CharacterBody CachedCharacterBody;
-        public List<Notification> Notifications = new List<Notification>();
-        public QuestDefinitions QuestDefinitions = new QuestDefinitions();
         public int messageIndex;
+        public CharacterBody CachedCharacterBody;
+        public CharacterMaster cMaster;
+        public GameObject targetBody;
+        public List<Notification> Notifications = new List<Notification>();
+        public bool Persistent = true;
 
-        // Handles questing
         public void CheckQuest()
+        {
+            // Making sure there is one quest at all times
+            if (MainDefs.stageChanging)
             {
-                // Making sure there is one quest at all times
-                if (GlobalDefs.Quests.Count < 1)
-                {
-                    GetNewQuest();
+                MainDefs.setQuests = true;
+                if (ModConfig.restartQuestsOnStageChange) {
+                    MainDefs.questsClientData = new List<QuestMessage>();
+                    MainDefs.questsServerData = new List<QuestServerData>();
                 }
+                else
+                {
+                    for (int i = 0; i < MainDefs.questsServerData.Count; i++)
+                    {
+                        MainDefs.questsClientData[i].questInitialised = false;
+                        SendQuest(MainDefs.questsClientData[i]);
+                    }
+                }
+                MainDefs.stageChanging = false;
             }
 
-        // Sets quest parameters
-        public void GetNewQuest()
+            if (MainDefs.awaitingSetQuests) {
+                Debug.Log(MainDefs.questsClientData.Count);
+                Debug.Log(MainDefs.questsServerData.Count);
+                for (int i = MainDefs.questsClientData.Count; i < MainDefs.questsServerData.Count; i++)
+                {
+                    GetNewQuest(i);
+                }
+                if (MainDefs.questsClientData.Count == MainDefs.questsServerData.Count) {
+                    MainDefs.awaitingSetQuests = false;
+                }
+                MainDefs.setQuests = false;
+            }
+
+            if (MainDefs.questsClientData.Count < 1 && !MainDefs.awaitingSetQuests)
+            {
+                GetNewQuest(-1);
+            }
+        }
+
+        public void GetNewQuest(int index)
         {
-            if (!NetworkServer.active || GlobalDefs.Quests.Count >= ModConfig.questAmount) {
+            if (!NetworkServer.active || MainDefs.questsClientData.Count >= ModConfig.questAmountMax) {
                 return;
             }
-            QuestMessage newQuest = QuestDefinitions.GetQuest();
+
+            QuestMessage newQuest = QuestDefs.GetQuest(index);
+
             if (newQuest.questDescription != "bad") {
-                int newID = random.Next();
-                while (GlobalDefs.currentIDs.Contains(newID))
-                {
-                    newID = random.Next();
-                }
-                GlobalDefs.currentIDs.Add(newID);
-                newQuest.questID = newID;
+                newQuest.questID = QuestDefs.GetUniqueID();
+                Debug.Log("Hello?");
                 SendQuest(newQuest);
             }
         }
 
-        // Check if quest fulfilled
-        public void CheckQuestStatus(int index)
+        public void SendQuest(QuestMessage Quest)
         {
-            if (!NetworkServer.active) {
+            if (!NetworkServer.active)
+            {
                 return;
             }
-            if (GlobalDefs.QuestsServerData[index].Progress >= GlobalDefs.QuestsServerData[index].Objective)
+            NetworkServer.SendToAll(MainDefs.questPort, Quest);
+        }
+
+        public void StartClientHanders()
+        {
+            Debug.Log("[RPGMod] Client Handlers Added");
+            NetworkClient client = NetworkManager.singleton.client;
+
+            client.RegisterHandler(MainDefs.questPort, OnQuestRecieved);
+            clientRegistered = true;
+        }
+
+        public void OnQuestRecieved(NetworkMessage networkMessage)
+        {
+            QuestMessage message = networkMessage.ReadMessage<QuestMessage>();
+            messageIndex = -1;
+            for (int i = 0; i < MainDefs.questsClientData.Count; i++)
             {
-                if (GlobalDefs.Quests[index].questInitialised)
+                if (MainDefs.questsClientData[i].questID == message.questID)
                 {
-                    foreach (var player in PlayerCharacterMasterController.instances)
-                    {
-                        if (player.master.alive)
-                        {
-                            var transform = player.master.GetBody().coreTransform;
-                            if (ModConfig.itemDroppingFromPlayers)
-                            {
-                                PickupDropletController.CreatePickupDroplet(GlobalDefs.QuestsServerData[index].Drop, transform.position, transform.forward * 10f);
-                            }
-                            else
-                            {
-                                player.master.inventory.GiveItem(GlobalDefs.QuestsServerData[index].Drop.itemIndex);
-                            }
-                        }
+                    messageIndex = i;
+                };
+            }
+
+            if (messageIndex == -1)
+            {
+                messageIndex = MainDefs.questsClientData.Count;
+            }
+
+            if (message.questInitialised == false)
+            {
+                MainDefs.questsClientData.RemoveAt(messageIndex);
+                Destroy(Notifications[messageIndex]);
+                Notifications.RemoveAt(messageIndex);
+                if (NetworkServer.active && MainDefs.questsClientData.Count == 0) {
+                    MainDefs.awaitingSetQuests = true;
+                }
+                if (NetworkServer.active)
+                {
+                    MainDefs.usedIDs.Remove(message.questID);
+                    if (!MainDefs.setQuests) {
+                        MainDefs.questsServerData.RemoveAt(messageIndex);
                     }
                 }
-                GlobalDefs.Quests[index].questInitialised = false;
+            }
+            else if (messageIndex < MainDefs.questsClientData.Count)
+            {
+                MainDefs.questsClientData[messageIndex] = message;
+            }
+            else
+            {
+                MainDefs.questsClientData.Add(message);
+            }
+
+            DisplayQuesting();
+            if (message.questInitialised)
+            {
+                Notifications[messageIndex].GetDescription = () => message.questDescription;
             }
         }
 
-        // Handles the display of the UI
         public void DisplayQuesting()
         {
             LocalUser localUser = LocalUserManager.GetFirstLocalUser();
@@ -100,12 +158,12 @@ namespace RPGMod
             {
                 CachedCharacterBody = localUser.cachedBody;
             }
-            Debug.Log(GlobalDefs.Quests.Count);
-            for (int i=0; i<GlobalDefs.Quests.Count; i++)
+
+            for (int i=0; i<MainDefs.questsClientData.Count; i++)
             {
-                if (i >= Notifications.Count && CachedCharacterBody != null || GlobalDefs.resetUI)
+                if (i >= Notifications.Count && CachedCharacterBody != null || MainDefs.resetUI)
                 {
-                    if (GlobalDefs.resetUI)
+                    if (MainDefs.resetUI)
                     {
                         if (i < Notifications.Count)
                         {
@@ -120,7 +178,7 @@ namespace RPGMod
                         Debug.Log(ModConfig.sizeY);
                         Debug.Log(Screen.width * ModConfig.screenPosX / 100f);
                         Debug.Log(Screen.height * ModConfig.screenPosY / 100f);
-                        Debug.Log(GlobalDefs.Quests[i].questDescription);
+                        Debug.Log(MainDefs.questsClientData[i].questDescription);
                     }
 
                     Notifications.Add(new Notification());
@@ -129,17 +187,17 @@ namespace RPGMod
                     Notifications[i].index = i;
                     Notifications[i].transform.SetParent(CachedCharacterBody.transform);
                     Notifications[i].GetTitle = () => "QUEST";
-                    Notifications[i].QuestHolder.fadeTime = 1f;
-                    Notifications[i].QuestHolder.duration = 86400f;
+                    Notifications[i].UINotification.fadeTime = 1f;
+                    Notifications[i].UINotification.duration = 86400f;
                     Notifications[i].SetSize(ModConfig.sizeX, ModConfig.sizeY);
-                    if (i == (GlobalDefs.Quests.Count - 1)) {
-                        GlobalDefs.resetUI = false;
+                    if (i == (MainDefs.questsClientData.Count - 1)) {
+                        MainDefs.resetUI = false;
                     }
                 }
 
-                if (GlobalDefs.Quests[i].questInitialised)
+                if (MainDefs.questsClientData[i].questInitialised)
                 {
-                    Notifications[i].SetIcon(BodyCatalog.FindBodyPrefab(GlobalDefs.Quests[i].questTargetName).GetComponent<CharacterBody>().portraitIcon);
+                    Notifications[i].SetIcon(BodyCatalog.FindBodyPrefab(MainDefs.questsClientData[i].questTargetName).GetComponent<CharacterBody>().portraitIcon);
                 }
 
                 if (CachedCharacterBody == null && i < Notifications.Count)
@@ -164,117 +222,63 @@ namespace RPGMod
             }
         }
 
-        // Set Client Handlers
-        public void InitClientHanders()
+        public void CheckQuestStatus(int index)
         {
-            Debug.Log("[RPGMod] Client Handlers Added");
-            NetworkClient client = NetworkManager.singleton.client;
-
-            client.RegisterHandler(msgQuestDrop, OnQuestRecieved);
-            isClientRegistered = true;
-        }
-
-        // Send data message
-        public void SendQuest(QuestMessage Quest)
-        {
-            if (!NetworkServer.active) {
+            if (!NetworkServer.active)
+            {
                 return;
             }
-            NetworkServer.SendToAll(msgQuestDrop, Quest);
-        }
-
-        // Handler function for quest drop message
-        public void OnQuestRecieved(NetworkMessage netMsg) {
-            QuestMessage message = netMsg.ReadMessage<QuestMessage>();
-            messageIndex = -1;
-            for (int i = 0; i < GlobalDefs.Quests.Count; i++) {
-                if (GlobalDefs.Quests[i].questID == message.questID) {
-                    messageIndex = i;
-                };
-            }
-            if (messageIndex == -1) {
-                messageIndex = GlobalDefs.Quests.Count;
-            }
-            Debug.Log(messageIndex);
-            if (message.questInitialised == false)
+            if (MainDefs.questsServerData[index].Progress >= MainDefs.questsServerData[index].Objective)
             {
-                GlobalDefs.Quests.RemoveAt(messageIndex);
-                GlobalDefs.currentIDs.Remove(message.questID);
-                Destroy(Notifications[messageIndex]);
-                Notifications.RemoveAt(messageIndex);
-                if (NetworkServer.active)
+                if (MainDefs.questsClientData[index].questInitialised)
                 {
-                    GlobalDefs.QuestsServerData.RemoveAt(messageIndex);
-                    Debug.Log("Removed serverquestdata and quests");
+                    foreach (var player in PlayerCharacterMasterController.instances)
+                    {
+                        if (player.master.alive)
+                        {
+                            var transform = player.master.GetBody().coreTransform;
+                            if (ModConfig.dropItemsFromPlayers)
+                            {
+                                PickupDropletController.CreatePickupDroplet(MainDefs.questsServerData[index].Drop, transform.position, transform.forward * 10f);
+                            }
+                            else
+                            {
+                                player.master.inventory.GiveItem(MainDefs.questsServerData[index].Drop.itemIndex);
+                            }
+                        }
+                    }
                 }
-                //for (int i = 0; i < GlobalDefs.Quests.Count; i++)
-                //{
-                //    Debug.Log("changing messageIndexes");
-                //    GlobalDefs.Quests[i].questIndex = i;
-                //}
-            }
-            else if (messageIndex < GlobalDefs.Quests.Count)
-            {
-                GlobalDefs.Quests[messageIndex] = message;
-                Debug.Log("Changing message");
-            }
-            else
-            {
-                GlobalDefs.Quests.Add(message);
-                Debug.Log("Adding message");
-            }
-            DisplayQuesting();
-            if (message.questInitialised)
-            {
-                Notifications[messageIndex].GetDescription = () => message.questDescription;
-            }
-        }
-
-       
-
-        // Drops Boss Chest
-        public void DropBoss(SpawnCard spawnCard, Transform transform)
-        {
-            transform.Translate(Vector3.down * 0.5f);
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, Vector3.down, out hit))
-            {
-                transform.Translate(Vector3.down * hit.distance);
-                spawnCard.DoSpawn(transform.position, transform.rotation, null);
+                MainDefs.questsClientData[index].questInitialised = false;
             }
         }
 
         //The Awake() method is run at the very start when the game is initialized.
         public void Awake()
         {
-            Chat.AddMessage("<color=#13d3dd>RPGMod: </color> Loaded Successfully!");
-
             // Refresh values initially
-            ModConfig.RefreshValues(Config, true);
+            ModConfig.ReloadConfig(Config, true);
 
             On.RoR2.Run.Start += (orig, self) =>
             {
-                isLoaded = true;
-                GlobalDefs.questFirst = true;
+                gameStarted = true;
                 orig(self);
             };
 
-            if (ModConfig.isQuesting)
+            if (ModConfig.questingEnabled)
             {
                 On.RoR2.Run.OnClientGameOver += (orig, self, runReport) =>
                 {
-                    GlobalDefs.resetUI = true;
+                    MainDefs.resetUI = true;
                     orig(self, runReport);
                 };
 
                 On.RoR2.Run.OnDisable += (orig, self) =>
                 {
-                    isLoaded = false;
-                    GlobalDefs.Quests = new List<QuestMessage>();
-                    GlobalDefs.QuestsServerData = new List<QuestServerData>();
+                    gameStarted = false;
+                    MainDefs.questsClientData = new List<QuestMessage>();
+                    MainDefs.questsServerData = new List<QuestServerData>();
 
-                    isClientRegistered = false;
-
+                    clientRegistered = false;
                     CachedCharacterBody = null;
 
                     for (int i = 0; i < Notifications.Count; i++)
@@ -285,17 +289,18 @@ namespace RPGMod
                         }
                     }
 
+                    Notifications = new List<Notification>();
+
                     orig(self);
                 };
 
                 On.RoR2.Run.OnServerSceneChanged += (orig, self, sceneName) =>
                 {
-                    for (int i=0; i< GlobalDefs.Quests.Count; i++)
+                    for (int i=0; i< MainDefs.questsClientData.Count; i++)
                     {
-                        GlobalDefs.Quests[i].questInitialised = false;
+                        MainDefs.questsClientData[i].questInitialised = false;
                     }
-                    GlobalDefs.stageChange = true;
-                    GlobalDefs.resetUI = true;
+                    MainDefs.stageChanging = true;
                     orig(self, sceneName);
                 };
             }
@@ -303,7 +308,7 @@ namespace RPGMod
             On.RoR2.SceneDirector.PopulateScene += (orig, self) =>
             {
                 int credit = self.GetFieldValue<int>("interactableCredit");
-                self.SetFieldValue("interactableCredit", (int)(credit * ModConfig.percentSpawns));
+                self.SetFieldValue("interactableCredit", (int)(credit * ModConfig.worldSpawnPercentage));
                 orig(self);
             };
 
@@ -325,51 +330,51 @@ namespace RPGMod
                     GameObject attackerMaster = damageReport.damageInfo.attacker.GetComponent<CharacterBody>().masterObject;
                     CharacterMaster attackerController = attackerMaster.GetComponent<CharacterMaster>();
 
-                    if (ModConfig.isQuesting)
+                    if (ModConfig.questingEnabled)
                     {
-                        for (int i = 0; i < GlobalDefs.Quests.Count; i++)
+                        for (int i = 0; i < MainDefs.questsClientData.Count; i++)
                         {
-                            if (GlobalDefs.QuestsServerData[i].Type == 0 && GlobalDefs.Quests[i].questInitialised == true && enemyBody.GetUserName() == GlobalDefs.Quests[i].questTarget)
+                            if (MainDefs.questsServerData[i].Type == 0 && MainDefs.questsClientData[i].questInitialised == true && enemyBody.GetUserName() == MainDefs.questsClientData[i].questTarget)
                             {
-                                QuestServerData newServerData = GlobalDefs.QuestsServerData[i];
+                                QuestServerData newServerData = MainDefs.questsServerData[i];
                                 newServerData.Progress += 1;
-                                GlobalDefs.QuestsServerData[i] = newServerData;
+                                MainDefs.questsServerData[i] = newServerData;
                                 
-                                GlobalDefs.Quests[i].questDescription = QuestDefinitions.GetDescription(GlobalDefs.Quests[i], GlobalDefs.QuestsServerData[i]);
+                                MainDefs.questsClientData[i].questDescription = QuestDefs.GetDescription(MainDefs.questsClientData[i], MainDefs.questsServerData[i]);
                             }
                             CheckQuestStatus(i);
                         }
-                        for (int i = 0; i < GlobalDefs.Quests.Count; i++)
+                        for (int i = 0; i < MainDefs.questsClientData.Count; i++)
                         {
-                            SendQuest(GlobalDefs.Quests[i]);
+                            SendQuest(MainDefs.questsClientData[i]);
                         }
                     }
 
-                    if (ModConfig.isEnemyDrops)
+                    if (ModConfig.enemyItemDropsEnabled)
                     {
                         bool isElite = enemyBody.isElite || enemyBody.isChampion;
                         bool isBoss = enemyBody.isBoss;
 
                         if (isBoss)
                         {
-                            chance = ModConfig.chanceBoss;
+                            chance = ModConfig.dropChanceBossEnemy;
                         }
                         else
                         {
                             if (isElite)
                             {
-                                chance = ModConfig.chanceElite;
+                                chance = ModConfig.dropChanceEliteEnemy;
                             }
                             else
                             {
-                                chance = ModConfig.chanceNormal;
+                                chance = ModConfig.dropChanceNormalEnemy;
                             }
                         }
 
-                        chance *= ((1 - ModConfig.dropsPlayerScaling) + (ModConfig.dropsPlayerScaling * Run.instance.participatingPlayerCount));
-                        if (ModConfig.gameStartScaling - Run.instance.difficultyCoefficient > 0)
+                        chance *= ((1 - ModConfig.playerChanceScaling) + (ModConfig.playerChanceScaling * Run.instance.participatingPlayerCount));
+                        if (ModConfig.earlyChanceScaling - Run.instance.difficultyCoefficient > 0)
                         {
-                            chance *= (ModConfig.gameStartScaling - (Run.instance.difficultyCoefficient - 1));
+                            chance *= (ModConfig.earlyChanceScaling - (Run.instance.difficultyCoefficient - 1));
                         }
 
                         // rng check
@@ -385,17 +390,17 @@ namespace RPGMod
                                 // Check if enemy is boss, elite or normal
                                 if (isElite)
                                 {
-                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, ModConfig.eliteChanceTier1);
-                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, ModConfig.eliteChanceTier2);
-                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, ModConfig.eliteChanceTier3);
-                                    weightedSelection.AddChoice(Run.instance.availableLunarDropList, ModConfig.eliteChanceTierLunar);
+                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, ModConfig.eliteChanceCommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, ModConfig.eliteChanceUncommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, ModConfig.eliteChanceLegendary);
+                                    weightedSelection.AddChoice(Run.instance.availableLunarDropList, ModConfig.eliteChanceLunar);
                                 }
                                 else
                                 {
-                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, ModConfig.normalChanceTier1);
-                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, ModConfig.normalChanceTier2);
-                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, ModConfig.normalChanceTier3);
-                                    weightedSelection.AddChoice(Run.instance.availableEquipmentDropList, ModConfig.normalChanceTierEquip);
+                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, ModConfig.normalChanceCommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, ModConfig.normalChanceUncommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, ModConfig.normalChanceLegendary);
+                                    weightedSelection.AddChoice(Run.instance.availableEquipmentDropList, ModConfig.normalChanceEquip);
                                 }
                                 // Get a Tier
                                 List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.spawnRng.nextNormalizedFloat);
@@ -414,7 +419,7 @@ namespace RPGMod
                 orig(self, damageReport);
             };
 
-            if (ModConfig.isChests)
+            if (!ModConfig.defaultWorldSpawnsEnabled)
             {
                 // Handles banned scene spawns
                 On.RoR2.ClassicStageInfo.Awake += (orig, self) =>
@@ -439,38 +444,39 @@ namespace RPGMod
 
             }
 
+            Chat.AddMessage("<color=#13d3dd>RPGMod: </color> Loaded Successfully!");
         }
 
         public void Update()
         {
-            if (isLoaded)
+            if (gameStarted)
             {
                 // Checks for quest
-                if (ModConfig.isQuesting)
+                if (ModConfig.questingEnabled)
                 {
                     CheckQuest();
                 }
 
                 // Registers Client Handlers
-                if (!isClientRegistered)
+                if (!clientRegistered)
                 {
-                    InitClientHanders();
+                    StartClientHanders();
                 }
 
                 if (Input.GetKeyDown(KeyCode.F6))
                 {
-                    ModConfig.RefreshValues(Config, false);
+                    // ModConfig.ReloadConfig(Config, false);
+                    MainDefs.stageChanging = true;
                 }
 
                 if (Input.GetKeyDown(KeyCode.F3) && isDebug)
                 {
-                    GetNewQuest();
+                    GetNewQuest(-1);
                 }
 
                 if (Input.GetKeyDown(KeyCode.F4) && isDebug)
                 {
-
-                    QuestMessage message = GlobalDefs.Quests[GlobalDefs.Quests.Count - 1];
+                    QuestMessage message = MainDefs.questsClientData[MainDefs.questsClientData.Count - 1];
                     message.questInitialised = false;
                     SendQuest(message);
                 }
