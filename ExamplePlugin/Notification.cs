@@ -10,34 +10,33 @@
 
     public class UIController : MonoBehaviour
     {
-        public GameObject questUI;
-        public Transform parent;
-        public float startTime;
-        public RectTransform questRect;
-        public RectTransform primaryBarTransform;
-        public Transform iconBorder;
-        public Transform backgroundBorder;
-        public Transform infoBackground;
-        public Transform objectiveIconHolder;
-        public Transform equipIconBorder;
-        public Transform equipIconHolder;
-        public Transform progressBackground;
-        public Transform progressField;
-        public Transform titleField;
-        public Transform progressBarPrimary;
-        public Transform descriptionField;
-        public Transform rewardField;
-        public string questDataDescription;
-        public int objective;
-        public int progress;
+        private GameObject questUI;
+        private Transform parent;
+        private float startTime;
+        private RectTransform questRect;
+        private Transform iconBorder;
+        private Transform backgroundBorder;
+        private Transform infoBackground;
+        private Transform objectiveIconHolder;
+        private Transform equipIconBorder;
+        private Transform equipIconHolder;
+        private Transform progressBackground;
+        private Transform progressField;
+        private Transform titleField;
+        private Transform progressBarPrimary;
+        private Transform descriptionField;
+        private Transform rewardField;
+        private string questDataDescription;
+        private int objective;
+        private int progress;
 
         public int index;
         public Color questColor;
         public Color QuestColor { get { return questColor; } set {
-                //backgroundBorder.GetComponent<Image>().color = value;
-                //iconBorder.GetComponent<Image>().color = value;
-                //progressBarPrimary.GetComponent<Image>().color = value;
-                //questColor = value;
+                backgroundBorder.GetComponent<Image>().color = value;
+                iconBorder.GetComponent<Image>().color = value;
+                progressBarPrimary.GetComponent<Image>().color = value;
+                questColor = value;
             } }
         public Texture ObjectiveIcon { get { return objectiveIconHolder.GetComponent<RawImage>().texture; } set { objectiveIconHolder.GetComponent<RawImage>().texture = value; } }
         public Texture EquipIcon { get { return equipIconHolder.GetComponent<RawImage>().texture; } set { equipIconHolder.GetComponent<RawImage>().texture = value; } }
@@ -46,9 +45,6 @@
         public String Reward { get { return rewardField.GetComponent<TextMeshProUGUI>().text; } set { rewardField.GetComponent<TextMeshProUGUI>().text = value; } }
         public String Progress { get { return progressField.GetComponent<TextMeshProUGUI>().text; } set {
                 progressField.GetComponent<TextMeshProUGUI>().text = value;
-                // float newSizeX = 180 * progress / objective;
-                // primaryBarTransform.sizeDelta = new Vector2(newSizeX, primaryBarTransform.sizeDelta.y);
-                // primaryBarTransform.position = new Vector3(-90 + (newSizeX / 2), primaryBarTransform.position.y, 0);
             } }
 
         public String QuestDataDescription { get { return questDataDescription;  } set {
@@ -61,9 +57,7 @@
                 QuestColor = MainDefs.questColors[int.Parse(data[0])];
                 Description = data[1];
                 Reward = data[2];
-                progress = int.Parse(data[3]);
-                objective = int.Parse(data[4]);
-                Progress = String.Format("{0}/{1}", progress, objective);
+                SetProgressBar(int.Parse(data[3]), int.Parse(data[4]));
                 EquipIcon = Resources.Load<Texture>(data[5]);
                 questDataDescription = value;
             } }
@@ -85,20 +79,24 @@
             equipIconBorder = infoBackground.Find("equipIconBorder");
             equipIconHolder = equipIconBorder.Find("equipIcon");
             progressBackground = infoBackground.Find("progressBackground");
-            progressBarPrimary = infoBackground.Find("progressBarPrimary");
+            progressBarPrimary = progressBackground.Find("progressBarPrimary");
             progressField = progressBackground.Find("progress");
-
-            Debug.Log("Loaded");
         }
 
         public void Start() {
             startTime = Time.time;
             questRect = questUI.GetComponent<RectTransform>();
-            primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
         }
 
-        private void setProgressBar() {
-
+        private void SetProgressBar(int progress, int objective) {
+            Progress = String.Format("{0}/{1}", progress, objective);
+            var primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
+            float newSizeX = 180f * ((float)progress / (float)objective);
+            Debug.Log(progress);
+            Debug.Log(objective);
+            Debug.Log(newSizeX);
+            primaryBarTransform.sizeDelta = new Vector2(newSizeX, primaryBarTransform.sizeDelta.y);
+            Debug.Log(primaryBarTransform.sizeDelta);
         }
 
         public void Update()
