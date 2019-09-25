@@ -131,6 +131,9 @@ namespace RPGMod
                 MainDefs.questsClientData.RemoveAt(messageIndex);
                 Destroy(Notifications[messageIndex]);
                 Notifications.RemoveAt(messageIndex);
+                for (int i = messageIndex; i < Notifications.Count; i++) {
+                    Notifications[i].Index = i;
+                }
                 if (NetworkServer.active)
                 {
                     MainDefs.usedIDs.Remove(message.questID);
@@ -202,7 +205,7 @@ namespace RPGMod
 
                 if (MainDefs.questsClientData[i].questInitialised)
                 {
-                    switch (MainDefs.questsClientData[i].type) {
+                    switch (int.Parse(MainDefs.questsClientData[i].questDescription.Split(',')[0])) {
                         case 0: Notifications[i].ObjectiveIcon = BodyCatalog.FindBodyPrefab(MainDefs.questsClientData[i].questTargetName).GetComponent<CharacterBody>().portraitIcon; break;
                         case 1: Notifications[i].ObjectiveIcon = MainDefs.assetBundle.LoadAsset<Texture>("Assets/coin.png"); break;
                     }
@@ -468,6 +471,7 @@ namespace RPGMod
                     }
                 }
                 orig(self, amount);
+
             };
 
             Chat.AddMessage("<color=#13d3dd>RPGMod: </color> Loaded Successfully!");

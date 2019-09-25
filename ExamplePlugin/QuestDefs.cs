@@ -13,13 +13,13 @@ namespace RPGMod
         public int questObjectiveLimit;
 
         // Builds the string for the quest description
-        public string GetDescription(QuestMessage Quest, QuestServerData ServerData)
+        public string GetDescription(QuestMessage quest, QuestServerData serverData)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine(string.Format("{0},{1},{2},{3},{4},{5}", ServerData.type, 
-                string.Format("{0} {1}{2}",ServerData.objective, Quest.questTarget, Quest.type == 0 ? "s" : ""),
-                string.Format("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGBA(ServerData.drop.GetPickupColor()), Language.GetString(ItemCatalog.GetItemDef(ServerData.drop.itemIndex).nameToken)),
-                ServerData.progress, ServerData.objective, ItemCatalog.GetItemDef(ServerData.drop.itemIndex).pickupIconPath));
+            sb.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},", serverData.type, 
+                string.Format("{0} {1}{2}",serverData.objective, quest.questTarget, serverData.type == 0 ? "s" : ""),
+                string.Format("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGBA(serverData.drop.GetPickupColor()), Language.GetString(ItemCatalog.GetItemDef(serverData.drop.itemIndex).nameToken)),
+                serverData.progress, serverData.objective, ItemCatalog.GetItemDef(serverData.drop.itemIndex).pickupIconPath));
             return sb.ToString();
         }
 
@@ -61,8 +61,6 @@ namespace RPGMod
                 questMessage.questDescription = "bad";
                 return questMessage;
             }
-
-            newServerData.type = questMessage.type;
 
             if (specificSeverDataIndex > -1) {
                 newServerData = MainDefs.questsServerData[specificSeverDataIndex];
@@ -133,7 +131,7 @@ namespace RPGMod
             newServerData.progress = 0;
             newServerData.drop = GetQuestDrop();
 
-            quest.type = 0;
+            newServerData.type = 0;
             quest.questTarget = targetBody.GetUserName();
             quest.questTargetName = targetBody.name;
             quest.questInitialised = true;
@@ -147,7 +145,7 @@ namespace RPGMod
             newServerData.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient) * Run.instance.participatingPlayerCount;
             newServerData.progress = 0;
             newServerData.drop = GetQuestDrop();
-            quest.type = 1;
+            newServerData.type = 1;
             quest.questTargetName = "Textures/AchievementIcons/texPlaceholderAchievement";
             quest.questTarget = "Gold";
             quest.questInitialised = true;

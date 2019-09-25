@@ -12,8 +12,8 @@ namespace RPGMod
         public static bool awaitingSetQuests = false;
         public static bool deleteServerData = true;
         public static short questPort = 1337;
-        public static List<string> questTypes = new List<string>() { "<b>Kill</b>", "<b>Collect</b>" };
-        public static List<Color> questColors = new List<Color>() {  new Color(0.82f, 0, 0), new Color(0.9f, 0.75f, 0) };
+        public static List<string> questTypes = new List<string>() { "KILL", "COLLECT" };
+        public static List<Color> questColors = new List<Color>() {  new Color(0.82f, 0, 0, 0.5f), new Color(0.9f, 0.75f, 0, 0.5f) };
         public static List<QuestMessage> questsClientData = new List<QuestMessage>();
         public static List<QuestServerData> questsServerData = new List<QuestServerData>();
         public static List<int> usedIDs = new List<int>();

@@ -38,6 +38,10 @@
                 progressBarPrimary.GetComponent<Image>().color = value;
                 questColor = value;
             } }
+        public int Index { get { return index; } set {
+                index = value;
+                questRect.position = new Vector3(Screen.width * ModConfig.screenPosX / 100f, (Screen.height * ModConfig.screenPosY / 100f) - (questRect.sizeDelta.y * index), 0);
+            } }
         public Texture ObjectiveIcon { get { return objectiveIconHolder.GetComponent<RawImage>().texture; } set { objectiveIconHolder.GetComponent<RawImage>().texture = value; } }
         public Texture EquipIcon { get { return equipIconHolder.GetComponent<RawImage>().texture; } set { equipIconHolder.GetComponent<RawImage>().texture = value; } }
         public String Title { get { return titleField.GetComponent<TextMeshProUGUI>().text; } set { titleField.GetComponent<TextMeshProUGUI>().text = value; } }
@@ -49,15 +53,20 @@
 
         public String QuestDataDescription { get { return questDataDescription;  } set {
                 String[] data = value.Split(',');
-                foreach (var i in data)
+                for (int i = 0; i < data.Length; i++ )
                 {
-                    Debug.Log(i);
+                    Debug.Log(data[i] + i);
                 }
                 Title = MainDefs.questTypes[int.Parse(data[0])];
                 QuestColor = MainDefs.questColors[int.Parse(data[0])];
                 Description = data[1];
                 Reward = data[2];
-                SetProgressBar(int.Parse(data[3]), int.Parse(data[4]));
+                progress = int.Parse(data[3]);
+                objective = int.Parse(data[4]);
+                Progress = String.Format("{0}/{1}", progress, objective);
+                var primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
+                float newSizeX = 180f * ((float)progress / (float)objective);
+                primaryBarTransform.sizeDelta = new Vector2(newSizeX, primaryBarTransform.sizeDelta.y);
                 EquipIcon = Resources.Load<Texture>(data[5]);
                 questDataDescription = value;
             } }
@@ -88,17 +97,6 @@
             questRect = questUI.GetComponent<RectTransform>();
         }
 
-        private void SetProgressBar(int progress, int objective) {
-            Progress = String.Format("{0}/{1}", progress, objective);
-            var primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
-            float newSizeX = 180f * ((float)progress / (float)objective);
-            Debug.Log(progress);
-            Debug.Log(objective);
-            Debug.Log(newSizeX);
-            primaryBarTransform.sizeDelta = new Vector2(newSizeX, primaryBarTransform.sizeDelta.y);
-            Debug.Log(primaryBarTransform.sizeDelta);
-        }
-
         public void Update()
         {
 
@@ -111,7 +109,7 @@
             float num = (Time.time - startTime) / 0.8f;
             if (num < 1)
             {
-                questRect.position = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, Screen.width * ModConfig.screenPosX / 100f, num), (Screen.height * ModConfig.screenPosY / 100f) - ( questRect.sizeDelta.y * index ), 0);
+                questRect.position = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, Screen.width * ModConfig.screenPosX / 100f, num), (Screen.height * ModConfig.screenPosY / 100f) - (questRect.sizeDelta.y * index ), 0);
             }
         }
 

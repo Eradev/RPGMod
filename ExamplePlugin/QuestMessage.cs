@@ -6,7 +6,6 @@ namespace RPGMod
     public class QuestMessage : MessageBase
     {
         public int questID;
-        public int type;
         public bool questInitialised;
         public string questDescription;
         public string questTarget;
@@ -15,7 +14,6 @@ namespace RPGMod
         public override void Deserialize(NetworkReader reader)
         {
             questID = reader.ReadInt32();
-            type = reader.ReadInt32();
             questInitialised = reader.ReadBoolean();
             questDescription = reader.ReadString();
             questTarget = reader.ReadString();
@@ -25,7 +23,6 @@ namespace RPGMod
         public override void Serialize(NetworkWriter writer)
         {
             writer.Write(questID);
-            writer.Write(type);
             writer.Write(questInitialised);
             writer.Write(questDescription);
             writer.Write(questTarget);
