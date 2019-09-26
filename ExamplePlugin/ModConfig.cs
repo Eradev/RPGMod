@@ -5,6 +5,7 @@ using System.Globalization;
 
 namespace RPGMod
 {
+    // The variables that are accessable by the config.
     public static class ModConfig
     {
         // Chance params
@@ -37,6 +38,8 @@ namespace RPGMod
         public static int questAmountMax;
         public static bool dropItemsFromPlayers;
         public static bool displayQuestsInChat;
+        public static float questCooldown;
+        public static int questCooldownTime;
 
         // Feature params
         public static bool defaultWorldSpawnsEnabled;
@@ -67,9 +70,9 @@ namespace RPGMod
             }
 
             // Chances
-            dropChanceNormalEnemy = ToFloat(Config.Wrap("Chance", "dropChanceNormalEnemy", "Item drop chance for a normal enemy", "9.5").Value);
-            dropChanceEliteEnemy = ToFloat(Config.Wrap("Chance", "dropChanceEliteEnemy", "Item drop chance for an elite enemy", "11.0").Value);
-            dropChanceBossEnemy = ToFloat(Config.Wrap("Chance", "dropChanceBossEnemy", "Item drop chance for a boss", "35.0").Value);
+            dropChanceNormalEnemy = ToFloat(Config.Wrap("Chance", "dropChanceNormalEnemy", "Item drop chance for a normal enemy", "1.5").Value);
+            dropChanceEliteEnemy = ToFloat(Config.Wrap("Chance", "dropChanceEliteEnemy", "Item drop chance for an elite enemy", "2.5").Value);
+            dropChanceBossEnemy = ToFloat(Config.Wrap("Chance", "dropChanceBossEnemy", "Item drop chance for a boss", "10.0").Value);
             questChanceCommon = ToFloat(Config.Wrap("Chance", "questChanceCommon", "Quest reward chance for a common item", "0").Value);
             questChanceUncommon = ToFloat(Config.Wrap("Chance", "questChanceUncommon", "Quest reward chance for a uncommon item", "0.92").Value);
             questChanceLegendary = ToFloat(Config.Wrap("Chance", "questChanceLegendary", "Quest reward chance for a legendary item", "0.08").Value);
@@ -96,6 +99,8 @@ namespace RPGMod
             questAmountMax = Config.Wrap("Questing", "questAmountMax", "The maximum amount of quests", 3).Value;
             dropItemsFromPlayers = Convert.ToBoolean(Config.Wrap("Questing", "dropItemsFromPlayers", "Items drop from player instead of popping up in inventory", "false").Value);
             displayQuestsInChat = Convert.ToBoolean(Config.Wrap("Questing", "displayQuestInChat", "Quests show up in chat (useful when playing with unmodded players)", "true").Value);
+            questCooldownTime = Config.Wrap("Questing", "questCooldown", "The cooldown time for a quest to appear (seconds)", 60).Value;
+            questCooldown = 0 - questCooldownTime;
 
             // Director params
             worldSpawnPercentage = ToFloat(Config.Wrap("Director", "worldSpawnPercentage", "World spawn percentage for the director", "1.0").Value);

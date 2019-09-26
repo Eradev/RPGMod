@@ -9,7 +9,7 @@ namespace RPGMod
         public bool questInitialised;
         public string questDescription;
         public string questTarget;
-        public string questTargetName;
+        public string questIconPath;
 
         public override void Deserialize(NetworkReader reader)
         {
@@ -17,7 +17,7 @@ namespace RPGMod
             questInitialised = reader.ReadBoolean();
             questDescription = reader.ReadString();
             questTarget = reader.ReadString();
-            questTargetName = reader.ReadString();
+            questIconPath = reader.ReadString();
         }
 
         public override void Serialize(NetworkWriter writer)
@@ -26,7 +26,7 @@ namespace RPGMod
             writer.Write(questInitialised);
             writer.Write(questDescription);
             writer.Write(questTarget);
-            writer.Write(questTargetName);
+            writer.Write(questIconPath);
         }
     }
 

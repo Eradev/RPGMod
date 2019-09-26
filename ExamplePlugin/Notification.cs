@@ -1,19 +1,26 @@
 ﻿namespace RPGMod
 {
     using RoR2;
-    using RoR2.UI;
     using System;
-    using System.Reflection;
     using UnityEngine;
     using UnityEngine.UI;
     using TMPro;
 
+    // Controller for the UI used for each quest.
     public class UIController : MonoBehaviour
     {
         private GameObject questUI;
         private Transform parent;
         private float startTime;
+        private float progressStartTime;
+        private bool firstSet = true;
+        private bool animFinished = true;
+        private bool destroy = false;
+        private float newSizeX;
+        private float oldSizeX;
         private RectTransform questRect;
+        private RectTransform primaryBarTransform;
+        private RectTransform secondaryBarTransform;
         private Transform iconBorder;
         private Transform backgroundBorder;
         private Transform infoBackground;
@@ -24,6 +31,7 @@
         private Transform progressField;
         private Transform titleField;
         private Transform progressBarPrimary;
+        private Transform progressBarSecondary;
         private Transform descriptionField;
         private Transform rewardField;
         private string questDataDescription;
@@ -35,7 +43,9 @@
         public Color QuestColor { get { return questColor; } set {
                 backgroundBorder.GetComponent<Image>().color = value;
                 iconBorder.GetComponent<Image>().color = value;
-                progressBarPrimary.GetComponent<Image>().color = value;
+                Color barColor = value;
+                barColor.a = 0.92f;
+                progressBarPrimary.GetComponent<Image>().color = barColor;
                 questColor = value;
             } }
         public int Index { get { return index; } set {
@@ -64,15 +74,21 @@
                 progress = int.Parse(data[3]);
                 objective = int.Parse(data[4]);
                 Progress = String.Format("{0}/{1}", progress, objective);
-                var primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
-                float newSizeX = 180f * ((float)progress / (float)objective);
-                primaryBarTransform.sizeDelta = new Vector2(newSizeX, primaryBarTransform.sizeDelta.y);
+                oldSizeX = secondaryBarTransform.sizeDelta.x;
+                newSizeX = 180f * ((float)progress / (float)objective);
+                if (!firstSet)
+                {
+                    StartProgressAnim();
+                }
+                else {
+                    firstSet = false;
+                }
                 EquipIcon = Resources.Load<Texture>(data[5]);
                 questDataDescription = value;
             } }
 
 
-        public void Awake()
+        private void Awake()
         {
             parent = RoR2Application.instance.mainCanvas.transform;
             questUI = Instantiate(MainDefs.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
@@ -89,22 +105,54 @@
             equipIconHolder = equipIconBorder.Find("equipIcon");
             progressBackground = infoBackground.Find("progressBackground");
             progressBarPrimary = progressBackground.Find("progressBarPrimary");
+            progressBarSecondary = progressBackground.Find("progressBarSecondary");
             progressField = progressBackground.Find("progress");
+
+            primaryBarTransform = progressBarPrimary.GetComponent<RectTransform>();
+            secondaryBarTransform = progressBarSecondary.GetComponent<RectTransform>();
         }
 
-        public void Start() {
+        private void Start() {
             startTime = Time.time;
             questRect = questUI.GetComponent<RectTransform>();
         }
 
-        public void Update()
+        private void StartProgressAnim()
         {
+            progressStartTime = Time.time;
+            animFinished = false;
+        }
+
+        private void UpdateProgressAnim() {
+
+            float num = (Time.time - progressStartTime) / 0.6f;
+            if (num < 1)
+            {
+                secondaryBarTransform.sizeDelta = new Vector2(Mathf.SmoothStep(oldSizeX, newSizeX, num), primaryBarTransform.sizeDelta.y);
+            }
+            num = (Time.time - progressStartTime) / 1;
+            if (num < 1)
+            {
+                primaryBarTransform.sizeDelta = new Vector2(Mathf.SmoothStep(oldSizeX, newSizeX, num), primaryBarTransform.sizeDelta.y);
+            }
+            else {
+                animFinished = true;
+            }
+
+        }
+
+        private void Update()
+        {
+            if (!animFinished)
+            {
+                UpdateProgressAnim();
+            }
 
             if (questUI == null)
             {
                 Destroy(this);
                 return;
-            } 
+            }
 
             float num = (Time.time - startTime) / 0.8f;
             if (num < 1)
@@ -116,6 +164,7 @@
         private void OnDestroy()
         {
             Destroy(questUI);
+            destroy = true;
         }
     }
 }
