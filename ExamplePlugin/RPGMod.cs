@@ -259,7 +259,7 @@ sealed class RPGMod : BaseUnityPlugin
         {
             On.RoR2.Run.OnClientGameOver += (orig, self, runReport) =>
             {
-                MainDefs.resetUI = true;
+                DestroyUIInstances();
                 orig(self, runReport);
             };
 
@@ -297,14 +297,14 @@ sealed class RPGMod : BaseUnityPlugin
 
         On.RoR2.HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride, damageType) =>
         {
-            if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().master.name == "EngiTurretMaster(Clone)")
+            if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().master.name == "EngiTurretMaster(Clone)") // TODO: Fix Gauss Turret
             {
                 isSuicide = true;
             }
             orig(self, killerOverride, inflictorOverride, damageType);
         };
 
-        // Death drop hanlder
+        // Death drop handler
         On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
         {
             if (!isSuicide) {
@@ -337,7 +337,7 @@ sealed class RPGMod : BaseUnityPlugin
                     }
 
                     if (enemyBody.isElite) {
-                        Questing.Listener.UpdateQuest(1, 5, "Elites");
+                        Questing.Listener.UpdateQuest(1, 4, "Elites");
                     }
 
                     chance *= ((1 - Questing.Config.playerChanceScaling) + (Questing.Config.playerChanceScaling * Run.instance.participatingPlayerCount));
@@ -424,19 +424,11 @@ sealed class RPGMod : BaseUnityPlugin
             orig(self);
         };
 
-        On.RoR2.Skills.SkillDef.OnExecute += (orig, self, skillSlot) =>
-        {
-            if ((new SkillLocator().FindSkillSlot(skillSlot) == SkillSlot.Secondary)) {
-                Questing.Listener.UpdateQuest(1, 3, "Abilities");
-            }
-            orig(self, skillSlot);
-        };
-
         On.RoR2.HealthComponent.Heal += (orig, self, amount, procChainMask, nonRegen) =>
         {
             if (self.body.isPlayerControlled)
             {
-                Questing.Listener.UpdateQuest((int)amount, 4, "Damage");
+                Questing.Listener.UpdateQuest((int)amount, 3, "Damage");
             }
             return orig(self, amount, procChainMask, nonRegen);
         };
@@ -448,7 +440,7 @@ sealed class RPGMod : BaseUnityPlugin
     {
         if (GameStarted)
         {
-            // Checks for quest
+
             if (Questing.Config.questingEnabled)
             {
                 ManageQuests();
@@ -460,12 +452,14 @@ sealed class RPGMod : BaseUnityPlugin
                 StartClientHanders();
             }
 
+            // Reload config key
             if (Input.GetKeyDown(KeyCode.F6))
             {
                 Questing.Config.Load(Config, true);
                 ResetUI();
             }
 
+            // Debug Keys
             if (MainDefs.debugMode)
             {
                 if (Input.GetKeyDown(KeyCode.F3))
@@ -486,4 +480,4 @@ sealed class RPGMod : BaseUnityPlugin
 }
 
 
-} // namepsace RPGMod
+} // namepspace RPGMod

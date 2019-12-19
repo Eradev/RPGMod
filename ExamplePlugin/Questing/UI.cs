@@ -66,6 +66,7 @@ public class UI : MonoBehaviour
     }
     public Texture ObjectiveIcon { get { return objectiveIconHolder.GetComponent<RawImage>().texture; } set { objectiveIconHolder.GetComponent<RawImage>().texture = value; } }
     public Texture EquipIcon { get { return equipIconHolder.GetComponent<RawImage>().texture; } set { equipIconHolder.GetComponent<RawImage>().texture = value; } }
+    public Color EquipBorder { get { return equipIconHolder.GetComponent<RawImage>().texture; } set { equipIconHolder.GetComponent<RawImage>().texture = value; } }
     public String Title { get { return titleField.GetComponent<TextMeshProUGUI>().text; } set { titleField.GetComponent<TextMeshProUGUI>().text = value; } }
     public String Description { get { return descriptionField.GetComponent<TextMeshProUGUI>().text; } set { descriptionField.GetComponent<TextMeshProUGUI>().text = value; } }
     public String Reward { get { return rewardField.GetComponent<TextMeshProUGUI>().text; } set { rewardField.GetComponent<TextMeshProUGUI>().text = value; } }
@@ -155,7 +156,7 @@ public class UI : MonoBehaviour
         {
             secondaryBarTransform.sizeDelta = new Vector2(Mathf.SmoothStep(oldSizeX, newSizeX, num), primaryBarTransform.sizeDelta.y);
         }
-        num = (Time.time - progressStartTime) / 1;
+        num = (Time.time - (progressStartTime + 0.2f)) / 0.8f;
         if (num < 1)
         {
             primaryBarTransform.sizeDelta = new Vector2(Mathf.SmoothStep(oldSizeX, newSizeX, num), primaryBarTransform.sizeDelta.y);

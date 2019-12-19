@@ -1,7 +1,5 @@
 ﻿using BepInEx.Configuration;
 using RoR2;
-using System;
-using System.Globalization;
 
 namespace RPGMod {
 namespace Questing {
@@ -53,16 +51,6 @@ public class Config
     public static string[] bannedDirectorSpawns;
     public static float worldSpawnPercentage = 1.0f;
     public static short questPort;
-
-    // Converts string config to a float
-    //private static float ToFloat(string configline)
-    //{
-    //    if (float.TryParse(configline, NumberStyles.Any, CultureInfo.InvariantCulture, out float x))
-    //    {
-    //        return x;
-    //    }
-    //    return 0f;
-    //}
 
     // Refreshes the config values from the config
     public static void Load(ConfigFile config, bool reload)

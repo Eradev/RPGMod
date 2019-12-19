@@ -10,9 +10,9 @@ namespace Questing {
 
 static class Quest
 {
-
-    public static System.Random random = new System.Random();
-    public static int questObjectiveLimit;
+    
+    private static System.Random random = new System.Random();
+    private static int QuestObjectiveLimit { get; set; }
 
     // Builds the quest description used for messaging data accross clients.
     public static string GetDescription(ClientMessage quest, ServerMessage serverData)
@@ -36,11 +36,11 @@ static class Quest
     // Handles creating a new quest.
     public static ClientMessage GetQuest(int specificServerDataIndex = -1)
     {
-        questObjectiveLimit = (int)Math.Round(Config.questObjectiveMin * Run.instance.compensatedDifficultyCoefficient);
+        QuestObjectiveLimit = (int)Math.Round(Config.questObjectiveMin * Run.instance.compensatedDifficultyCoefficient);
 
-        if (questObjectiveLimit >= Config.questObjectiveMax)
+        if (QuestObjectiveLimit >= Config.questObjectiveMax)
         {
-            questObjectiveLimit = Config.questObjectiveMax;
+            QuestObjectiveLimit = Config.questObjectiveMax;
         }
 
         ClientMessage questMessage = new ClientMessage();
@@ -90,10 +90,8 @@ static class Quest
                 case 1:
                     newServerData.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient);
                     break;
+                // Heal Quest
                 case 3:
-                    newServerData.objective *= 3;
-                    break;
-                case 4:
                     int max = 0;
                     foreach (var player in PlayerCharacterMasterController.instances)
                     {
@@ -187,7 +185,7 @@ static class Quest
 
         ServerMessage newServerData = new ServerMessage
         {
-            objective = random.Next(Config.questObjectiveMin, questObjectiveLimit),
+            objective = random.Next(Config.questObjectiveMin, QuestObjectiveLimit),
             progress = 0,
             drop = GetQuestDrop(),
             type = type
