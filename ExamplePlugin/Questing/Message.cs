@@ -35,7 +35,7 @@ public class ClientMessage : MessageBase
 // All server side data
 public struct ServerMessage
 {
-    public RoR2.PickupIndex drop;
+    public RoR2.PickupDef drop;
     public int objective;
     public int progress;
     public int type;

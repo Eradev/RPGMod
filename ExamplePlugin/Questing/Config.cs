@@ -11,9 +11,9 @@ namespace Questing {
 public class Config
 {
     // Chance params
-    public static float dropChanceNormalEnemy;
-    public static float dropChanceEliteEnemy;
-    public static float dropChanceBossEnemy;
+    public static float normalDropChance;
+    public static float eliteDropChance;
+    public static float bossDropChance;
     public static float questChanceCommon;
     public static float questChanceUncommon;
     public static float questChanceLegendary;
@@ -29,10 +29,10 @@ public class Config
     public static float playerChanceScaling;
 
     // UI params
-    public static int screenPosX;
-    public static int screenPosY;
-    public static int sizeX;
-    public static int sizeY;
+    public static float xPositionUI;
+    public static float yPositionUI;
+    public static int widthUI;
+    public static int heightUI;
 
     // Questing params
     public static int questObjectiveMin;
@@ -55,14 +55,14 @@ public class Config
     public static short questPort;
 
     // Converts string config to a float
-    private static float ToFloat(string configline)
-    {
-        if (float.TryParse(configline, NumberStyles.Any, CultureInfo.InvariantCulture, out float x))
-        {
-            return x;
-        }
-        return 0f;
-    }
+    //private static float ToFloat(string configline)
+    //{
+    //    if (float.TryParse(configline, NumberStyles.Any, CultureInfo.InvariantCulture, out float x))
+    //    {
+    //        return x;
+    //    }
+    //    return 0f;
+    //}
 
     // Refreshes the config values from the config
     public static void Load(ConfigFile config, bool reload)
@@ -73,49 +73,52 @@ public class Config
         }
 
         // Chances
-        dropChanceNormalEnemy = config.Bind<float>(new ConfigDefinition("Chances","dropChanceNormalEnemy"), 1.5f, new ConfigDescription("Item drop chance for a normal enemy")).Value;
-        dropChanceEliteEnemy = ToFloat(config.Wrap("Chance", "dropChanceEliteEnemy", "Item drop chance for an elite enemy", "2.5").Value);
-        dropChanceBossEnemy = ToFloat(config.Wrap("Chance", "dropChanceBossEnemy", "Item drop chance for a boss", "10.0").Value);
-        questChanceCommon = ToFloat(config.Wrap("Chance", "questChanceCommon", "Quest reward chance for a common item", "0").Value);
-        questChanceUncommon = ToFloat(config.Wrap("Chance", "questChanceUncommon", "Quest reward chance for a uncommon item", "0.92").Value);
-        questChanceLegendary = ToFloat(config.Wrap("Chance", "questChanceLegendary", "Quest reward chance for a legendary item", "0.08").Value);
-        eliteChanceCommon = ToFloat(config.Wrap("Chance", "eliteChanceCommon", "Elite enemy common item drop chance", "0.45").Value);
-        eliteChanceUncommon = ToFloat(config.Wrap("Chance", "eliteChanceUncommon", "Elite enemy uncommon item drop chance", "0.2").Value);
-        eliteChanceLegendary = ToFloat(config.Wrap("Chance", "eliteChanceLegendary", "Elite enemy legendary item drop chance", "0.1").Value);
-        eliteChanceLunar = ToFloat(config.Wrap("Chance", "eliteChanceLunar", "Elite enemy lunar item drop chance", "0.1").Value);
-        normalChanceCommon = ToFloat(config.Wrap("Chance", "normalChanceCommon", "Normal enemy common item drop chance", "0.9").Value);
-        normalChanceUncommon = ToFloat(config.Wrap("Chance", "normalChanceUncommon", "Normal enemy uncommon item drop chance", "0.1").Value);
-        normalChanceLegendary = ToFloat(config.Wrap("Chance", "normalChanceLegendary", "Normal enemy legendary item drop chance", "0.01").Value);
-        normalChanceEquip = ToFloat(config.Wrap("Chance", "normalChanceEquip", "Normal enemy equipment item drop chance", "0.1").Value);
-        playerChanceScaling = ToFloat(config.Wrap("Chance", "playerChanceScaling", "The percentage chance overall increase per player (helps with player scaling)", "0.35").Value);
-        earlyChanceScaling = ToFloat(config.Wrap("Chance", "earlyChanceScaling", "Percentage chance increase for the early stage of the game", "1.5").Value);
+        normalDropChance = config.Bind<float>(new ConfigDefinition("Chances","normalDropChance"), 1.5f, new ConfigDescription("Item drop chance for a normal enemy")).Value;
+        eliteDropChance = config.Bind<float>(new ConfigDefinition("Chances", "eliteDropChance"), 2.5f, new ConfigDescription("Item drop chance for an elite enemy")).Value;
+        bossDropChance = config.Bind<float>(new ConfigDefinition("Chances", "bossDropChance"), 10.0f, new ConfigDescription("Item drop chance for a boss")).Value;
+        questChanceCommon = config.Bind<float>(new ConfigDefinition("Chances", "questChanceCommon"), 0.0f, new ConfigDescription("Chance for a quest reward to be a common item")).Value / 100;
+        questChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "questChanceUncommon"), 92.0f, new ConfigDescription("Chance for a quest reward to be a uncommon item")).Value / 100;
+        questChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "questChanceLegendary"), 8.0f, new ConfigDescription("Chance for a quest reward to be a legendary item")).Value / 100;
+        eliteChanceCommon = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceCommon"), 45.0f, new ConfigDescription("Elite enemy common item drop chance")).Value / 100;
+        eliteChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceUncommon"), 20.0f, new ConfigDescription("Elite enemy uncommon item drop chance")).Value / 100;
+        eliteChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceLegendary"), 8.0f, new ConfigDescription("Elite enemy legendary item drop chance")).Value / 100;
+        eliteChanceLunar = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceLunar"), 10.0f, new ConfigDescription("Elite enemy lunar item drop chance")).Value / 100;
+        normalChanceCommon = config.Bind<float>(new ConfigDefinition("Chances", "normalChanceCommon"), 90.0f, new ConfigDescription("Normal enemy common item drop chance")).Value / 100;
+        normalChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "normalChanceUncommon"), 10.0f, new ConfigDescription("Normal enemy uncommon item drop chance")).Value / 100;
+        normalChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "normalChanceLegendary"), 0.0f, new ConfigDescription("Normal enemy legendary item drop chance")).Value / 100;
+        normalChanceEquip = config.Bind<float>(new ConfigDefinition("Chances", "normalChanceEquip"), 10.0f, new ConfigDescription("Normal enemy equipment item drop chance")).Value / 100;
+        playerChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "playerChanceScaling"), 35.0f, new ConfigDescription("The percentage chance overall increase per player (helps with player scaling)")).Value / 100;
+        earlyChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "earlyChanceScaling"), 150.0f, new ConfigDescription("Percentage chance increase for the early stage of the game")).Value / 100;
 
         // UI params
-        screenPosX = config.Wrap("UI", "screenPosX", "UI location on the x axis (percentage of screen width)", 89).Value;
-        screenPosY = config.Wrap("UI", "screenPosY", "UI location on the y axis (percentage of screen height)", 50).Value;
-        sizeX = config.Wrap("UI", "sizeX", "Size of UI on the x axis (pixels)", 300).Value;
-        sizeY = config.Wrap("UI", "sizeY", "Size of UI on the x axis (pixels)", 100).Value;
+        xPositionUI = config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 89.0f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value / 100;
+        yPositionUI = config.Bind<float>(new ConfigDefinition("UI", "yPositionUI"), 50.0f, new ConfigDescription("UI location on the y axis (percentage of screen height)")).Value / 100;
+        widthUI = config.Bind<int>(new ConfigDefinition("UI", "widthUI"), 300, new ConfigDescription("Width of UI (pixels)")).Value;
+        heightUI = config.Bind<int>(new ConfigDefinition("UI", "heightUI"), 100, new ConfigDescription("Height of UI (pixels)")).Value;
 
         // Questing params
-        questObjectiveMin = config.Wrap("Questing", "questObjectiveMin", "Minimum quest objective", 5).Value; // Needs changing for kills
-        questObjectiveMax = config.Wrap("Questing", "questObjectiveMax", "Maximum quest objective", 20).Value; // Needs changing for kills
-        questAmountMax = config.Wrap("Questing", "questAmountMax", "The maximum amount of quests", 3).Value;
-        dropItemsFromPlayers = Convert.ToBoolean(config.Wrap("Questing", "dropItemsFromPlayers", "Items drop from player instead of popping up in inventory", "false").Value);
-        displayQuestsInChat = Convert.ToBoolean(config.Wrap("Questing", "displayQuestInChat", "Quests show up in chat (useful when playing with unmodded players)", "true").Value);
-        questCooldownTime = config.Wrap("Questing", "questCooldown", "The cooldown time for a quest to appear (seconds)", 60).Value;
-        questCooldown = 0 - questCooldownTime;
+        questObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMin"), 5, new ConfigDescription("Minimum quest objective")).Value; // Needs changing for kills
+        questObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMax"), 20, new ConfigDescription("Maximum quest objective")).Value; // Needs changing for kills
+        questAmountMax = config.Bind<int>(new ConfigDefinition("Questing", "questAmountMax"), 3, new ConfigDescription("The maximum amount of quests")).Value;
+        dropItemsFromPlayers = config.Bind<bool>(new ConfigDefinition("Questing", "dropItemsFromPlayers"), false, new ConfigDescription("Items drop from player instead of popping up in inventory")).Value;
+        displayQuestsInChat = config.Bind<bool>(new ConfigDefinition("Questing", "displayQuestInChat"), true, new ConfigDescription("Quests show up in chat (useful when playing with unmodded players)")).Value;
+        questCooldownTime = config.Bind<int>(new ConfigDefinition("Questing", "questCooldown"), 60, new ConfigDescription("The cooldown time for a quest to appear (seconds)")).Value;
 
         // Director params
-        worldSpawnPercentage = ToFloat(config.Wrap("Director", "worldSpawnPercentage", "World spawn percentage for the director", "1.0").Value);
-        bannedDirectorSpawns = config.Wrap("Director", "bannedDirectorSpawns", "A comma seperated list of banned spawns for the director", "Chest,TripleShop,Chance,Equipment,Blood").Value.Split(',');
-        defaultWorldSpawnsEnabled = Convert.ToBoolean(config.Wrap("Director", "defaultWorldSpawnsEnabled", "Whether or not to use default world spawns or banned spawns list", "true").Value);
+        worldSpawnPercentage = config.Bind<float>(new ConfigDefinition("Director", "worldSpawnPercentage"), 100.0f, new ConfigDescription("World spawn percentage for the director")).Value / 100;
+        bannedDirectorSpawns = config.Bind<string>(new ConfigDefinition("Director", "bannedDirectorSpawns"), "Chest,TripleShop,Chance,Equipment,Blood", new ConfigDescription("A comma seperated list of banned spawns for the director")).Value.Split(',');
+        defaultWorldSpawnsEnabled = config.Bind<bool>(new ConfigDefinition("Director", "defaultWorldSpawnsEnabled"), true, new ConfigDescription("Whether or not to use default world spawns or banned spawns list")).Value;
 
         // Feature params
-        questingEnabled = Convert.ToBoolean(config.Wrap("Features", "questingEnabled", "Quests enabled", "true").Value);
-        enemyItemDropsEnabled = Convert.ToBoolean(config.Wrap("Features", "enemyItemDropsEnabled", "Enemies drop items", "true").Value);
-        restartQuestsOnStageChange = Convert.ToBoolean(config.Wrap("Features", "restartQuestsOnStageChange", "Quests reset on stage change", "false").Value);
+        questingEnabled = config.Bind<bool>(new ConfigDefinition("Features", "questingEnabled"), true, new ConfigDescription("Quests enabled")).Value;
+        enemyItemDropsEnabled = config.Bind<bool>(new ConfigDefinition("Features", "enemyItemDropsEnabled"), true, new ConfigDescription("Enemies drop items")).Value;
+        restartQuestsOnStageChange = config.Bind<bool>(new ConfigDefinition("Features", "restartQuestsOnStageChange"), false, new ConfigDescription("Quests reset on stage change")).Value;
 
         questPort = config.Bind<short>(new ConfigDefinition("Networking","questPort"), 1337, new ConfigDescription("The port used for the quest networking")).Value;
+
+        if (!reload) {
+            questCooldown = 0 - questCooldownTime;
+        }
 
         Chat.AddMessage("<color=#13d3dd>RPGMod: </color> config loaded");
     }

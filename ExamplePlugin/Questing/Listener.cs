@@ -46,7 +46,7 @@ public static class Listener
                     var transform = player.master.GetBody().coreTransform;
                     if (Config.dropItemsFromPlayers)
                     {
-                        PickupDropletController.CreatePickupDroplet(MainDefs.QuestServerMessages[index].drop, transform.position, transform.forward * 10f);
+                        PickupDropletController.CreatePickupDroplet(MainDefs.QuestServerMessages[index].drop.pickupIndex, transform.position, transform.forward * 10f);
                     }
                     else
                     {

@@ -17,7 +17,7 @@ public class UI : MonoBehaviour
     private float progressStartTime;
     private bool firstSet = true;
     private bool animFinished = true;
-    private bool destroy = false;
+    //private bool destroy = false;
     private float newSizeX;
     private float oldSizeX;
     private RectTransform questRect;
@@ -61,7 +61,7 @@ public class UI : MonoBehaviour
         set
         {
             index = value;
-            questRect.position = new Vector3(Screen.width * Questing.Config.screenPosX / 100f, (Screen.height * Questing.Config.screenPosY / 100f) - (questRect.sizeDelta.y * index), 0);
+            questRect.position = new Vector3(Screen.width * Questing.Config.xPositionUI, (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), 0);
         }
     }
     public Texture ObjectiveIcon { get { return objectiveIconHolder.GetComponent<RawImage>().texture; } set { objectiveIconHolder.GetComponent<RawImage>().texture = value; } }
@@ -183,14 +183,14 @@ public class UI : MonoBehaviour
         float num = (Time.time - startTime) / 0.8f;
         if (num < 1)
         {
-            questRect.position = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, Screen.width * Questing.Config.screenPosX / 100f, num), (Screen.height * Questing.Config.screenPosY / 100f) - (questRect.sizeDelta.y * index), 0);
+            questRect.position = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, Screen.width * Questing.Config.xPositionUI, num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), 0);
         }
     }
 
     private void OnDestroy()
     {
         Destroy(questUI);
-        destroy = true;
+        //destroy = true;
     }
 
 

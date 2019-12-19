@@ -19,7 +19,7 @@ static class Quest
     {
         return string.Format("{0},{1},{2},{3},{4},{5}", serverData.type,
             string.Format("{0} {1}{2}", serverData.objective, quest.target, serverData.type == 0 ? "s" : ""),
-            string.Format("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGBA(serverData.drop.GetPickupColor()), Language.GetString(ItemCatalog.GetItemDef(serverData.drop.itemIndex).nameToken)),
+            string.Format("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGBA(serverData.drop.baseColor), Language.GetString(ItemCatalog.GetItemDef(serverData.drop.itemIndex).nameToken)),
             serverData.progress, serverData.objective, ItemCatalog.GetItemDef(serverData.drop.itemIndex).pickupIconPath);
     }
 
@@ -132,7 +132,7 @@ static class Quest
                 newServerData.objective,
                 questMessage.target,
                 newServerData.type == 0 ? "s" : "",
-                ColorUtility.ToHtmlStringRGBA(newServerData.drop.GetPickupColor()),
+                ColorUtility.ToHtmlStringRGBA(newServerData.drop.baseColor),
                 Language.GetString(ItemCatalog.GetItemDef(newServerData.drop.itemIndex).nameToken));
 
             Chat.SendBroadcastChat(message);
@@ -161,7 +161,7 @@ static class Quest
     }
 
     // Gets the drop for the quest
-    public static PickupIndex GetQuestDrop()
+    public static PickupDef GetQuestDrop()
     {
         WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>(8);
 
@@ -172,7 +172,7 @@ static class Quest
         List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.spawnRng.nextNormalizedFloat);
         PickupIndex item = list[Run.instance.spawnRng.RangeInt(0, list.Count)];
 
-        return item;
+        return PickupCatalog.GetPickupDef(item);
     }
 
     // A generic quest creator for non unique quest types.

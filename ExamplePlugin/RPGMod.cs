@@ -18,6 +18,7 @@ sealed class RPGMod : BaseUnityPlugin
 {
     // Attributes
     private bool GameStarted { get; set; }
+    private bool isSuicide { get; set; }
     private bool ClientRegistered { get; set; }
     private CharacterBody CachedCharacterBody { get; set; }
     private List<Questing.UI> UIInstances { get; set; }
@@ -25,6 +26,7 @@ sealed class RPGMod : BaseUnityPlugin
     // Methods
     private RPGMod() { // Default Constructor
         GameStarted = false;
+        isSuicide = false;
         UIInstances = new List<Questing.UI>();
     }
 
@@ -185,10 +187,10 @@ sealed class RPGMod : BaseUnityPlugin
                     if (MainDefs.debugMode)
                     {
                         Debug.Log(CachedCharacterBody);
-                        Debug.Log(Questing.Config.sizeX);
-                        Debug.Log(Questing.Config.sizeY);
-                        Debug.Log(Screen.width * Questing.Config.screenPosX / 100f);
-                        Debug.Log(Screen.height * Questing.Config.screenPosY / 100f);
+                        Debug.Log(Questing.Config.widthUI);
+                        Debug.Log(Questing.Config.heightUI);
+                        Debug.Log(Screen.width * Questing.Config.xPositionUI);
+                        Debug.Log(Screen.height * Questing.Config.yPositionUI);
                         Debug.Log(MainDefs.QuestClientMessages[i].description);
                     }
 
@@ -293,19 +295,19 @@ sealed class RPGMod : BaseUnityPlugin
             orig(self);
         };
 
-        //On.RoR2.HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride) =>
-        //{
-        //    if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().master.name == "EngiTurretMaster(Clone)")
-        //    {
-        //        isSuicide = true;
-        //    }
-        //    orig(self, killerOverride, inflictorOverride);
-        //};
+        On.RoR2.HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride, damageType) =>
+        {
+            if (self.gameObject.GetComponent<CharacterBody>().isBoss || self.gameObject.GetComponent<CharacterBody>().master.name == "EngiTurretMaster(Clone)")
+            {
+                isSuicide = true;
+            }
+            orig(self, killerOverride, inflictorOverride, damageType);
+        };
 
         // Death drop hanlder
         On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
         {
-            if (true) {
+            if (!isSuicide) {
                 float chance;
                 CharacterBody enemyBody = damageReport.victimBody;
                 GameObject attackerMaster = damageReport.damageInfo.attacker.GetComponent<CharacterBody>().masterObject;
@@ -320,17 +322,17 @@ sealed class RPGMod : BaseUnityPlugin
 
                     if (isBoss)
                     {
-                        chance = Questing.Config.dropChanceBossEnemy;
+                        chance = Questing.Config.bossDropChance;
                     }
                     else
                     {
                         if (isElite)
                         {
-                            chance = Questing.Config.dropChanceEliteEnemy;
+                            chance = Questing.Config.eliteDropChance;
                         }
                         else
                         {
-                            chance = Questing.Config.dropChanceNormalEnemy;
+                            chance = Questing.Config.normalDropChance;
                         }
                     }
 
@@ -381,7 +383,7 @@ sealed class RPGMod : BaseUnityPlugin
             }
             else
             {
-                //isSuicide = false;
+                isSuicide = false;
             }
             orig(self, damageReport);
         };
@@ -466,17 +468,17 @@ sealed class RPGMod : BaseUnityPlugin
 
             if (MainDefs.debugMode)
             {
-                //if (Input.GetKeyDown(KeyCode.F3))
-                //{
-                //    GetNewQuest();
-                //}
+                if (Input.GetKeyDown(KeyCode.F3))
+                {
+                    GetNewQuest();
+                }
 
-                //if (Input.GetKeyDown(KeyCode.F4))
-                //{
-                //    QuestMessage message = MainDefs.QuestClientMessages.Last();
-                //    message.initialised = false;
-                //    Quest.SendQuest(message);
-                //}
+                if (Input.GetKeyDown(KeyCode.F4))
+                {
+                    Questing.ClientMessage message = MainDefs.QuestClientMessages.Last();
+                    message.initialised = false;
+                    Questing.Quest.SendQuest(message);
+                }
             }
 
         }
