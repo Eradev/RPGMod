@@ -1,5 +1,5 @@
-﻿using BepInEx.Configuration;
-using RoR2;
+﻿using RoR2;
+using BepInEx.Configuration;
 
 namespace RPGMod {
 namespace Questing {
@@ -38,7 +38,6 @@ public class Config
     public static int questAmountMax;
     public static bool dropItemsFromPlayers;
     public static bool displayQuestsInChat;
-    public static float questCooldown;
     public static int questCooldownTime;
 
     // Feature params
@@ -104,14 +103,10 @@ public class Config
 
         questPort = config.Bind<short>(new ConfigDefinition("Networking","questPort"), 1337, new ConfigDescription("The port used for the quest networking")).Value;
 
-        if (!reload) {
-            questCooldown = 0 - questCooldownTime;
-        }
-
-        Chat.AddMessage("<color=#13d3dd>RPGMod: </color> config loaded");
+        Chat.AddMessage("<color=#13d3dd>RPGMod: </color> Config loaded");
     }
 }
 
 
-}
-}
+} // namespace Questing
+} // namespace RPGMod

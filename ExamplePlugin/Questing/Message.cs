@@ -41,5 +41,5 @@ public struct ServerMessage
     public int type;
 }
 
-}
-}
+} // namespace Questing
+} // namespace RPGMod

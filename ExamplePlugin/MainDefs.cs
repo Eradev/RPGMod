@@ -7,8 +7,7 @@ namespace RPGMod
     {
         public static readonly bool debugMode = true;
         public static AssetBundle assetBundle { get; set; }
-        public static bool stageChanging { get; set; } = false;
-        public static bool awaitingSetQuests { get; set; } = false;
+        public static bool AwaitingDefinedQuests { get; set; } = false;
         public static bool deleteServerData { get; set; } = true;
 
         public static List<string> questTypes = new List<string>() { "KILL", "COLLECT", "OPEN", "HEAL", "KILL" };

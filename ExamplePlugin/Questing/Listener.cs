@@ -1,6 +1,5 @@
 ﻿using RoR2;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace RPGMod {
 namespace Questing {
@@ -8,7 +7,6 @@ namespace Questing {
 
 public static class Listener
 {
-
     // Updates the relevant quest according to the parameters.
     public static void UpdateQuest(int value, int type, string target)
     {
