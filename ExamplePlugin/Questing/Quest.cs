@@ -161,7 +161,8 @@ namespace RPGMod
                 return PickupCatalog.GetPickupDef(item);
             }
 
-            public static void DisplayQuestInChat(ClientMessage clientMessage, ServerMessage serverMessage) {
+            public static void DisplayQuestInChat(ClientMessage clientMessage, ServerMessage serverMessage)
+            {
                 Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
 
                 message.baseToken = string.Format("{0} {1} {2}{3} to receive: <color=#{4}>{5}</color>",
@@ -195,8 +196,6 @@ namespace RPGMod
 
                 return (quest, newServerData);
             }
-
-
         }
     } // namespace Questing
 } // namespace RPGMod

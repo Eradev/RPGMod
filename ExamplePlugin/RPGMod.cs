@@ -52,13 +52,15 @@ namespace RPGMod
                     MainDefs.deleteServerData = true;
                 }
             }
-            else if (QuestReady()) {
+            else if (QuestReady())
+            {
                 // Generates a new generic quest
                 GetNewQuest();
             };
         }
 
-        private bool QuestReady() { 
+        private bool QuestReady()
+        {
             return (MainDefs.QuestClientMessages.Count < Questing.Config.questAmountMax) && ((Time.time - QuestCooldown) / Questing.Config.questCooldownTime > 1);
         }
 
@@ -277,13 +279,13 @@ namespace RPGMod
                         if (MainDefs.QuestServerMessages.Count > 0)
                         {
                             MainDefs.deleteServerData = false;
-                            MainDefs.AwaitingDefinedQuests = true;
                             for (int i = 0; i < MainDefs.QuestServerMessages.Count; i++)
                             {
                                 MainDefs.QuestClientMessages[i].initialised = false;
                                 Questing.Quest.SendQuest(MainDefs.QuestClientMessages[i]);
                             }
                         }
+                        MainDefs.AwaitingDefinedQuests = true;
                     }
 
                     orig(self, sceneName);
