@@ -1,4 +1,5 @@
 ﻿using UnityEngine.Networking;
+using RoR2;
 
 namespace RPGMod
 {
@@ -7,8 +8,18 @@ namespace RPGMod
         // Quest Message that gets sent to all clients
         public class ClientMessage : MessageBase
         {
+            public ClientMessage() {
+                description = "bad";
+                iconPath = "custom";
+                active = false;
+            }
+
+            public ClientMessage(string target) : this() {
+                this.target = target;
+            }
+
             public int id;
-            public bool initialised;
+            public bool active;
             public string description;
             public string target;
             public string iconPath;
@@ -16,7 +27,7 @@ namespace RPGMod
             public override void Deserialize(NetworkReader reader)
             {
                 id = reader.ReadInt32();
-                initialised = reader.ReadBoolean();
+                active = reader.ReadBoolean();
                 description = reader.ReadString();
                 target = reader.ReadString();
                 iconPath = reader.ReadString();
@@ -25,7 +36,7 @@ namespace RPGMod
             public override void Serialize(NetworkWriter writer)
             {
                 writer.Write(id);
-                writer.Write(initialised);
+                writer.Write(active);
                 writer.Write(description);
                 writer.Write(target);
                 writer.Write(iconPath);
@@ -33,12 +44,24 @@ namespace RPGMod
         }
 
         // All server side data
-        public struct ServerMessage
+        public class ServerMessage
         {
-            public RoR2.PickupDef drop;
+            public ServerMessage() {
+                progress = 0;
+                drop = Quest.GetQuestDrop();
+                objective = MainDefs.random.Next(Config.questObjectiveMin, Quest.GetObjectiveLimit());
+                active = true;
+            }
+
+            public ServerMessage(Type type) : this() {
+                this.type = type;
+            }
+
+            public PickupDef drop;
             public int objective;
             public int progress;
-            public int type;
+            public Type type;
+            public bool active;
         }
     } // namespace Questing
 } // namespace RPGMod

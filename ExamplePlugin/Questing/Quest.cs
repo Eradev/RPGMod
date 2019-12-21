@@ -8,15 +8,22 @@ namespace RPGMod
 {
     namespace Questing
     {
+        public enum Type
+        {
+            KillEnemies,
+            CollectGold,
+            OpenChests,
+            Heal,
+            KillElites
+        }
+
         internal static class Quest
         {
-            private static readonly System.Random random = new System.Random();
-
             // Builds the quest description used for messaging data across clients.
             public static string GetDescription(ClientMessage clientMessage, ServerMessage serverMessage)
             {
-                return string.Format("{0},{1},{2},{3},{4},{5}", serverMessage.type,
-                    string.Format("{0} {1}{2}", serverMessage.objective, clientMessage.target, serverMessage.type == 0 ? "s" : ""),
+                return string.Format("{0},{1},{2},{3},{4},{5}", (int)serverMessage.type,
+                    string.Format("{0} {1}{2}", serverMessage.objective, clientMessage.target, serverMessage.type == Type.KillEnemies ? "s" : ""),
                     string.Format("<color=#{0}>{1}</color>", ColorUtility.ToHtmlStringRGBA(serverMessage.drop.baseColor), Language.GetString(ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).nameToken)),
                     serverMessage.progress, serverMessage.objective, ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).pickupIconPath);
             }
@@ -31,65 +38,69 @@ namespace RPGMod
                 NetworkServer.SendToAll(Config.questPort, quest);
             }
 
-            // Handles creating a new quest.
-            public static ClientMessage GetQuest(int specificServerDataIndex = -1)
+            public static int GetObjectiveLimit()
             {
                 int questObjectiveLimit = (int)Math.Round(Config.questObjectiveMin * Run.instance.compensatedDifficultyCoefficient);
-
                 if (questObjectiveLimit >= Config.questObjectiveMax)
                 {
                     questObjectiveLimit = Config.questObjectiveMax;
                 }
+                return questObjectiveLimit;
+            }
 
-                ClientMessage questMessage = new ClientMessage();
-                questMessage.description = "bad";
-                ServerMessage newServerData;
-                int num;
+            public static Type GetQuestType()
+            {
+                Type type;
 
-                if (specificServerDataIndex == -1)
+                type = (Type)MainDefs.random.Next(0, MainDefs.questDefinitions.items);
+                while (MainDefs.usedTypes.Contains(type))
                 {
-                    num = random.Next(0, MainDefs.questTargets.Count);
-                    List<int> usedTypes = new List<int>();
-                    for (int i = 0; i < MainDefs.QuestServerMessages.Count; i++)
-                    {
-                        usedTypes.Add(MainDefs.QuestServerMessages[i].type);
-                    }
-                    while (usedTypes.Contains(num))
-                    {
-                        num = random.Next(0, MainDefs.questTargets.Count);
-                    }
+                    type = (Type)MainDefs.random.Next(0, MainDefs.questDefinitions.items);
+                }
+
+                return type;
+            }
+
+            // Handles creating a new quest.
+            public static ClientMessage GetQuest(int serverMessageIndex = -1)
+            {
+                Type type;
+
+                if (serverMessageIndex == -1)
+                {
+                    type = GetQuestType();
                 }
                 else
                 {
-                    num = MainDefs.QuestServerMessages[specificServerDataIndex].type;
+                    type = MainDefs.QuestServerMessages[serverMessageIndex].type;
                 }
 
+                ClientMessage clientMessage = new ClientMessage(MainDefs.questDefinitions.targets[(int)type]);
+                ServerMessage serverMessage = new ServerMessage(type);
                 int monstersAlive = TeamComponent.GetTeamMembers(TeamIndex.Monster).Count;
 
                 if (monstersAlive > 0) // NOTE: Potentially remove
                 {
-                    (questMessage, newServerData) = GenericQuest(MainDefs.questTargets[num], num, questObjectiveLimit);
-                    switch (num)
+                    switch (type)
                     {
                         // Monster Elimination Quest - [Gets random enemy and sets it as the objective]
-                        case 0:
-                            CharacterBody targetBody = TeamComponent.GetTeamMembers(TeamIndex.Monster)[random.Next(0, monstersAlive)].GetComponent<CharacterBody>();
+                        case Type.KillEnemies:
+                            CharacterBody targetBody = TeamComponent.GetTeamMembers(TeamIndex.Monster)[MainDefs.random.Next(0, monstersAlive)].GetComponent<CharacterBody>();
 
                             if (targetBody.isBoss || SurvivorCatalog.FindSurvivorDefFromBody(targetBody.master.bodyPrefab) != null)
                             {
-                                questMessage.description = "bad";
-                                return questMessage;
+                                return clientMessage;
                             }
 
-                            questMessage.target = targetBody.GetUserName();
-                            questMessage.iconPath = targetBody.name;
+                            clientMessage.target = targetBody.GetUserName();
+                            clientMessage.iconPath = targetBody.name;
                             break;
                         // Collect Gold Quest - [Gets quest objective according to game difficulty]
-                        case 1:
-                            newServerData.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient);
+                        case Type.CollectGold:
+                            serverMessage.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient);
                             break;
                         // Heal Quest
-                        case 3:
+                        case Type.Heal:
                             int max = 0;
                             foreach (var player in PlayerCharacterMasterController.instances)
                             {
@@ -98,49 +109,49 @@ namespace RPGMod
                                     max = (int)player.master.GetBody().healthComponent.fullHealth;
                                 }
                             }
-                            newServerData.objective = (int)Math.Floor(max * 1.6f);
+                            serverMessage.objective = (int)Math.Floor(max * 1.6f);
+                            break;
+
+                        default:
                             break;
                     }
                 }
                 else
                 {
-                    return questMessage;
+                    return clientMessage;
                 }
 
-                if (questMessage.description == "bad")
+                if (serverMessageIndex != -1)
                 {
-                    return questMessage;
+                    Debug.Log(serverMessageIndex);
+                    serverMessage = MainDefs.QuestServerMessages[serverMessageIndex];
+                    MainDefs.QuestServerMessages[serverMessageIndex].active = true;
                 }
 
-                if (specificServerDataIndex > -1)
-                {
-                    newServerData = MainDefs.QuestServerMessages[specificServerDataIndex];
-                }
-
-                questMessage.description = GetDescription(questMessage, newServerData);
+                clientMessage.description = GetDescription(clientMessage, serverMessage);
 
                 if (Config.displayQuestsInChat)
                 {
-                    DisplayQuestInChat(questMessage, newServerData);
+                    DisplayQuestInChat(clientMessage, serverMessage);
                 }
 
-                if (specificServerDataIndex == -1)
+                if (serverMessageIndex == -1)
                 {
-                    MainDefs.QuestServerMessages.Add(newServerData);
+                    MainDefs.QuestServerMessages.Add(serverMessage);
                 }
 
-                MainDefs.usedTypes.Add(newServerData.type);
-                questMessage.id = GetUniqueID();
+                MainDefs.usedTypes.Add(serverMessage.type);
+                clientMessage.id = GetUniqueID();
 
-                return questMessage;
+                return clientMessage;
             }
 
             public static int GetUniqueID()
             {
-                int newID = random.Next();
+                int newID = MainDefs.random.Next();
                 while (MainDefs.usedIDs.Contains(newID))
                 {
-                    newID = random.Next();
+                    newID = MainDefs.random.Next();
                 }
                 MainDefs.usedIDs.Add(newID);
                 return newID;
@@ -166,7 +177,7 @@ namespace RPGMod
                 Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
 
                 message.baseToken = string.Format("{0} {1} {2}{3} to receive: <color=#{4}>{5}</color>",
-                    MainDefs.questTypes[serverMessage.type],
+                    MainDefs.questDefinitions.types[(int)serverMessage.type],
                     serverMessage.objective,
                     clientMessage.target,
                     serverMessage.type == 0 ? "s" : "",
@@ -174,27 +185,6 @@ namespace RPGMod
                     Language.GetString(ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).nameToken));
 
                 Chat.SendBroadcastChat(message);
-            }
-
-            // A generic quest creator for non unique quest types.
-            public static (ClientMessage, ServerMessage) GenericQuest(string target, int type, int questObjectiveLimit)
-            {
-                ClientMessage quest = new ClientMessage
-                {
-                    iconPath = "custom",
-                    target = target,
-                    initialised = true
-                };
-
-                ServerMessage newServerData = new ServerMessage
-                {
-                    objective = random.Next(Config.questObjectiveMin, questObjectiveLimit),
-                    progress = 0,
-                    drop = GetQuestDrop(),
-                    type = type
-                };
-
-                return (quest, newServerData);
             }
         }
     } // namespace Questing

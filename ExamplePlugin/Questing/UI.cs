@@ -15,7 +15,7 @@ namespace RPGMod
             private Transform parent;
             private float startTime;
             private float progressStartTime;
-            private bool firstSet = true;
+            //private bool firstSet = true;
             private bool animFinished = true;
 
             //private bool destroy = false;
@@ -95,8 +95,8 @@ namespace RPGMod
                     {
                         Debug.Log(data[i] + i);
                     }
-                    Title = MainDefs.questTypes[int.Parse(data[0])];
-                    QuestColor = MainDefs.questColors[int.Parse(data[0])];
+                    Title = MainDefs.questDefinitions.types[int.Parse(data[0])];
+                    QuestColor = MainDefs.questDefinitions.colors[int.Parse(data[0])];
                     Description = data[1];
                     Reward = data[2];
                     progress = int.Parse(data[3]);
@@ -105,13 +105,13 @@ namespace RPGMod
                     oldSizeX = secondaryBarTransform.sizeDelta.x;
                     newSizeX = 180f * ((float)progress / (float)objective);
                     StartProgressAnim();
-                    if (!firstSet)
-                    {
-                    }
-                    else
-                    {
-                        firstSet = false;
-                    }
+                    //if (!firstSet)
+                    //{
+                    //}
+                    //else
+                    //{
+                    //    firstSet = false;
+                    //}
                     EquipIcon = Resources.Load<Texture>(data[5]);
                     questDataDescription = value;
                 }
