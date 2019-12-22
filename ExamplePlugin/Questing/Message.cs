@@ -50,7 +50,6 @@ namespace RPGMod
                 progress = 0;
                 drop = Quest.GetQuestDrop();
                 objective = MainDefs.random.Next(Config.questObjectiveMin, Quest.GetObjectiveLimit());
-                active = true;
             }
 
             public ServerMessage(Type type) : this() {
@@ -61,7 +60,6 @@ namespace RPGMod
             public int objective;
             public int progress;
             public Type type;
-            public bool active;
         }
     } // namespace Questing
 } // namespace RPGMod

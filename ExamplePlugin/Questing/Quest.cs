@@ -52,11 +52,10 @@ namespace RPGMod
             {
                 Type type;
 
-                type = (Type)MainDefs.random.Next(0, MainDefs.questDefinitions.items);
-                while (MainDefs.usedTypes.Contains(type))
+                do
                 {
                     type = (Type)MainDefs.random.Next(0, MainDefs.questDefinitions.items);
-                }
+                } while (MainDefs.usedTypes.Contains(type));
 
                 return type;
             }
@@ -77,55 +76,57 @@ namespace RPGMod
 
                 ClientMessage clientMessage = new ClientMessage(MainDefs.questDefinitions.targets[(int)type]);
                 ServerMessage serverMessage = new ServerMessage(type);
-                int monstersAlive = TeamComponent.GetTeamMembers(TeamIndex.Monster).Count;
 
-                if (monstersAlive > 0) // NOTE: Potentially remove
+                switch (type)
                 {
-                    switch (type)
-                    {
-                        // Monster Elimination Quest - [Gets random enemy and sets it as the objective]
-                        case Type.KillEnemies:
-                            CharacterBody targetBody = TeamComponent.GetTeamMembers(TeamIndex.Monster)[MainDefs.random.Next(0, monstersAlive)].GetComponent<CharacterBody>();
+                    // Monster Elimination Quest - [Gets random enemy from scene and sets it as the objective]
+                    case Type.KillEnemies:
 
-                            if (targetBody.isBoss || SurvivorCatalog.FindSurvivorDefFromBody(targetBody.master.bodyPrefab) != null)
-                            {
-                                return clientMessage;
+                        var choices = ClassicStageInfo.instance.monsterSelection.choices;
+                        List<WeightedSelection<DirectorCard>.ChoiceInfo> newChoices = new List<WeightedSelection<DirectorCard>.ChoiceInfo>();
+                        for (int i = 0; i < choices.Length; i++) {
+                            if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) || !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)) ) {
+                                newChoices.Add(choices[i]);
                             }
+                        } 
 
-                            clientMessage.target = targetBody.GetUserName();
-                            clientMessage.iconPath = targetBody.name;
-                            break;
-                        // Collect Gold Quest - [Gets quest objective according to game difficulty]
-                        case Type.CollectGold:
-                            serverMessage.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient);
-                            break;
-                        // Heal Quest
-                        case Type.Heal:
-                            int max = 0;
-                            foreach (var player in PlayerCharacterMasterController.instances)
+                        var targetCard = newChoices[MainDefs.random.Next(0, newChoices.Count)].value.spawnCard;
+                        var targetMaster = targetCard.prefab.GetComponent<CharacterMaster>();
+                        var targetObject = targetMaster.bodyPrefab;
+                        var targetBody = targetObject.GetComponent<CharacterBody>();
+
+                        clientMessage.target = targetBody.GetUserName();
+                        clientMessage.iconPath = targetBody.name;
+                        break;
+                    // Collect Gold Quest - [Gets quest objective according to game difficulty]
+                    case Type.CollectGold:
+                        serverMessage.objective = (int)Math.Floor(100 * Run.instance.difficultyCoefficient);
+                        break;
+                    // Heal Quest
+                    case Type.Heal:
+                        int max = 0;
+                        foreach (var player in PlayerCharacterMasterController.instances)
+                        {
+                            if (max < player.master.GetBody().healthComponent.fullHealth)
                             {
-                                if (max < player.master.GetBody().healthComponent.fullHealth)
-                                {
-                                    max = (int)player.master.GetBody().healthComponent.fullHealth;
-                                }
+                                max = (int)player.master.GetBody().healthComponent.fullHealth;
                             }
-                            serverMessage.objective = (int)Math.Floor(max * 1.6f);
-                            break;
+                        }
+                        serverMessage.objective = (int)Math.Floor(max * 1.6f);
+                        break;
 
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    return clientMessage;
+                    default:
+                        break;
                 }
 
                 if (serverMessageIndex != -1)
                 {
                     Debug.Log(serverMessageIndex);
                     serverMessage = MainDefs.QuestServerMessages[serverMessageIndex];
-                    MainDefs.QuestServerMessages[serverMessageIndex].active = true;
+                }
+                else 
+                {
+                    MainDefs.QuestServerMessages.Add(serverMessage);
                 }
 
                 clientMessage.description = GetDescription(clientMessage, serverMessage);
@@ -133,11 +134,6 @@ namespace RPGMod
                 if (Config.displayQuestsInChat)
                 {
                     DisplayQuestInChat(clientMessage, serverMessage);
-                }
-
-                if (serverMessageIndex == -1)
-                {
-                    MainDefs.QuestServerMessages.Add(serverMessage);
                 }
 
                 MainDefs.usedTypes.Add(serverMessage.type);
@@ -148,11 +144,11 @@ namespace RPGMod
 
             public static int GetUniqueID()
             {
-                int newID = MainDefs.random.Next();
-                while (MainDefs.usedIDs.Contains(newID))
+                int newID;
+                do
                 {
                     newID = MainDefs.random.Next();
-                }
+                } while (MainDefs.usedIDs.Contains(newID));
                 MainDefs.usedIDs.Add(newID);
                 return newID;
             }

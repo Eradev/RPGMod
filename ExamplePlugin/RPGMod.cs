@@ -14,8 +14,6 @@ namespace RPGMod
         private bool GameStarted { get; set; }
         private bool IgnoreDeath { get; set; }
         private float QuestCooldown { get; set; }
-        private bool SceneChanged { get; set; }
-        private int Counter { get; set; }
         private CharacterBody CachedCharacterBody { get; set; }
         private List<Questing.UI> UIInstances { get; set; }
 
@@ -25,7 +23,6 @@ namespace RPGMod
             GameStarted = false;
             IgnoreDeath = false;
             UIInstances = new List<Questing.UI>();
-            SceneChanged = false;
         }
 
         private void ManageQuests() // Handles quest generation.
@@ -35,35 +32,7 @@ namespace RPGMod
                 return;
             }
 
-            // Gets any defined quests that are needed
-            if (MainDefs.AdvancingStage && Counter == MainDefs.QuestServerMessages.Count)
-            {
-                if (MainDefs.debugMode)
-                {
-                    Debug.Log(MainDefs.QuestClientMessages.Count);
-                    Debug.Log(MainDefs.QuestServerMessages.Count);
-                }
-
-                int count = 0;
-
-                for (int i = 0; i < MainDefs.QuestServerMessages.Count; i++)
-                {
-                    if (!MainDefs.QuestServerMessages[i].active)
-                    {
-                        GetNewQuest(i);
-                    }
-                    else {
-                        count++;
-                    }
-                }
-
-                if (count == MainDefs.QuestServerMessages.Count)
-                {
-                    MainDefs.AdvancingStage = false;
-                    Debug.Log("Tripped true");
-                }
-            }
-            else if (QuestReady() && !MainDefs.AdvancingStage)
+            if (QuestReady())
             {
                 // Generates a new generic quest
                 GetNewQuest();
@@ -84,12 +53,8 @@ namespace RPGMod
             }
 
             Questing.ClientMessage message = Questing.Quest.GetQuest(serverMessageIndex);
-
-            if (message.description != "bad")
-            {
-                QuestCooldown = Time.time;
-                Questing.Quest.SendQuest(message);
-            }
+            QuestCooldown = Time.time;
+            Questing.Quest.SendQuest(message);
         }
 
         // Registers the Client handlers for recieving of data.
@@ -144,7 +109,6 @@ namespace RPGMod
                     if (MainDefs.AdvancingStage && !Questing.Config.restartQuestsOnStageChange)
                     {
                         Debug.Log("SOFT - Removed all data at " + messageIndex);
-                        Counter++;
                     }
                     else
                     {
@@ -247,7 +211,7 @@ namespace RPGMod
         public void Awake()
         {
             Questing.Config.Load(Config, false);
-            QuestCooldown = -Questing.Config.questCooldownTime;
+            QuestCooldown = 0;
             MainDefs.assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(Paths.PluginPath, "RPGMod//assetBundle"));
 
             if (MainDefs.assetBundle == null)
@@ -284,10 +248,10 @@ namespace RPGMod
                     orig(self);
                 };
 
-                On.RoR2.Run.BeginStage += (orig, self) =>
+                On.RoR2.Run.OnServerSceneChanged += (orig, self, sceneName) =>
                 {
                     MainDefs.AdvancingStage = true;
-                    Counter = 0;
+                    QuestCooldown = (Time.time + Questing.Config.questCooldownTime - 10);
 
                     foreach (var message in MainDefs.QuestClientMessages)
                     {
@@ -295,10 +259,16 @@ namespace RPGMod
                         Questing.Quest.SendQuest(message);
                     }
 
-                    orig(self);
+                    MainDefs.AdvancingStage = false;
+
+                    for (int i = 0; i < MainDefs.QuestServerMessages.Count; i++) {
+                        GetNewQuest(i);
+                    }
+
+                    orig(self, sceneName);
                 };
             }
-
+            
             On.RoR2.SceneDirector.PopulateScene += (orig, self) =>
             {
                 int credit = self.GetFieldValue<int>("interactableCredit");
@@ -392,6 +362,14 @@ namespace RPGMod
                         Questing.ClientMessage message = MainDefs.QuestClientMessages.Last();
                         message.active = false;
                         Questing.Quest.SendQuest(message);
+                    }
+                    if (Input.GetKeyDown(KeyCode.F5)) {
+                        Debug.Log(Run.instance.time);
+                        foreach (var x in ClassicStageInfo.instance.monsterSelection.choices)
+                        {
+                            Debug.Log(x.value.spawnCard.name);
+                            Debug.Log(x.value.spawnCard.directorCreditCost);
+                        }
                     }
                 }
             }

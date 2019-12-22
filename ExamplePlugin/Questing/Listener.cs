@@ -11,19 +11,15 @@ namespace RPGMod
             // Updates the relevant quest according to the parameters.
             public static void UpdateQuest(int value, Type type, string target)
             {
-                if (MainDefs.AdvancingStage) {
-                    return;
-                }
-
-                Debug.Log("Quest Updating [VALUE = " + value + "] [TYPE = " + type + "] [TARGET = " + target + "]");
+                //Debug.Log("Quest Updating [VALUE = " + value + "] [TYPE = " + type + "] [TARGET = " + target + "]");
 
                 for (var i = 0; i < MainDefs.QuestServerMessages.Count; i++)
                 {
-                    Debug.Log("Quest Checking [TYPE = " + MainDefs.QuestServerMessages[i].type + "] [TARGET = " + MainDefs.QuestClientMessages[i].target + "]");
-                    Debug.Log(MainDefs.QuestServerMessages[i].type == type);
-                    Debug.Log(MainDefs.QuestClientMessages[i].target == target);
+                    //Debug.Log("Quest Checking [TYPE = " + MainDefs.QuestServerMessages[i].type + "] [TARGET = " + MainDefs.QuestClientMessages[i].target + "]");
+                    //Debug.Log(MainDefs.QuestServerMessages[i].type == type);
+                    //Debug.Log(MainDefs.QuestClientMessages[i].target == target);
 
-                    if (MainDefs.QuestServerMessages[i].type == type && MainDefs.QuestClientMessages[i].target == target)
+                    if (MainDefs.QuestServerMessages[i].type == type && MainDefs.QuestClientMessages[i].target == target && MainDefs.QuestClientMessages[i].active)
                     {
                         ServerMessage newServerData = MainDefs.QuestServerMessages[i];
                         newServerData.progress += value;
