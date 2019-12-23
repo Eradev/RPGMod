@@ -16,6 +16,7 @@ namespace RPGMod
             private float startTime;
             private float progressStartTime;
             private bool animFinished = true;
+            private bool validLocalUser = false;
 
             //private bool destroy = false;
             private float newSizeX;
@@ -110,11 +111,8 @@ namespace RPGMod
             }
 
             private void Awake()
-            {
-                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
-                parent = localUser.cameraRigController.hud.GetComponent<Canvas>().transform;
+            { 
                 questUI = Instantiate(MainDefs.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
-                questUI.transform.SetParent(parent);
 
                 var hudConVar = RoR2.Console.instance.FindConVar("hud_scale");
 
@@ -128,8 +126,6 @@ namespace RPGMod
                 else {
                     hudScale = 1f;
                 }
-
-                questUI.transform.localScale = new Vector3(hudScale, hudScale, hudScale);
 
                 iconBorder = questUI.transform.Find("iconBorder");
                 backgroundBorder = questUI.transform.Find("backgroundBorder");
@@ -181,6 +177,17 @@ namespace RPGMod
 
             private void Update()
             {
+                if (!validLocalUser) {
+                    LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+                    if (localUser.cameraRigController.hud.objectivePanelController != null)
+                    {
+                        parent = localUser.cameraRigController.hud.GetComponent<Canvas>().transform;
+                        questUI.transform.SetParent(parent);
+                        validLocalUser = true;
+                        questUI.transform.localScale = new Vector3(hudScale, hudScale, hudScale);
+                    }
+                }
+
                 if (!animFinished)
                 {
                     UpdateProgressAnim();
@@ -195,7 +202,7 @@ namespace RPGMod
                 float num = (Time.time - startTime) / 0.8f;
                 if (num < 1)
                 {
-                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI) - (questRect.sizeDelta.y * hudScale), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z);
+                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI) - (questRect.sizeDelta.y * hudScale), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
                 }
             }
 
