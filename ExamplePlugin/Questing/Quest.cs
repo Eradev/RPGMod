@@ -89,7 +89,7 @@ namespace RPGMod
                         for (int i = 0; i < choices.Length; i++) {
                             if (!(choices[i].value == null || choices[i].value.spawnCard == null || choices[i].value.spawnCard.name == null))
                             {
-                                if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) || !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)))
+                                if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) && !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)))
                                 {
                                     newChoices.Add(choices[i]);
                                 }

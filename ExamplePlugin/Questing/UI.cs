@@ -15,13 +15,12 @@ namespace RPGMod
             private Transform parent;
             private float startTime;
             private float progressStartTime;
-            //private bool firstSet = true;
             private bool animFinished = true;
 
             //private bool destroy = false;
             private float newSizeX;
-
             private float oldSizeX;
+            private float hudScale;
             private RectTransform questRect;
             private RectTransform primaryBarTransform;
             private RectTransform secondaryBarTransform;
@@ -65,7 +64,7 @@ namespace RPGMod
                 set
                 {
                     index = value;
-                    questRect.position = new Vector3(Screen.width * Questing.Config.xPositionUI, (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), 0);
+                    questRect.transform.localPosition = new Vector3(Screen.width * Questing.Config.xPositionUI, (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), parent.localPosition.z);
                 }
             }
 
@@ -105,13 +104,6 @@ namespace RPGMod
                     oldSizeX = secondaryBarTransform.sizeDelta.x;
                     newSizeX = 180f * ((float)progress / (float)objective);
                     StartProgressAnim();
-                    //if (!firstSet)
-                    //{
-                    //}
-                    //else
-                    //{
-                    //    firstSet = false;
-                    //}
                     EquipIcon = Resources.Load<Texture>(data[5]);
                     questDataDescription = value;
                 }
@@ -119,9 +111,25 @@ namespace RPGMod
 
             private void Awake()
             {
-                parent = RoR2Application.instance.mainCanvas.transform;
+                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+                parent = localUser.cameraRigController.hud.GetComponent<Canvas>().transform;
                 questUI = Instantiate(MainDefs.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
                 questUI.transform.SetParent(parent);
+
+                var hudConVar = RoR2.Console.instance.FindConVar("hud_scale");
+
+                if (Questing.Config.useGameHudScale)
+                {
+                    if (hudConVar != null && TextSerialization.TryParseInvariant(hudConVar.GetString(), out float num))
+                    {
+                        hudScale = num / 100f;
+                    }
+                }
+                else {
+                    hudScale = 1f;
+                }
+
+                questUI.transform.localScale = new Vector3(hudScale, hudScale, hudScale);
 
                 iconBorder = questUI.transform.Find("iconBorder");
                 backgroundBorder = questUI.transform.Find("backgroundBorder");
@@ -187,7 +195,7 @@ namespace RPGMod
                 float num = (Time.time - startTime) / 0.8f;
                 if (num < 1)
                 {
-                    questRect.position = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, Screen.width * Questing.Config.xPositionUI, num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), 0);
+                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI) - (questRect.sizeDelta.y * hudScale), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z);
                 }
             }
 

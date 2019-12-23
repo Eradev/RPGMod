@@ -29,10 +29,8 @@ namespace RPGMod
 
             // UI params
             public static float xPositionUI;
-
             public static float yPositionUI;
-            public static int widthUI;
-            public static int heightUI;
+            public static bool useGameHudScale;
 
             // Questing params
             public static int questObjectiveMin;
@@ -83,10 +81,9 @@ namespace RPGMod
                 earlyChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "earlyChanceScaling"), 150.0f, new ConfigDescription("Percentage chance increase for the early stage of the game")).Value / 100;
 
                 // UI params
-                xPositionUI = config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 89.0f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value / 100;
-                yPositionUI = config.Bind<float>(new ConfigDefinition("UI", "yPositionUI"), 50.0f, new ConfigDescription("UI location on the y axis (percentage of screen height)")).Value / 100;
-                widthUI = config.Bind<int>(new ConfigDefinition("UI", "widthUI"), 300, new ConfigDescription("Width of UI (pixels)")).Value;
-                heightUI = config.Bind<int>(new ConfigDefinition("UI", "heightUI"), 100, new ConfigDescription("Height of UI (pixels)")).Value;
+                xPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 90.0f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value - 50) / 100;
+                yPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "yPositionUI"), 50.0f, new ConfigDescription("UI location on the y axis (percentage of screen height)")).Value - 50) / 100;
+                useGameHudScale = config.Bind<bool>(new ConfigDefinition("UI", "useGameHudScale"), true, new ConfigDescription("Whether or not to use the games inbuilt hud scale option for questing UI")).Value;
 
                 // Questing params
                 questObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMin"), 5, new ConfigDescription("Minimum quest objective")).Value; // Needs changing for kills

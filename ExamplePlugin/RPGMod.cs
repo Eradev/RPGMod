@@ -169,8 +169,6 @@ namespace RPGMod
                         if (MainDefs.debugMode)
                         {
                             Debug.Log(CachedCharacterBody);
-                            Debug.Log(Questing.Config.widthUI);
-                            Debug.Log(Questing.Config.heightUI);
                             Debug.Log(Screen.width * Questing.Config.xPositionUI);
                             Debug.Log(Screen.height * Questing.Config.yPositionUI);
                             Debug.Log(MainDefs.QuestClientMessages[i].description);
