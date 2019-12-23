@@ -28,8 +28,6 @@ namespace RPGMod
         public static readonly bool debugMode = true;
         public static readonly System.Random random = new System.Random();
         public static AssetBundle assetBundle { get; set; }
-        public static bool AwaitingDefinedQuests { get; set; } = false;
-        public static bool AdvancingStage { get; set; } = false;
         public static QuestDefinitions questDefinitions { get; set; }
         public static List<Questing.ClientMessage> QuestClientMessages { get; set; } = new List<Questing.ClientMessage>();
         public static List<Questing.ServerMessage> QuestServerMessages { get; set; } = new List<Questing.ServerMessage>();

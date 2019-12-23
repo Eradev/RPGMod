@@ -13,7 +13,7 @@ namespace RPGMod
             {
                 //Debug.Log("Quest Updating [VALUE = " + value + "] [TYPE = " + type + "] [TARGET = " + target + "]");
 
-                for (var i = 0; i < MainDefs.QuestServerMessages.Count; i++)
+                for (var i = 0; i < MainDefs.QuestClientMessages.Count; i++)
                 {
                     //Debug.Log("Quest Checking [TYPE = " + MainDefs.QuestServerMessages[i].type + "] [TARGET = " + MainDefs.QuestClientMessages[i].target + "]");
                     //Debug.Log(MainDefs.QuestServerMessages[i].type == type);

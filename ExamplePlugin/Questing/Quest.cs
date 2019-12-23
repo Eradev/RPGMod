@@ -77,6 +77,8 @@ namespace RPGMod
                 ClientMessage clientMessage = new ClientMessage(MainDefs.questDefinitions.targets[(int)type]);
                 ServerMessage serverMessage = new ServerMessage(type);
 
+                Debug.Log(type);
+
                 switch (type)
                 {
                     // Monster Elimination Quest - [Gets random enemy from scene and sets it as the objective]
@@ -85,8 +87,12 @@ namespace RPGMod
                         var choices = ClassicStageInfo.instance.monsterSelection.choices;
                         List<WeightedSelection<DirectorCard>.ChoiceInfo> newChoices = new List<WeightedSelection<DirectorCard>.ChoiceInfo>();
                         for (int i = 0; i < choices.Length; i++) {
-                            if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) || !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)) ) {
-                                newChoices.Add(choices[i]);
+                            if (!(choices[i].value == null || choices[i].value.spawnCard == null || choices[i].value.spawnCard.name == null))
+                            {
+                                if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) || !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)))
+                                {
+                                    newChoices.Add(choices[i]);
+                                }
                             }
                         } 
 
@@ -104,15 +110,18 @@ namespace RPGMod
                         break;
                     // Heal Quest
                     case Type.Heal:
-                        int max = 0;
-                        foreach (var player in PlayerCharacterMasterController.instances)
+                        if (serverMessageIndex == -1)
                         {
-                            if (max < player.master.GetBody().healthComponent.fullHealth)
+                            int max = 0;
+                            foreach (var player in PlayerCharacterMasterController.instances)
                             {
-                                max = (int)player.master.GetBody().healthComponent.fullHealth;
+                                if (max < player.master.GetBody().healthComponent.fullHealth)
+                                {
+                                    max = (int)player.master.GetBody().healthComponent.fullHealth;
+                                }
                             }
+                            serverMessage.objective = (int)Math.Floor(max * 1.6f);
                         }
-                        serverMessage.objective = (int)Math.Floor(max * 1.6f);
                         break;
 
                     default:

@@ -12,6 +12,7 @@ namespace RPGMod
                 description = "bad";
                 iconPath = "custom";
                 active = false;
+                advancingStage = false;
             }
 
             public ClientMessage(string target) : this() {
@@ -20,6 +21,7 @@ namespace RPGMod
 
             public int id;
             public bool active;
+            public bool advancingStage;
             public string description;
             public string target;
             public string iconPath;
@@ -28,6 +30,7 @@ namespace RPGMod
             {
                 id = reader.ReadInt32();
                 active = reader.ReadBoolean();
+                advancingStage = reader.ReadBoolean();
                 description = reader.ReadString();
                 target = reader.ReadString();
                 iconPath = reader.ReadString();
@@ -37,6 +40,7 @@ namespace RPGMod
             {
                 writer.Write(id);
                 writer.Write(active);
+                writer.Write(advancingStage);
                 writer.Write(description);
                 writer.Write(target);
                 writer.Write(iconPath);
