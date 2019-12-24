@@ -13,21 +13,21 @@ namespace RPGMod
             {
                 //Debug.Log("Quest Updating [VALUE = " + value + "] [TYPE = " + type + "] [TARGET = " + target + "]");
 
-                for (var i = 0; i < MainDefs.QuestClientMessages.Count; i++)
+                for (var i = 0; i < ClientMessage.Instances.Count; i++)
                 {
-                    //Debug.Log("Quest Checking [TYPE = " + MainDefs.QuestServerMessages[i].type + "] [TARGET = " + MainDefs.QuestClientMessages[i].target + "]");
-                    //Debug.Log(MainDefs.QuestServerMessages[i].type == type);
-                    //Debug.Log(MainDefs.QuestClientMessages[i].target == target);
+                    //Debug.Log("Quest Checking [TYPE = " + ServerMessage.Instances[i].type + "] [TARGET = " + ClientMessage.Instances[i].target + "]");
+                    //Debug.Log(ServerMessage.Instances[i].type == type);
+                    //Debug.Log(ClientMessage.Instances[i].target == target);
 
-                    if (MainDefs.QuestServerMessages[i].type == type && MainDefs.QuestClientMessages[i].target == target && MainDefs.QuestClientMessages[i].active)
+                    if (ServerMessage.Instances[i].type == type && ClientMessage.Instances[i].target == target && ClientMessage.Instances[i].active)
                     {
-                        ServerMessage newServerData = MainDefs.QuestServerMessages[i];
+                        ServerMessage newServerData = ServerMessage.Instances[i];
                         newServerData.progress += value;
-                        MainDefs.QuestServerMessages[i] = newServerData;
-                        MainDefs.QuestClientMessages[i].description = Quest.GetDescription(MainDefs.QuestClientMessages[i], MainDefs.QuestServerMessages[i]);
+                        ServerMessage.Instances[i] = newServerData;
+                        ClientMessage.Instances[i].description = Quest.GetDescription(ClientMessage.Instances[i], ServerMessage.Instances[i]);
                         CheckQuestStatus(i);
                         Debug.Log("UPDATED QUEST");
-                        Quest.SendQuest(MainDefs.QuestClientMessages[i]);
+                        ClientMessage.Instances[i].SendToAll();
                     }
                 }
             }
@@ -35,7 +35,7 @@ namespace RPGMod
             // Checks if the quest at the index has fulfilled the objective.
             private static void CheckQuestStatus(int index)
             {
-                if (MainDefs.QuestServerMessages[index].progress >= MainDefs.QuestServerMessages[index].objective && MainDefs.QuestClientMessages[index].active)
+                if (ServerMessage.Instances[index].progress >= ServerMessage.Instances[index].objective && ClientMessage.Instances[index].active)
                 {
                     foreach (var player in PlayerCharacterMasterController.instances)
                     {
@@ -44,15 +44,15 @@ namespace RPGMod
                             var transform = player.master.GetBody().coreTransform;
                             if (Config.dropItemsFromPlayers)
                             {
-                                PickupDropletController.CreatePickupDroplet(MainDefs.QuestServerMessages[index].drop.pickupIndex, transform.position, transform.forward * 10f);
+                                PickupDropletController.CreatePickupDroplet(ServerMessage.Instances[index].drop.pickupIndex, transform.position, transform.forward * 10f);
                             }
                             else
                             {
-                                player.master.inventory.GiveItem(MainDefs.QuestServerMessages[index].drop.itemIndex);
+                                player.master.inventory.GiveItem(ServerMessage.Instances[index].drop.itemIndex);
                             }
                         }
                     }
-                    MainDefs.QuestClientMessages[index].active = false;
+                    ClientMessage.Instances[index].active = false;
                 }
             }
 
@@ -64,38 +64,38 @@ namespace RPGMod
                     GameObject attackerMaster = damageReport.damageInfo.attacker.GetComponent<CharacterBody>().masterObject;
                     CharacterMaster attackerController = attackerMaster.GetComponent<CharacterMaster>();
 
-                    Questing.Listener.UpdateQuest(1, 0, enemyBody.GetUserName());
+                    Listener.UpdateQuest(1, 0, enemyBody.GetUserName());
 
-                    if (Questing.Config.enemyItemDropsEnabled)
+                    if (Config.enemyItemDropsEnabled)
                     {
                         bool isElite = enemyBody.isElite || enemyBody.isChampion;
                         bool isBoss = enemyBody.isBoss;
 
                         if (isBoss)
                         {
-                            chance = Questing.Config.bossDropChance;
+                            chance = Config.bossDropChance;
                         }
                         else
                         {
                             if (isElite)
                             {
-                                chance = Questing.Config.eliteDropChance;
+                                chance = Config.eliteDropChance;
                             }
                             else
                             {
-                                chance = Questing.Config.normalDropChance;
+                                chance = Config.normalDropChance;
                             }
                         }
 
                         if (enemyBody.isElite)
                         {
-                            Questing.Listener.UpdateQuest(1, Type.KillElites, "Elites");
+                            Listener.UpdateQuest(1, Type.KillElites, "Elites");
                         }
 
-                        chance *= ((1 - Questing.Config.playerChanceScaling) + (Questing.Config.playerChanceScaling * Run.instance.participatingPlayerCount));
-                        if (Questing.Config.earlyChanceScaling - Run.instance.difficultyCoefficient > 0)
+                        chance *= ((1 - Config.playerChanceScaling) + (Config.playerChanceScaling * Run.instance.participatingPlayerCount));
+                        if (Config.earlyChanceScaling - Run.instance.difficultyCoefficient > 0)
                         {
-                            chance *= (Questing.Config.earlyChanceScaling - (Run.instance.difficultyCoefficient - 1));
+                            chance *= (Config.earlyChanceScaling - (Run.instance.difficultyCoefficient - 1));
                         }
 
                         // rng check
@@ -111,17 +111,17 @@ namespace RPGMod
                                 // Check if enemy is boss, elite or normal
                                 if (isElite)
                                 {
-                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, Questing.Config.eliteChanceCommon);
-                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, Questing.Config.eliteChanceUncommon);
-                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, Questing.Config.eliteChanceLegendary);
-                                    weightedSelection.AddChoice(Run.instance.availableLunarDropList, Questing.Config.eliteChanceLunar);
+                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.eliteChanceCommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, Config.eliteChanceUncommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, Config.eliteChanceLegendary);
+                                    weightedSelection.AddChoice(Run.instance.availableLunarDropList, Config.eliteChanceLunar);
                                 }
                                 else
                                 {
-                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, Questing.Config.normalChanceCommon);
-                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, Questing.Config.normalChanceUncommon);
-                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, Questing.Config.normalChanceLegendary);
-                                    weightedSelection.AddChoice(Run.instance.availableEquipmentDropList, Questing.Config.normalChanceEquip);
+                                    weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.normalChanceCommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier2DropList, Config.normalChanceUncommon);
+                                    weightedSelection.AddChoice(Run.instance.availableTier3DropList, Config.normalChanceLegendary);
+                                    weightedSelection.AddChoice(Run.instance.availableEquipmentDropList, Config.normalChanceEquip);
                                 }
                                 // Get a Tier
                                 List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.spawnRng.nextNormalizedFloat);

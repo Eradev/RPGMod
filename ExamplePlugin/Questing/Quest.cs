@@ -28,16 +28,6 @@ namespace RPGMod
                     serverMessage.progress, serverMessage.objective, ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).pickupIconPath);
             }
 
-            // Sends the quest to all clients via the quest port.
-            public static void SendQuest(ClientMessage quest)
-            {
-                if (!NetworkServer.active)
-                {
-                    return;
-                }
-                NetworkServer.SendToAll(Config.questPort, quest);
-            }
-
             public static int GetObjectiveLimit()
             {
                 int questObjectiveLimit = (int)Math.Round(Config.questObjectiveMin * Run.instance.compensatedDifficultyCoefficient);
@@ -54,8 +44,8 @@ namespace RPGMod
 
                 do
                 {
-                    type = (Type)MainDefs.random.Next(0, MainDefs.questDefinitions.items);
-                } while (MainDefs.usedTypes.Contains(type));
+                    type = (Type)Core.random.Next(0, Core.questDefinitions.items);
+                } while (Core.usedTypes.Contains(type));
 
                 return type;
             }
@@ -63,6 +53,7 @@ namespace RPGMod
             // Handles creating a new quest.
             public static ClientMessage GetQuest(int serverMessageIndex = -1)
             {
+
                 Type type;
 
                 if (serverMessageIndex == -1)
@@ -71,13 +62,13 @@ namespace RPGMod
                 }
                 else
                 {
-                    type = MainDefs.QuestServerMessages[serverMessageIndex].type;
+                    type = Questing.ServerMessage.Instances[serverMessageIndex].type;
                 }
 
-                ClientMessage clientMessage = new ClientMessage(MainDefs.questDefinitions.targets[(int)type]);
+                ClientMessage clientMessage = new ClientMessage(Core.questDefinitions.targets[(int)type]);
                 ServerMessage serverMessage = new ServerMessage(type);
 
-                Debug.Log(type);
+                //Debug.Log(type);
 
                 switch (type)
                 {
@@ -96,7 +87,7 @@ namespace RPGMod
                             }
                         } 
 
-                        var targetCard = newChoices[MainDefs.random.Next(0, newChoices.Count)].value.spawnCard;
+                        var targetCard = newChoices[Core.random.Next(0, newChoices.Count)].value.spawnCard;
                         var targetMaster = targetCard.prefab.GetComponent<CharacterMaster>();
                         var targetObject = targetMaster.bodyPrefab;
                         var targetBody = targetObject.GetComponent<CharacterBody>();
@@ -131,11 +122,7 @@ namespace RPGMod
                 if (serverMessageIndex != -1)
                 {
                     Debug.Log(serverMessageIndex);
-                    serverMessage = MainDefs.QuestServerMessages[serverMessageIndex];
-                }
-                else 
-                {
-                    MainDefs.QuestServerMessages.Add(serverMessage);
+                    serverMessage = Questing.ServerMessage.Instances[serverMessageIndex];
                 }
 
                 clientMessage.description = GetDescription(clientMessage, serverMessage);
@@ -145,7 +132,14 @@ namespace RPGMod
                     DisplayQuestInChat(clientMessage, serverMessage);
                 }
 
-                MainDefs.usedTypes.Add(serverMessage.type);
+                Core.usedTypes.Add(serverMessage.type);
+                if (serverMessageIndex == -1)
+                {
+                    serverMessage.RegisterInstance();
+                }
+                else {
+                    Questing.ServerMessage.Instances[serverMessageIndex].awaitingClientMessage = false;
+                }
                 clientMessage.id = GetUniqueID();
 
                 return clientMessage;
@@ -156,9 +150,9 @@ namespace RPGMod
                 int newID;
                 do
                 {
-                    newID = MainDefs.random.Next();
-                } while (MainDefs.usedIDs.Contains(newID));
-                MainDefs.usedIDs.Add(newID);
+                    newID = Core.random.Next();
+                } while (Core.usedIDs.Contains(newID));
+                Core.usedIDs.Add(newID);
                 return newID;
             }
 
@@ -182,7 +176,7 @@ namespace RPGMod
                 Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
 
                 message.baseToken = string.Format("{0} {1} {2}{3} to receive: <color=#{4}>{5}</color>",
-                    MainDefs.questDefinitions.types[(int)serverMessage.type],
+                    Core.questDefinitions.types[(int)serverMessage.type],
                     serverMessage.objective,
                     clientMessage.target,
                     serverMessage.type == 0 ? "s" : "",

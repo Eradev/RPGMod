@@ -1,5 +1,6 @@
 ﻿using UnityEngine.Networking;
 using RoR2;
+using System.Collections.Generic;
 
 namespace RPGMod
 {
@@ -45,6 +46,23 @@ namespace RPGMod
                 writer.Write(target);
                 writer.Write(iconPath);
             }
+
+            public void RegisterInstance()
+            {
+                Instances.Add(this);
+            }
+
+            public static List<Questing.ClientMessage> Instances { get; set; } = new List<Questing.ClientMessage>();
+
+            // Sends the quest to all clients via the quest port.
+            public void SendToAll()
+            {
+                if (!NetworkServer.active)
+                {
+                    return;
+                }
+                NetworkServer.SendToAll(Config.questPort, this);
+            }
         }
 
         // All server side data
@@ -53,17 +71,25 @@ namespace RPGMod
             public ServerMessage() {
                 progress = 0;
                 drop = Quest.GetQuestDrop();
-                objective = MainDefs.random.Next(Config.questObjectiveMin, Quest.GetObjectiveLimit());
+                objective = Core.random.Next(Config.questObjectiveMin, Quest.GetObjectiveLimit());
+                awaitingClientMessage = false;
             }
 
             public ServerMessage(Type type) : this() {
                 this.type = type;
             }
 
+            public void RegisterInstance() {
+                Instances.Add(this);
+            }
+
+            public static List<ServerMessage> Instances { get; private set; } = new List<ServerMessage>();
+
             public PickupDef drop;
             public int objective;
             public int progress;
             public Type type;
+            public bool awaitingClientMessage;
         }
     } // namespace Questing
 } // namespace RPGMod

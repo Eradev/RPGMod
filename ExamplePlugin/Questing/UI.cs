@@ -65,7 +65,7 @@ namespace RPGMod
                 set
                 {
                     index = value;
-                    questRect.transform.localPosition = new Vector3(Screen.width * Questing.Config.xPositionUI, (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index), parent.localPosition.z);
+                    questRect.transform.localPosition = new Vector3((Screen.width * Questing.Config.xPositionUI), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
                 }
             }
 
@@ -95,8 +95,8 @@ namespace RPGMod
                     {
                         Debug.Log(data[i] + i);
                     }
-                    Title = MainDefs.questDefinitions.types[int.Parse(data[0])];
-                    QuestColor = MainDefs.questDefinitions.colors[int.Parse(data[0])];
+                    Title = Core.questDefinitions.types[int.Parse(data[0])];
+                    QuestColor = Core.questDefinitions.colors[int.Parse(data[0])];
                     Description = data[1];
                     Reward = data[2];
                     progress = int.Parse(data[3]);
@@ -112,7 +112,7 @@ namespace RPGMod
 
             private void Awake()
             { 
-                questUI = Instantiate(MainDefs.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
+                questUI = Instantiate(Core.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
 
                 var hudConVar = RoR2.Console.instance.FindConVar("hud_scale");
 
@@ -202,7 +202,7 @@ namespace RPGMod
                 float num = (Time.time - startTime) / 0.8f;
                 if (num < 1)
                 {
-                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI) - (questRect.sizeDelta.y * hudScale), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
+                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
                 }
             }
 

@@ -11,9 +11,9 @@ namespace RPGMod
         public int items;
     }
 
-    struct MainDefs
+    struct Core
     {
-        static MainDefs() {
+        static Core() {
             questDefinitions = new QuestDefinitions
             {
                 types = new List<string>() { "KILL", "COLLECT", "OPEN", "HEAL", "KILL" },
@@ -29,8 +29,6 @@ namespace RPGMod
         public static readonly System.Random random = new System.Random();
         public static AssetBundle assetBundle { get; set; }
         public static QuestDefinitions questDefinitions { get; set; }
-        public static List<Questing.ClientMessage> QuestClientMessages { get; set; } = new List<Questing.ClientMessage>();
-        public static List<Questing.ServerMessage> QuestServerMessages { get; set; } = new List<Questing.ServerMessage>();
         public static List<int> usedIDs { get; set; } = new List<int>();
         public static List<Questing.Type> usedTypes { get; set; } = new List<Questing.Type>();
     }
