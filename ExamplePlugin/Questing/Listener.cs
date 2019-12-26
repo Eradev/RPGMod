@@ -132,9 +132,23 @@ namespace RPGMod
                                 // Get a Tier
                                 List<PickupIndex> list = weightedSelection.Evaluate(Run.instance.spawnRng.nextNormalizedFloat);
                                 // Pick random from tier
-                                PickupIndex item = list[Run.instance.spawnRng.RangeInt(0, list.Count)];
+                                PickupDef item = PickupCatalog.GetPickupDef(list[Run.instance.spawnRng.RangeInt(0, list.Count)]);
                                 // Spawn item
-                                PickupDropletController.CreatePickupDroplet(item, enemyBody.transform.position, Vector3.up * 20f);
+                                if (Config.dropItemsFromEnemies || list == Run.instance.availableEquipmentDropList)
+                                {
+                                    PickupDropletController.CreatePickupDroplet(item.pickupIndex, enemyBody.transform.position, Vector3.up * 20f);
+                                }
+                                else {
+                                    if (attackerController.minionOwnership.ownerMaster != null)
+                                    {
+                                        attackerController.minionOwnership.ownerMaster.inventory.GiveItem(item.itemIndex);
+                                    }
+                                    else
+                                    {
+                                        attackerController.inventory.GiveItem(item.itemIndex);
+                                    }
+                                    Chat.AddMessage("Enemy Drop: 1 " + Language.GetString(item.nameToken));
+                                }
                             }
                         }
                     }

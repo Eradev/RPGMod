@@ -38,6 +38,9 @@ namespace RPGMod
             public static int questKillObjectiveMax;
             public static int questUtilityObjectiveMin;
             public static int questUtilityObjectiveMax;
+            public static float questObjectiveCommonMultiplier;
+            public static float questObjectiveUncommonMultiplier;
+            public static float questObjectiveLegendaryMultiplier;
             public static int questPerTypeMax;
             public static int questAmountMax;
             public static bool dropItemsFromPlayers;
@@ -52,6 +55,7 @@ namespace RPGMod
             public static bool restartQuestsOnStageChange;
 
             // Misc params
+            public static bool dropItemsFromEnemies;
             public static string[] bannedDirectorSpawns;
             public static float worldSpawnPercentage = 1.0f;
             public static short questPort;
@@ -83,6 +87,7 @@ namespace RPGMod
                 normalChanceEquip = config.Bind<float>(new ConfigDefinition("Chances", "normalChanceEquip"), 10.0f, new ConfigDescription("Normal enemy equipment item drop chance")).Value / 100;
                 playerChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "playerChanceScaling"), 35.0f, new ConfigDescription("The percentage chance overall increase per player (helps with player scaling)")).Value / 100;
                 earlyChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "earlyChanceScaling"), 150.0f, new ConfigDescription("Percentage chance increase for the early stage of the game")).Value / 100;
+                dropItemsFromEnemies = config.Bind<bool>(new ConfigDefinition("Chances", "dropItemsFromEnemies"), true, new ConfigDescription("Items drop from enemies instead of popping up in inventory")).Value;
 
                 // UI params
                 xPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 89.5f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value - 50) / 100;
@@ -94,6 +99,9 @@ namespace RPGMod
                 questKillObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questKillObjectiveMax"), 15, new ConfigDescription("Maximum kill quest objective (Gets scaled over time from the min value)")).Value;
                 questUtilityObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questUtilityObjectiveMin"), 4, new ConfigDescription("Minimum utility (chest opening, etc) quest objective (Gets scaled over time to the max value)")).Value;
                 questUtilityObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questUtilityObjectiveMax"), 9, new ConfigDescription("Maximum utility (chest opening, etc) quest objective (Gets scaled over time from the min value)")).Value;
+                questObjectiveCommonMultiplier = config.Bind<float>(new ConfigDefinition("Questing", "questObjectiveCommonMultiplier"), 85f, new ConfigDescription("Quest objective scaling for a common reward")).Value / 100;
+                questObjectiveUncommonMultiplier = config.Bind<float>(new ConfigDefinition("Questing", "questObjectiveUncommonMultiplier"), 100f, new ConfigDescription("Quest objective scaling for an uncommon reward")).Value / 100;
+                questObjectiveLegendaryMultiplier = config.Bind<float>(new ConfigDefinition("Questing", "questObjectiveLegendaryMultiplier"), 200f, new ConfigDescription("Quest objective scaling for a legendary reward")).Value / 100;
                 questPerTypeMax = config.Bind<int>(new ConfigDefinition("Questing", "questPerTypeMax"), 1, new ConfigDescription("The maximum amount of quests of each type")).Value;
                 questAmountMax = config.Bind<int>(new ConfigDefinition("Questing", "questAmountMax"), 3, new ConfigDescription("The maximum amount of quests")).Value;
                 dropItemsFromPlayers = config.Bind<bool>(new ConfigDefinition("Questing", "dropItemsFromPlayers"), false, new ConfigDescription("Items drop from player instead of popping up in inventory")).Value;
@@ -108,7 +116,7 @@ namespace RPGMod
 
                 // Feature params
                 questingEnabled = config.Bind<bool>(new ConfigDefinition("Features", "questingEnabled"), true, new ConfigDescription("Quests enabled")).Value;
-                enemyItemDropsEnabled = config.Bind<bool>(new ConfigDefinition("Features", "enemyItemDropsEnabled"), true, new ConfigDescription("Enemies drop items")).Value;
+                enemyItemDropsEnabled = config.Bind<bool>(new ConfigDefinition("Features", "enemyItemDropsEnabled"), true, new ConfigDescription("Enemies drop items on death")).Value;
                 restartQuestsOnStageChange = config.Bind<bool>(new ConfigDefinition("Features", "restartQuestsOnStageChange"), false, new ConfigDescription("Quests reset on stage change")).Value;
 
                 questPort = config.Bind<short>(new ConfigDefinition("Networking", "questPort"), 1337, new ConfigDescription("The port used for the quest networking")).Value;

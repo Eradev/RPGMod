@@ -14,22 +14,13 @@ This mod offers a networked questing system that is synced with others who have 
 
 This mod has highly customisable enemy loot drops, with the ability to change the chances of each drop for each tier of enemy. By default it is set to be very uncommon for drops, though this can be changed.
 
-## Known Issues
-
-This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.
-
-If you find any issues with my mod please create a new issue on the github, you can find existing issues here:
-https://github.com/ghasttear1/RPGMod/issues
-
-I may not be able to be very quick to fixing issues due to lack of time but I will try.
-
 ## Installation
 
 1. Make sure BepInEx is installed
-2. Move `RPGMod.dll` and the `RPGMod` folder into `Risk of Rain 2\BepInEx\plugins` folder
+2. Move `RPGMod.dll` into `Risk of Rain 2\BepInEx\plugins` folder
 3. Run the game and enjoy.
 
-**Uninstalling:** Simply delete the RPGMod files.
+**Uninstalling:** Simply delete the `RPGMod.dll` file in your plugins folder.
 
 ## Updating
 
@@ -67,7 +58,17 @@ This mod has a large config with many values to change to your desire with the a
 - 1.2.5: No longer any turret issues with other mods modifying turrets, fixed items no longer dropping after some time.
 - 1.2.6: Had to rebuild mod to work with new game update and updated readme.
 - 2.0.0 (MAJOR UPDATE): Code for questing and more has been completely redone with support for multiple quests at a time, different questing types, a completely new user interface, redone config, turret fixes, better code and much more.
+- 2.0.1: Embedded asset bundle into the mod dll, new option for enemy drops to be added to your inventory directly, new option for each reward tier to have the quest objective scale be adjusted.
 ```
+
+## Issues?
+
+This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.
+
+If you find any issues with my mod please create a new issue on the github, you can find existing issues here:
+https://github.com/ghasttear1/RPGMod/issues
+
+I may not be able to be very quick to fixing issues due to lack of time but I will try.
 
 ## Contact
 

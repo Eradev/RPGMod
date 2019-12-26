@@ -2,12 +2,13 @@
 using RoR2;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RPGMod
 {
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "2.0.0")]
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "2.0.1")]
     internal sealed class RPGMod : BaseUnityPlugin
     {
         // Attributes
@@ -273,7 +274,10 @@ namespace RPGMod
         {
             // Loads the config and assetbundle
             Questing.Config.Load(Config, false);
-            Core.assetBundle = AssetBundle.LoadFromFile(System.IO.Path.Combine(Paths.PluginPath, "RPGMod//assetBundle"));
+
+            var execAssembly = Assembly.GetExecutingAssembly();
+            var stream = execAssembly.GetManifestResourceStream("RPGMod.assetbundle");
+            Core.assetBundle = AssetBundle.LoadFromStream(stream);
 
             if (Core.assetBundle == null)
             {

@@ -133,6 +133,19 @@ namespace RPGMod
                         break;
                 }
 
+                switch (ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).tier)
+                {
+                    case ItemTier.Tier1:
+                        serverMessage.objective = (int)Math.Floor(serverMessage.objective * Config.questObjectiveCommonMultiplier);
+                        break;
+                    case ItemTier.Tier2:
+                        serverMessage.objective = (int)Math.Floor(serverMessage.objective * Config.questObjectiveUncommonMultiplier);
+                        break;
+                    case ItemTier.Tier3:
+                        serverMessage.objective = (int)Math.Floor(serverMessage.objective * Config.questObjectiveLegendaryMultiplier);
+                        break;
+                }
+
                 if (serverMessageIndex != -1)
                 {
                     serverMessage = ServerMessage.Instances[serverMessageIndex];
