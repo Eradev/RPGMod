@@ -1,40 +1,55 @@
 # RPGMod
 
-This mod is highly configurable allowing you to have quests, boss chest drops and enemy dropping loot.
+This mod is highly configurable allowing you to have quests, adjustable interactable spawns and heavily customisable enemy drops.
 
-![Image of questing](https://i.imgur.com/PUEVI0O.jpg)
+![Image of questing](https://i.imgur.com/l9laMNp.png)
 
 ## Questing
 
-This mod offers a networked questing system that is synced with others who have the mod installed. Questing, UI and settings are highly customisable with the config.
+This mod offers a networked questing system that is synced with others who have the mod installed (host must have it installed). Questing, UI and settings are highly customisable within the config.
+
+**Note:** The mod may lack balancing due to time constraints for testing, however the config should allow for many adjustments.
 
 ## Enemy Item Drops
 
-This mod has highly customisable enemy loot drops.
-
-## Configurability
-
-This mod has a large config with many values to change to your desire with the ability to reload on the go by pressing F6.
+This mod has highly customisable enemy loot drops, with the ability to change the chances of each drop for each tier of enemy. By default it is set to be very uncommon for drops, though this can be changed.
 
 ## Known Issues
 
-This mod is WORK IN PROGRESS, meaning that there is a good chance that there are issues.
+This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.
 
 If you find any issues with my mod please create a new issue on the github, you can find existing issues here:
-<https://github.com/ghasttear1/RPGMod/issues>
+https://github.com/ghasttear1/RPGMod/issues
+
+I may not be able to be very quick to fixing issues due to lack of time but I will try.
 
 ## Installation
 
-1. Make sure BepInEx is installed correctly
-2. Move the `RPGMod.dll` into `Risk of Rain 2\BepInEx\plugins` folder
-3. Enjoy!
+1. Make sure BepInEx is installed
+2. Move `RPGMod.dll` and the `RPGMod` folder into `Risk of Rain 2\BepInEx\plugins` folder
+3. Run the game and enjoy.
+
+**Uninstalling:** Simply delete the RPGMod files.
 
 ## Updating
 
-When updating please delete your old config for the mod and let a new one get created (you can make a backup of the old one and copy old values over), as config descriptions and values get added and changed with most updates.
+When updating simply replace the mod files and run the game, the config may change from time to time so make always make a backup if you have changes you want to keep!
+
+## Configuration
+
+This mod has a large config with many values to change to your desire with the ability to reload on the go by pressing **F6**.
+
+**Steps on how to configure:**
+
+1. Navigate to the `Risk of Rain 2\BepInEx\config` folder
+2. Open the `com.ghasttear1.rpgmod.cfg` file using your preferred text editor
+3. Edit the values as you wish.
+4. Importantly, don't forget to save the file. If ingame press **F6** to recieve the changes, otherwise starting the game normally will load the new values.
+5. Enjoy!
 
 ## Changelog
 
+```text
 - 1.0.0: Mod release!
 - 1.0.1: Updated readme
 - 1.0.2: Fixed glitched first quest
@@ -48,6 +63,11 @@ When updating please delete your old config for the mod and let a new one get cr
 - 1.2.1: Reimplemented a fix that was previously in the mod hopefully fixing a problem with quests and particular enemies
 - 1.2.2: Fixed problem with multiple drops from a quest
 - 1.2.3: Fixed issue where depending on the computers localisation the config values would improperly be loaded
+- 1.2.4: Engineer turrets now count towards kills thanks @iDeathHD, quests no longer stop counting progress.
+- 1.2.5: No longer any turret issues with other mods modifying turrets, fixed items no longer dropping after some time.
+- 1.2.6: Had to rebuild mod to work with new game update and updated readme.
+- 2.0.0 (MAJOR UPDATE): Code for questing and more has been completely redone with support for multiple quests at a time, different questing types, a completely new user interface, redone config, turret fixes, better code and much more.
+```
 
 ## Contact
 

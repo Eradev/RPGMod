@@ -41,9 +41,6 @@
     <Reference Include="ProBuilderMeshOps">
       <HintPath>..\libs\ProBuilderMeshOps.dll</HintPath>
     </Reference>
-    <Reference Include="R2API">
-      <HintPath>..\libs\R2API.dll</HintPath>
-    </Reference>
     <Reference Include="Rewired_Core">
       <HintPath>..\libs\Rewired_Core.dll</HintPath>
     </Reference>
