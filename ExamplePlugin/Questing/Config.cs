@@ -99,7 +99,7 @@ namespace RPGMod
                 dropItemsFromPlayers = config.Bind<bool>(new ConfigDefinition("Questing", "dropItemsFromPlayers"), false, new ConfigDescription("Items drop from player instead of popping up in inventory")).Value;
                 displayQuestsInChat = config.Bind<bool>(new ConfigDefinition("Questing", "displayQuestInChat"), true, new ConfigDescription("Quests show up in chat (useful when playing with unmodded players)")).Value;
                 questCooldownTimeOnSceneChange = config.Bind<int>(new ConfigDefinition("Questing", "questCooldownTimeOnSceneChange"), 15, new ConfigDescription("The cooldown time for a quest to appear after the scene has changed (seconds)")).Value;
-                questCooldownTime = config.Bind<int>(new ConfigDefinition("Questing", "questCooldown"), 75, new ConfigDescription("The cooldown time for a quest to appear (seconds)")).Value;
+                questCooldownTime = config.Bind<int>(new ConfigDefinition("Questing", "questCooldown"), 65, new ConfigDescription("The cooldown time for a quest to appear (seconds)")).Value;
 
                 // Director params
                 worldSpawnPercentage = config.Bind<float>(new ConfigDefinition("Director", "worldSpawnPercentage"), 100.0f, new ConfigDescription("World spawn percentage for the director")).Value / 100;
