@@ -1,5 +1,6 @@
 ﻿using RoR2;
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,6 +42,8 @@ namespace RPGMod
             private string questDataDescription;
             private int objective;
             private int progress;
+
+            public static List<UI> Instances { get; private set; } = new List<UI>();
 
             public int index;
             public Color questColor;

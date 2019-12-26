@@ -10,7 +10,6 @@ namespace RPGMod
         {
             // Chance params
             public static float normalDropChance;
-
             public static float eliteDropChance;
             public static float bossDropChance;
             public static float questChanceCommon;
@@ -34,8 +33,8 @@ namespace RPGMod
 
             // Questing params
             public static int questObjectiveMin;
-
             public static int questObjectiveMax;
+            public static int questPerTypeMax;
             public static int questAmountMax;
             public static bool dropItemsFromPlayers;
             public static bool displayQuestsInChat;
@@ -43,14 +42,12 @@ namespace RPGMod
 
             // Feature params
             public static bool defaultWorldSpawnsEnabled;
-
             public static bool enemyItemDropsEnabled;
             public static bool questingEnabled;
             public static bool restartQuestsOnStageChange;
 
             // Misc params
             public static string[] bannedDirectorSpawns;
-
             public static float worldSpawnPercentage = 1.0f;
             public static short questPort;
 
@@ -67,8 +64,8 @@ namespace RPGMod
                 eliteDropChance = config.Bind<float>(new ConfigDefinition("Chances", "eliteDropChance"), 2.5f, new ConfigDescription("Item drop chance for an elite enemy")).Value;
                 bossDropChance = config.Bind<float>(new ConfigDefinition("Chances", "bossDropChance"), 10.0f, new ConfigDescription("Item drop chance for a boss")).Value;
                 questChanceCommon = config.Bind<float>(new ConfigDefinition("Chances", "questChanceCommon"), 0.0f, new ConfigDescription("Chance for a quest reward to be a common item")).Value / 100;
-                questChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "questChanceUncommon"), 92.0f, new ConfigDescription("Chance for a quest reward to be a uncommon item")).Value / 100;
-                questChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "questChanceLegendary"), 8.0f, new ConfigDescription("Chance for a quest reward to be a legendary item")).Value / 100;
+                questChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "questChanceUncommon"), 97.0f, new ConfigDescription("Chance for a quest reward to be a uncommon item")).Value / 100;
+                questChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "questChanceLegendary"), 3.0f, new ConfigDescription("Chance for a quest reward to be a legendary item")).Value / 100;
                 eliteChanceCommon = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceCommon"), 45.0f, new ConfigDescription("Elite enemy common item drop chance")).Value / 100;
                 eliteChanceUncommon = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceUncommon"), 20.0f, new ConfigDescription("Elite enemy uncommon item drop chance")).Value / 100;
                 eliteChanceLegendary = config.Bind<float>(new ConfigDefinition("Chances", "eliteChanceLegendary"), 8.0f, new ConfigDescription("Elite enemy legendary item drop chance")).Value / 100;
@@ -81,13 +78,14 @@ namespace RPGMod
                 earlyChanceScaling = config.Bind<float>(new ConfigDefinition("Chances", "earlyChanceScaling"), 150.0f, new ConfigDescription("Percentage chance increase for the early stage of the game")).Value / 100;
 
                 // UI params
-                xPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 90.0f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value - 50) / 100;
+                xPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "xPositionUI"), 89.5f, new ConfigDescription("UI location on the x axis (percentage of screen width)")).Value - 50) / 100;
                 yPositionUI = (config.Bind<float>(new ConfigDefinition("UI", "yPositionUI"), 50.0f, new ConfigDescription("UI location on the y axis (percentage of screen height)")).Value - 50) / 100;
                 useGameHudScale = config.Bind<bool>(new ConfigDefinition("UI", "useGameHudScale"), true, new ConfigDescription("Whether or not to use the games inbuilt hud scale option for questing UI")).Value;
 
                 // Questing params
                 questObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMin"), 5, new ConfigDescription("Minimum quest objective")).Value; // Needs changing for kills
                 questObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMax"), 20, new ConfigDescription("Maximum quest objective")).Value; // Needs changing for kills
+                questPerTypeMax = config.Bind<int>(new ConfigDefinition("Questing", "questPerTypeMax"), 1, new ConfigDescription("The maximum amount of quests of each type")).Value;
                 questAmountMax = config.Bind<int>(new ConfigDefinition("Questing", "questAmountMax"), 3, new ConfigDescription("The maximum amount of quests")).Value;
                 dropItemsFromPlayers = config.Bind<bool>(new ConfigDefinition("Questing", "dropItemsFromPlayers"), false, new ConfigDescription("Items drop from player instead of popping up in inventory")).Value;
                 displayQuestsInChat = config.Bind<bool>(new ConfigDefinition("Questing", "displayQuestInChat"), true, new ConfigDescription("Quests show up in chat (useful when playing with unmodded players)")).Value;

@@ -45,7 +45,7 @@ namespace RPGMod
                 do
                 {
                     type = (Type)Core.random.Next(0, Core.questDefinitions.items);
-                } while (Core.usedTypes.Contains(type));
+                } while ((Core.usedTypes[type] >= Config.questPerTypeMax) || (type == Type.KillElites && Run.instance.loopClearCount > 0));
 
                 return type;
             }
@@ -80,7 +80,7 @@ namespace RPGMod
                         for (int i = 0; i < choices.Length; i++) {
                             if (!(choices[i].value == null || choices[i].value.spawnCard == null || choices[i].value.spawnCard.name == null))
                             {
-                                if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.time < (8 * 60)) && !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.time < (40 * 60)))
+                                if (!(choices[i].value.spawnCard.directorCreditCost > 30 && Run.instance.GetRunStopwatch() < (15 * 60)) && !(choices[i].value.spawnCard.prefab.GetComponent<CharacterMaster>().bodyPrefab.GetComponent<CharacterBody>().isChampion && Run.instance.GetRunStopwatch() < (35 * 60)))
                                 {
                                     newChoices.Add(choices[i]);
                                 }
@@ -132,7 +132,7 @@ namespace RPGMod
                     DisplayQuestInChat(clientMessage, serverMessage);
                 }
 
-                Core.usedTypes.Add(serverMessage.type);
+                Core.usedTypes[serverMessage.type] += 1;
                 if (serverMessageIndex == -1)
                 {
                     serverMessage.RegisterInstance();

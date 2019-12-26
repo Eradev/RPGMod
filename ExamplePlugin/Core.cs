@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RPGMod
@@ -11,8 +12,16 @@ namespace RPGMod
         public int items;
     }
 
-    struct Core
+    static class Core
     {
+        public static void Reset() {
+            usedTypes.Clear();
+            foreach (Questing.Type type in Enum.GetValues(typeof(Questing.Type)))
+            {
+                usedTypes.Add(type, 0);
+            }
+        }
+
         static Core() {
             questDefinitions = new QuestDefinitions
             {
@@ -23,6 +32,7 @@ namespace RPGMod
                     new Color(0, 0.36f, 0.78f, 0.5f), new Color(0.2f, 0.7f, 0.2f, 0.5f), new Color(0.7f, 0.45f, 0.2f, 0.5f) },
                 items = 5
             };
+            Reset();
         }
 
         public static readonly bool debugMode = true;
@@ -30,6 +40,6 @@ namespace RPGMod
         public static AssetBundle assetBundle { get; set; }
         public static QuestDefinitions questDefinitions { get; set; }
         public static List<int> usedIDs { get; set; } = new List<int>();
-        public static List<Questing.Type> usedTypes { get; set; } = new List<Questing.Type>();
+        public static Dictionary<Questing.Type, int> usedTypes { get; set; } = new Dictionary<Questing.Type, int>();
     }
 }
