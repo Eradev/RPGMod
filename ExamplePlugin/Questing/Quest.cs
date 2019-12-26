@@ -8,6 +8,7 @@ namespace RPGMod
 {
     namespace Questing
     {
+        // Available quest types
         public enum Type
         {
             KillEnemies,
@@ -19,8 +20,10 @@ namespace RPGMod
 
         internal static class Quest
         {
+            // Methods
+
             // Builds the quest description used for messaging data across clients.
-            public static string GetDescription(ClientMessage clientMessage, ServerMessage serverMessage)
+            public static string GetDescription(ClientMessage clientMessage, ServerMessage serverMessage) // TODO: Maybe move some of this data to individual message componenents
             {
                 return string.Format("{0},{1},{2},{3},{4},{5}", (int)serverMessage.type,
                     string.Format("{0} {1}{2}", serverMessage.objective, clientMessage.target, serverMessage.type == Type.KillEnemies ? "s" : ""),
@@ -28,29 +31,34 @@ namespace RPGMod
                     serverMessage.progress, serverMessage.objective, ItemCatalog.GetItemDef(serverMessage.drop.itemIndex).pickupIconPath);
             }
 
-            public static int GetObjectiveLimit()
+            // Creates the dynamic quest limit
+            public static int GetObjectiveLimit(int min, int max, float scale)
             {
-                int questObjectiveLimit = (int)Math.Round(Config.questObjectiveMin * Run.instance.compensatedDifficultyCoefficient);
-                if (questObjectiveLimit >= Config.questObjectiveMax)
+                int questObjectiveLimit = (int)Math.Round(min * Run.instance.compensatedDifficultyCoefficient * scale);
+                if (questObjectiveLimit >= max)
                 {
-                    questObjectiveLimit = Config.questObjectiveMax;
+                    questObjectiveLimit = max;
                 }
+                else if (questObjectiveLimit < min) {
+                    questObjectiveLimit = min;
+                }
+
                 return questObjectiveLimit;
             }
 
-            public static Type GetQuestType()
+            public new static Type GetType()
             {
                 Type type;
 
                 do
                 {
                     type = (Type)Core.random.Next(0, Core.questDefinitions.items);
-                } while ((Core.usedTypes[type] >= Config.questPerTypeMax) || (type == Type.KillElites && Run.instance.loopClearCount > 0));
+                } while ((Core.usedTypes[type] >= Config.questPerTypeMax) || (type == Type.KillElites && Run.instance.loopClearCount < 1));
 
                 return type;
             }
 
-            // Handles creating a new quest.
+            // Handles quest creation
             public static ClientMessage GetQuest(int serverMessageIndex = -1)
             {
 
@@ -58,17 +66,15 @@ namespace RPGMod
 
                 if (serverMessageIndex == -1)
                 {
-                    type = GetQuestType();
+                    type = GetType();
                 }
                 else
                 {
-                    type = Questing.ServerMessage.Instances[serverMessageIndex].type;
+                    type = ServerMessage.Instances[serverMessageIndex].type;
                 }
 
                 ClientMessage clientMessage = new ClientMessage(Core.questDefinitions.targets[(int)type]);
                 ServerMessage serverMessage = new ServerMessage(type);
-
-                //Debug.Log(type);
 
                 switch (type)
                 {
@@ -85,7 +91,9 @@ namespace RPGMod
                                     newChoices.Add(choices[i]);
                                 }
                             }
-                        } 
+                        }
+
+                        serverMessage.objective = Core.random.Next(Config.questKillObjectiveMin, GetObjectiveLimit(Config.questKillObjectiveMin, Config.questKillObjectiveMax, 1));
 
                         var targetCard = newChoices[Core.random.Next(0, newChoices.Count)].value.spawnCard;
                         var targetMaster = targetCard.prefab.GetComponent<CharacterMaster>();
@@ -94,6 +102,12 @@ namespace RPGMod
 
                         clientMessage.target = targetBody.GetUserName();
                         clientMessage.iconPath = targetBody.name;
+                        break;
+                    case Type.KillElites:
+                        serverMessage.objective = Core.random.Next(Config.questKillObjectiveMin, GetObjectiveLimit(Config.questKillObjectiveMin, Config.questKillObjectiveMax, 0.85f));
+                        break;
+                    case Type.OpenChests:
+                        serverMessage.objective = Core.random.Next(Config.questUtilityObjectiveMin, GetObjectiveLimit(Config.questUtilityObjectiveMin, Config.questUtilityObjectiveMax, 0.8f));
                         break;
                     // Collect Gold Quest - [Gets quest objective according to game difficulty]
                     case Type.CollectGold:
@@ -121,8 +135,7 @@ namespace RPGMod
 
                 if (serverMessageIndex != -1)
                 {
-                    Debug.Log(serverMessageIndex);
-                    serverMessage = Questing.ServerMessage.Instances[serverMessageIndex];
+                    serverMessage = ServerMessage.Instances[serverMessageIndex];
                 }
 
                 clientMessage.description = GetDescription(clientMessage, serverMessage);
@@ -138,7 +151,7 @@ namespace RPGMod
                     serverMessage.RegisterInstance();
                 }
                 else {
-                    Questing.ServerMessage.Instances[serverMessageIndex].awaitingClientMessage = false;
+                    ServerMessage.Instances[serverMessageIndex].awaitingClientMessage = false;
                 }
                 clientMessage.id = GetUniqueID();
 
@@ -147,13 +160,13 @@ namespace RPGMod
 
             public static int GetUniqueID()
             {
-                int newID;
+                int id;
                 do
                 {
-                    newID = Core.random.Next();
-                } while (Core.usedIDs.Contains(newID));
-                Core.usedIDs.Add(newID);
-                return newID;
+                    id = Core.random.Next();
+                } while (Core.usedIDs.Contains(id));
+                Core.usedIDs.Add(id);
+                return id;
             }
 
             // Gets the drop for the quest
@@ -186,5 +199,6 @@ namespace RPGMod
                 Chat.SendBroadcastChat(message);
             }
         }
+
     } // namespace Questing
 } // namespace RPGMod

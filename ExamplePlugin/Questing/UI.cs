@@ -12,6 +12,7 @@ namespace RPGMod
         // Controller for the UI used for each quest.
         public class UI : MonoBehaviour
         {
+            // Attributes
             private GameObject questUI;
             private Transform parent;
             private float startTime;
@@ -68,7 +69,7 @@ namespace RPGMod
                 set
                 {
                     index = value;
-                    questRect.transform.localPosition = new Vector3((Screen.width * Questing.Config.xPositionUI), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
+                    questRect.transform.localPosition = new Vector3((Screen.width * Questing.Config.xPositionUI), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.position.z * 1.35f);
                 }
             }
 
@@ -94,10 +95,10 @@ namespace RPGMod
                 set
                 {
                     String[] data = value.Split(',');
-                    for (int i = 0; i < data.Length; i++)
-                    {
-                        Debug.Log(data[i] + i);
-                    }
+                    //for (int i = 0; i < data.Length; i++)
+                    //{
+                    //    Debug.Log(data[i] + i);
+                    //}
                     Title = Core.questDefinitions.types[int.Parse(data[0])];
                     QuestColor = Core.questDefinitions.colors[int.Parse(data[0])];
                     Description = data[1];
@@ -113,6 +114,7 @@ namespace RPGMod
                 }
             }
 
+            // Methods
             private void Awake()
             { 
                 questUI = Instantiate(Core.assetBundle.LoadAsset<GameObject>("Assets/QuestUI.prefab"));
@@ -205,7 +207,7 @@ namespace RPGMod
                 float num = (Time.time - startTime) / 0.8f;
                 if (num < 1)
                 {
-                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.localPosition.z * 1.35f);
+                    questRect.transform.localPosition = new Vector3(Mathf.SmoothStep(Screen.width * 1.3f, (Screen.width * Questing.Config.xPositionUI), num), (Screen.height * Questing.Config.yPositionUI) - (questRect.sizeDelta.y * index * hudScale), parent.position.z * 1.35f);
                 }
             }
 

@@ -6,8 +6,11 @@ namespace RPGMod
 {
     namespace Questing
     {
+        // Handles quest updates
         public static class Listener
         {
+            // Methods
+
             // Updates the relevant quest according to the parameters.
             public static void UpdateQuest(int value, Type type, string target)
             {
@@ -26,7 +29,10 @@ namespace RPGMod
                         ServerMessage.Instances[i] = newServerData;
                         ClientMessage.Instances[i].description = Quest.GetDescription(ClientMessage.Instances[i], ServerMessage.Instances[i]);
                         CheckQuestStatus(i);
-                        Debug.Log("UPDATED QUEST");
+                        if (Core.debugMode)
+                        {
+                            Debug.Log("UPDATED QUEST");
+                        }
                         ClientMessage.Instances[i].SendToAll();
                     }
                 }

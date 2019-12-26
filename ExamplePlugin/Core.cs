@@ -14,6 +14,15 @@ namespace RPGMod
 
     static class Core
     {
+        // Attributes
+        public static readonly bool debugMode = false;
+        public static readonly System.Random random = new System.Random();
+        public static AssetBundle assetBundle { get; set; }
+        public static QuestDefinitions questDefinitions { get; set; }
+        public static List<int> usedIDs { get; set; } = new List<int>();
+        public static Dictionary<Questing.Type, int> usedTypes { get; set; } = new Dictionary<Questing.Type, int>();
+
+        // Methods
         public static void Reset() {
             usedTypes.Clear();
             foreach (Questing.Type type in Enum.GetValues(typeof(Questing.Type)))
@@ -34,12 +43,5 @@ namespace RPGMod
             };
             Reset();
         }
-
-        public static readonly bool debugMode = true;
-        public static readonly System.Random random = new System.Random();
-        public static AssetBundle assetBundle { get; set; }
-        public static QuestDefinitions questDefinitions { get; set; }
-        public static List<int> usedIDs { get; set; } = new List<int>();
-        public static Dictionary<Questing.Type, int> usedTypes { get; set; } = new Dictionary<Questing.Type, int>();
     }
 }

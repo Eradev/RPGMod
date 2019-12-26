@@ -5,9 +5,11 @@ namespace RPGMod
 {
     namespace Questing
     {
-        // The variables that are accessable by the config.
+        // All the config variables
         public class Config
         {
+            // Attributes
+
             // Chance params
             public static float normalDropChance;
             public static float eliteDropChance;
@@ -32,12 +34,15 @@ namespace RPGMod
             public static bool useGameHudScale;
 
             // Questing params
-            public static int questObjectiveMin;
-            public static int questObjectiveMax;
+            public static int questKillObjectiveMin;
+            public static int questKillObjectiveMax;
+            public static int questUtilityObjectiveMin;
+            public static int questUtilityObjectiveMax;
             public static int questPerTypeMax;
             public static int questAmountMax;
             public static bool dropItemsFromPlayers;
             public static bool displayQuestsInChat;
+            public static int questCooldownTimeOnSceneChange;
             public static int questCooldownTime;
 
             // Feature params
@@ -50,6 +55,8 @@ namespace RPGMod
             public static string[] bannedDirectorSpawns;
             public static float worldSpawnPercentage = 1.0f;
             public static short questPort;
+
+            // Methods
 
             // Refreshes the config values from the config
             public static void Load(ConfigFile config, bool reload)
@@ -83,13 +90,16 @@ namespace RPGMod
                 useGameHudScale = config.Bind<bool>(new ConfigDefinition("UI", "useGameHudScale"), true, new ConfigDescription("Whether or not to use the games inbuilt hud scale option for questing UI")).Value;
 
                 // Questing params
-                questObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMin"), 5, new ConfigDescription("Minimum quest objective")).Value; // Needs changing for kills
-                questObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questObjectiveMax"), 20, new ConfigDescription("Maximum quest objective")).Value; // Needs changing for kills
+                questKillObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questKillObjectiveMin"), 5, new ConfigDescription("Minimum kill quest objective (Gets scaled over time to the max value)")).Value;
+                questKillObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questKillObjectiveMax"), 15, new ConfigDescription("Maximum kill quest objective (Gets scaled over time from the min value)")).Value;
+                questUtilityObjectiveMin = config.Bind<int>(new ConfigDefinition("Questing", "questUtilityObjectiveMin"), 4, new ConfigDescription("Minimum utility (chest opening, etc) quest objective (Gets scaled over time to the max value)")).Value;
+                questUtilityObjectiveMax = config.Bind<int>(new ConfigDefinition("Questing", "questUtilityObjectiveMax"), 9, new ConfigDescription("Maximum utility (chest opening, etc) quest objective (Gets scaled over time from the min value)")).Value;
                 questPerTypeMax = config.Bind<int>(new ConfigDefinition("Questing", "questPerTypeMax"), 1, new ConfigDescription("The maximum amount of quests of each type")).Value;
                 questAmountMax = config.Bind<int>(new ConfigDefinition("Questing", "questAmountMax"), 3, new ConfigDescription("The maximum amount of quests")).Value;
                 dropItemsFromPlayers = config.Bind<bool>(new ConfigDefinition("Questing", "dropItemsFromPlayers"), false, new ConfigDescription("Items drop from player instead of popping up in inventory")).Value;
                 displayQuestsInChat = config.Bind<bool>(new ConfigDefinition("Questing", "displayQuestInChat"), true, new ConfigDescription("Quests show up in chat (useful when playing with unmodded players)")).Value;
-                questCooldownTime = config.Bind<int>(new ConfigDefinition("Questing", "questCooldown"), 60, new ConfigDescription("The cooldown time for a quest to appear (seconds)")).Value;
+                questCooldownTimeOnSceneChange = config.Bind<int>(new ConfigDefinition("Questing", "questCooldownTimeOnSceneChange"), 15, new ConfigDescription("The cooldown time for a quest to appear after the scene has changed (seconds)")).Value;
+                questCooldownTime = config.Bind<int>(new ConfigDefinition("Questing", "questCooldown"), 75, new ConfigDescription("The cooldown time for a quest to appear (seconds)")).Value;
 
                 // Director params
                 worldSpawnPercentage = config.Bind<float>(new ConfigDefinition("Director", "worldSpawnPercentage"), 100.0f, new ConfigDescription("World spawn percentage for the director")).Value / 100;

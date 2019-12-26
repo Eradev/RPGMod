@@ -9,24 +9,30 @@ namespace RPGMod
         // Quest Message that gets sent to all clients
         public class ClientMessage : MessageBase
         {
-            public ClientMessage() {
-                description = "bad";
-                iconPath = "custom";
-                active = false;
-                advancingStage = false;
-            }
-
-            public ClientMessage(string target) : this() {
-                this.target = target;
-            }
-
+            // Attributes
             public int id;
             public bool active;
             public bool advancingStage;
             public string description;
             public string target;
             public string iconPath;
+            public static List<Questing.ClientMessage> Instances { get; set; } = new List<Questing.ClientMessage>();
 
+            //Constructors
+            public ClientMessage()
+            {
+                description = "bad";
+                iconPath = "custom";
+                active = false;
+                advancingStage = false;
+            }
+
+            public ClientMessage(string target) : this()
+            {
+                this.target = target;
+            }
+
+            // Methdods
             public override void Deserialize(NetworkReader reader)
             {
                 id = reader.ReadInt32();
@@ -52,8 +58,6 @@ namespace RPGMod
                 Instances.Add(this);
             }
 
-            public static List<Questing.ClientMessage> Instances { get; set; } = new List<Questing.ClientMessage>();
-
             // Sends the quest to all clients via the quest port.
             public void SendToAll()
             {
@@ -65,13 +69,22 @@ namespace RPGMod
             }
         }
 
-        // All server side data
+        // Server message for each quest
         public class ServerMessage
         {
+            // Attributes
+            public PickupDef drop;
+            public int objective;
+            public int progress;
+            public Type type;
+            public bool awaitingClientMessage;
+            public static List<ServerMessage> Instances { get; private set; } = new List<ServerMessage>();
+
+            // Constructors
             public ServerMessage() {
                 progress = 0;
                 drop = Quest.GetQuestDrop();
-                objective = Core.random.Next(Config.questObjectiveMin, Quest.GetObjectiveLimit());
+                objective = 100;
                 awaitingClientMessage = false;
             }
 
@@ -79,17 +92,11 @@ namespace RPGMod
                 this.type = type;
             }
 
+            // Methods
             public void RegisterInstance() {
                 Instances.Add(this);
             }
-
-            public static List<ServerMessage> Instances { get; private set; } = new List<ServerMessage>();
-
-            public PickupDef drop;
-            public int objective;
-            public int progress;
-            public Type type;
-            public bool awaitingClientMessage;
+            
         }
     } // namespace Questing
 } // namespace RPGMod
