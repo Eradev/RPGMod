@@ -1238,6 +1238,11 @@
             <param name="survivor">The survivor to add.</param>
             <returns>true if survivor will be added</returns>
         </member>
+        <member name="T:R2API.UnbundledResourcesProvider">
+            <summary>
+            This class allows loading of resources not stored in an assetbundle with Resources.Load. Primary use would be for generating an item icon in code.
+            </summary>
+        </member>
         <member name="T:R2API.Utils.R2APISubmoduleDependency">
             <summary>
             Attribute to have at the top of your BaseUnityPlugin class if you want to load a specific R2API Submodule.
