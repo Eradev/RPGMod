@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-// Thank you wildbook for making this
-
 /**
  * Reflection.cs - a class used for working with reflections in .Net
  *
@@ -27,7 +25,7 @@ public static class Reflection
 
     public static TReturn GetFieldValue<TReturn>(this object instance, string fieldName) =>
         (TReturn)instance.GetType()
-                         .GetField(fieldName, _defaultFlags | BindingFlags.Instance)
+                         .GetField(fieldName, _defaultFlags | BindingFlags.Instance)?
                          .GetValue(instance);
 
     public static TReturn GetFieldValue<TClass, TReturn>(string fieldName) =>

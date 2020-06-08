@@ -1,45 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using RPGMod.Questing;
 using UnityEngine;
+using Random = System.Random;
 
 namespace RPGMod
 {
-    struct QuestDefinitions {
-        public List<string> types;
-        public List<string> targets;
-        public List<string> iconPaths;
-        public List<Color> colors;
-        public int items;
-    }
-
-    static class Core
+    internal static class Core
     {
-        // Attributes
-        public static readonly bool debugMode = false;
-        public static readonly System.Random random = new System.Random();
-        public static AssetBundle assetBundle { get; set; }
-        public static QuestDefinitions questDefinitions { get; set; }
-        public static List<int> usedIDs { get; set; } = new List<int>();
-        public static Dictionary<Questing.Type, int> usedTypes { get; set; } = new Dictionary<Questing.Type, int>();
+        public static readonly bool DebugMode = false;
+        public static readonly Random Random = new Random();
+        public static AssetBundle AssetBundle { get; set; }
+        public static QuestDefinitions QuestDefinitions { get; set; }
+        public static List<int> UsedIDs { get; set; } = new List<int>();
+        public static Dictionary<QuestType, int> UsedTypes { get; set; } = new Dictionary<QuestType, int>();
 
-        // Methods
-        public static void Reset() {
-            usedTypes.Clear();
-            foreach (Questing.Type type in Enum.GetValues(typeof(Questing.Type)))
+        public static void Reset()
+        {
+            UsedTypes.Clear();
+            foreach (QuestType type in Enum.GetValues(typeof(QuestType)))
             {
-                usedTypes.Add(type, 0);
+                UsedTypes.Add(type, 0);
             }
         }
 
-        static Core() {
-            questDefinitions = new QuestDefinitions
+        static Core()
+        {
+            QuestDefinitions = new QuestDefinitions
             {
-                types = new List<string>() { "KILL", "COLLECT", "OPEN", "HEAL", "KILL" },
-                targets = new List<string>() { "", "Gold", "Chests", "Damage", "Elites" },
-                iconPaths = new List<string>() { "", "Assets/textures/coin.png", "Assets/textures/chest.png", "Assets/textures/heal.png", "Assets/textures/aspects.png" },
-                colors = new List<Color>() { new Color(0.82f, 0, 0, 0.5f), new Color(0.9f, 0.75f, 0, 0.5f),
-                    new Color(0, 0.36f, 0.78f, 0.5f), new Color(0.2f, 0.7f, 0.2f, 0.5f), new Color(0.7f, 0.45f, 0.2f, 0.5f) },
-                items = 5
+                Types = new List<string> { "KILL", "COLLECT", "OPEN", "HEAL", "KILL" },
+                Targets = new List<string> { "", "Gold", "Chests", "Damage", "Elites" },
+                IconPaths = new List<string> { "", "Assets/textures/coin.png", "Assets/textures/chest.png", "Assets/textures/heal.png", "Assets/textures/aspects.png" },
+                Colors = new List<Color>
+                { 
+                    new Color(0.82f, 0, 0, 0.5f), 
+                    new Color(0.9f, 0.75f, 0, 0.5f),
+                    new Color(0, 0.36f, 0.78f, 0.5f), 
+                    new Color(0.2f, 0.7f, 0.2f, 0.5f), 
+                    new Color(0.7f, 0.45f, 0.2f, 0.5f)
+                },
+                Items = 5
             };
             Reset();
         }

@@ -1,15 +1,23 @@
-﻿using BepInEx;
-using RoR2;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Reflection;
+using BepInEx;
+using RoR2;
+using RPGMod.Questing;
 using UnityEngine;
 using UnityEngine.Networking;
+using CharacterMaster = On.RoR2.CharacterMaster;
+using ChestBehavior = On.RoR2.ChestBehavior;
+using ClassicStageInfo = On.RoR2.ClassicStageInfo;
+using Console = RoR2.Console;
+using GlobalEventManager = On.RoR2.GlobalEventManager;
+using HealthComponent = On.RoR2.HealthComponent;
+using SceneDirector = On.RoR2.SceneDirector;
 
 namespace RPGMod
 {
-    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "2.0.1")]
-    internal sealed class RPGMod : BaseUnityPlugin
+    [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.0")]
+    internal sealed class RpgMod : BaseUnityPlugin
     {
         // Attributes
         private bool GameStarted { get; set; }
@@ -17,18 +25,16 @@ namespace RPGMod
         private float QuestCooldown { get; set; }
         private CharacterBody CachedCharacterBody { get; set; }
 
-        // Constructors
-        public RPGMod()
+        public RpgMod()
         {
             GameStarted = false;
             IgnoreDeath = false;
         }
 
-        // Methods
         private void ManageQuests() // Manages questing system
         {
             // Attempts to create UI elements for stored client quests
-            if (Questing.ClientMessage.Instances.Count != Questing.UI.Instances.Count) {
+            if (ClientMessage.Instances.Count != UI.Instances.Count) {
                 DisplayQuesting();
             }
 
@@ -38,74 +44,88 @@ namespace RPGMod
             }
 
             // Ensure that no predefined server messages are awaiting a client message
-            bool awaitingClientQuests = false;
-            for (int i = 0; i < Questing.ServerMessage.Instances.Count; i++) {
-                if (Questing.ServerMessage.Instances[i].awaitingClientMessage && !Run.instance.isRunStopwatchPaused && ArenaMissionController.instance == null) {
-                    GetNewQuest(i);
-                    awaitingClientQuests = true;
+            var awaitingClientQuests = false;
+            for (var i = 0; i < ServerMessage.Instances.Count; i++)
+            {
+                if (!ServerMessage.Instances[i].AwaitingClientMessage || 
+                    Run.instance.isRunStopwatchPaused ||
+                    ArenaMissionController.instance != null)
+                {
+                    continue;
                 }
+
+                GetNewQuest(i);
+                awaitingClientQuests = true;
             }
 
             // Gets a new quest when ready
             if (QuestReady() && !awaitingClientQuests)
             {
                 GetNewQuest();
-            };
+            }
         }
 
         private bool QuestReady() // Determines if a new quest should be requested
         {
-            return (Questing.ClientMessage.Instances.Count < Questing.Config.questAmountMax) && !Run.instance.isRunStopwatchPaused && ArenaMissionController.instance == null && ((Run.instance.GetRunStopwatch() - QuestCooldown) / Questing.Config.questCooldownTime > 1);
+            return ClientMessage.Instances.Count < Questing.Config.QuestAmountMax && 
+                   !Run.instance.isRunStopwatchPaused && ArenaMissionController.instance == null && 
+                   (Run.instance.GetRunStopwatch() - QuestCooldown) / Questing.Config.QuestCooldownTime > 1;
         }
 
         public void GetNewQuest(int serverMessageIndex = -1) // Generates a new quest and sends it to all clients
         {
-            if (!NetworkServer.active || Questing.ClientMessage.Instances.Count > Questing.Config.questAmountMax)
+            if (!NetworkServer.active || ClientMessage.Instances.Count > Questing.Config.QuestAmountMax)
             {
                 return;
             }
 
-
-            // Attemots to get a new quest
-            Questing.ClientMessage message;
+            // Attempts to get a new quest
+            ClientMessage message;
             try
             {
-                message = Questing.Quest.GetQuest(serverMessageIndex);
-            }
-            catch {
-                if (Core.debugMode) {
-                    Debug.LogError("RPGMOD: Error when obtaining quest");
+                if (Core.DebugMode)
+                {
+                    Debug.LogError($"RPGMOD: Trying to get quest. ServerMessageIndex: {serverMessageIndex}");
                 }
-                message = new Questing.ClientMessage();
+                message = Quest.GetQuest(serverMessageIndex);
+            }
+            catch (Exception ex) {
+                if (Core.DebugMode) {
+                    Debug.LogError("RPGMOD: Error when obtaining quest");
+                    Debug.LogError(ex.ToString());
+                }
+                message = new ClientMessage();
             }
 
             // If the quest has the default description it is deemed bad to send
-            if (message.description != "bad")
+            if (message.Description == "bad")
             {
-                QuestCooldown = Run.instance.GetRunStopwatch();
-                message.SendToAll();
+                return;
             }
+
+            QuestCooldown = Run.instance.GetRunStopwatch();
+            message.SendToAll();
         }
 
-        public void StartClientHandlers() // Registers the client handlers for recieving of data
+        public void StartClientHandlers() // Registers the client handlers for receiving of data
         {
-            NetworkClient client = NetworkManager.singleton.client;
-            client.RegisterHandler(Questing.Config.questPort, OnQuestRecieved);
+            var client = NetworkManager.singleton.client;
+            client.RegisterHandler(Questing.Config.QuestPort, OnQuestReceived);
 
             Debug.Log("RPGMod: Client handlers added");
         }
 
-        public void OnQuestRecieved(NetworkMessage networkMessage) // Runs when a quest is recieved
+        public void OnQuestReceived(NetworkMessage networkMessage) // Runs when a quest is received
         {
-            Questing.ClientMessage message = networkMessage.ReadMessage<Questing.ClientMessage>();
+            var message = networkMessage.ReadMessage<ClientMessage>();
 
             // Checks through unique id the specific index that the message relates to
-            int messageIndex = -1;
-            int i = 0;
-            while (i < Questing.ClientMessage.Instances.Count)
+            var messageIndex = -1;
+            var i = 0;
+            while (i < ClientMessage.Instances.Count)
             {
                 // Check unique id for match
-                if (Questing.ClientMessage.Instances[i].id == message.id)
+                if (ClientMessage.Instances[i].Id == message.Id)
                 {
                     messageIndex = i;
                     break;
@@ -115,60 +135,58 @@ namespace RPGMod
 
             if (messageIndex == -1)
             {
-                messageIndex = Questing.ClientMessage.Instances.Count;
+                messageIndex = ClientMessage.Instances.Count;
             }
 
-            //
-
-            if (Core.debugMode)
+            if (Core.DebugMode)
             {
-                Debug.Log("Message recieved at " + messageIndex);
-                Debug.Log(Questing.UI.Instances.Count);
-                Debug.Log(Questing.ClientMessage.Instances.Count);
-                Debug.Log(Questing.ServerMessage.Instances.Count);
+                Debug.Log($"Message received at {messageIndex}");
+                Debug.Log(UI.Instances.Count);
+                Debug.Log(ClientMessage.Instances.Count);
+                Debug.Log(ServerMessage.Instances.Count);
             }
 
-            if (message.advancingStage) {
+            if (message.AdvancingStage) {
                 DestroyUIInstances();
             }
 
-            // Updates the decscription displayed for the quest
-            if (message.active && Questing.UI.Instances[messageIndex] != null)
+            // Updates the description displayed for the quest
+            if (message.Active && UI.Instances[messageIndex] != null)
             {
-                Questing.UI.Instances[messageIndex].QuestDataDescription = message.description;
+                UI.Instances[messageIndex].QuestDataDescription = message.Description;
             }
 
             // Removes the message
-            if (!message.active && messageIndex < Questing.ClientMessage.Instances.Count)
+            if (!message.Active && messageIndex < ClientMessage.Instances.Count)
             {
-                Questing.ClientMessage.Instances.RemoveAt(messageIndex);
-                if (!message.advancingStage)
+                ClientMessage.Instances.RemoveAt(messageIndex);
+                if (!message.AdvancingStage)
                 {
-                    Destroy(Questing.UI.Instances[messageIndex]);
-                    Questing.UI.Instances.RemoveAt(messageIndex);
+                    Destroy(UI.Instances[messageIndex]);
+                    UI.Instances.RemoveAt(messageIndex);
 
-                    for (int j = messageIndex; j < Questing.UI.Instances.Count; j++)
+                    for (var j = messageIndex; j < UI.Instances.Count; j++)
                     {
-                        Questing.UI.Instances[j].Index = j;
+                        UI.Instances[j].Index = j;
                     }
                 }
 
                 if (NetworkServer.active)
                 {
-                    Core.usedIDs.Remove(message.id);
-                    Core.usedTypes[((Questing.Type)int.Parse(message.description.Split(',')[0]))] -= 1;
+                    Core.UsedIDs.Remove(message.Id);
+                    Core.UsedTypes[(QuestType)int.Parse(message.Description.Split(',')[0])] -= 1;
 
-                    if (message.advancingStage && !Questing.Config.restartQuestsOnStageChange)
+                    if (message.AdvancingStage && !Questing.Config.RestartQuestsOnStageChange)
                     {
-                        if (Core.debugMode)
+                        if (Core.DebugMode)
                         {
                             Debug.Log("SOFT removal at " + messageIndex);
                         }
                     }
                     else
                     {
-                        Questing.ServerMessage.Instances.RemoveAt(messageIndex);
-                        if (Core.debugMode)
+                        ServerMessage.Instances.RemoveAt(messageIndex);
+                        if (Core.DebugMode)
                         {
                             Debug.Log("HARD removal at " + messageIndex);
                         }
@@ -177,30 +195,30 @@ namespace RPGMod
                 }
             }
             // Updates the existing client message
-            else if (messageIndex < Questing.ClientMessage.Instances.Count)
+            else if (messageIndex < ClientMessage.Instances.Count)
             {
-                Questing.ClientMessage.Instances[messageIndex] = message;
+                ClientMessage.Instances[messageIndex] = message;
             }
             // Adds a client message
             else
             {
                 message.RegisterInstance();
-                Questing.ClientMessage.Instances.Last().active = true;
-                if (Core.debugMode)
+                ClientMessage.Instances.Last().Active = true;
+                if (Core.DebugMode)
                 {
                     Debug.Log("Adding new message");
                 }
             }
 
-            if (Core.debugMode)
+            if (Core.DebugMode)
             {
-                Debug.Log(message.active);
+                Debug.Log(message.Active);
             }
         }
 
         public void DisplayQuesting() // Handles the creation of UI elements
         {
-            LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+            var localUser = LocalUserManager.GetFirstLocalUser();
 
             // Updates the local character body
             if (CachedCharacterBody == null && localUser != null)
@@ -208,24 +226,28 @@ namespace RPGMod
                 CachedCharacterBody = localUser.cachedBody;
             }
 
-            // Adds a new UI instance
-            if (CachedCharacterBody != null)
+            if (CachedCharacterBody == null)
             {
-                for (int i = 0; i < Questing.ClientMessage.Instances.Count; i++)
-                {
-                    if (i >= Questing.UI.Instances.Count)
-                    {
-                        if (Core.debugMode)
-                        {
-                            Debug.Log(CachedCharacterBody);
-                            Debug.Log(Screen.width * Questing.Config.xPositionUI);
-                            Debug.Log(Screen.height * Questing.Config.yPositionUI);
-                            Debug.Log(Questing.ClientMessage.Instances[i].description);
-                        }
+                return;
+            }
 
-                        AddUIInstance(i);
-                    }
+            // Adds a new UI instance
+            for (var i = 0; i < ClientMessage.Instances.Count; i++)
+            {
+                if (i < UI.Instances.Count)
+                {
+                    continue;
                 }
+
+                if (Core.DebugMode)
+                {
+                    Debug.Log(CachedCharacterBody);
+                    Debug.Log(Screen.width * Questing.Config.XPositionUI);
+                    Debug.Log(Screen.height * Questing.Config.YPositionUI);
+                    Debug.Log(ClientMessage.Instances[i].Description);
+                }
+
+                AddUIInstance(i);
             }
         }
 
@@ -237,57 +259,55 @@ namespace RPGMod
 
         public void AddUIInstance(int index) // Adds a new UI element at a specified index
         {
-            Questing.UI.Instances.Add(CachedCharacterBody.gameObject.AddComponent<Questing.UI>());
-            Questing.UI.Instances[index].index = index;
-            Questing.UI.Instances[index].QuestDataDescription = Questing.ClientMessage.Instances[index].description;
+            UI.Instances.Add(CachedCharacterBody.gameObject.AddComponent<UI>());
+            UI.Instances[index].index = index;
+            UI.Instances[index].questDataDescription = ClientMessage.Instances[index].Description;
 
-            if (Questing.ClientMessage.Instances[index].iconPath == "custom")
+            if (ClientMessage.Instances[index].IconPath == "custom")
             {
-                Questing.UI.Instances[index].ObjectiveIcon = Core.assetBundle.LoadAsset<Texture>(Core.questDefinitions.iconPaths[int.Parse(Questing.ClientMessage.Instances[index].description.Split(',')[0])]);
+                UI.Instances[index].ObjectiveIcon = Core.AssetBundle.LoadAsset<Texture>(Core.QuestDefinitions.IconPaths[int.Parse(ClientMessage.Instances[index].Description.Split(',')[0])]);
             }
             else
             {
-                switch ((Questing.Type)int.Parse(Questing.ClientMessage.Instances[index].description.Split(',')[0]))
+                if ((QuestType) int.Parse(ClientMessage.Instances[index].Description.Split(',')[0]) == QuestType.KillEnemies)
                 {
-                    case Questing.Type.KillEnemies: Questing.UI.Instances[index].ObjectiveIcon = BodyCatalog.FindBodyPrefab(Questing.ClientMessage.Instances[index].iconPath).GetComponent<CharacterBody>().portraitIcon; break;
+                    UI.Instances[index].ObjectiveIcon = BodyCatalog.FindBodyPrefab(ClientMessage.Instances[index].IconPath)?.GetComponent<CharacterBody>().portraitIcon;
                 }
             }
         }
 
         public void DestroyUIInstances() // Destroys all UI elements
         {
-            if (Core.debugMode)
+            if (Core.DebugMode)
             {
                 Debug.Log("Deleting all UI INSTANCES");
             }
-            for (int i = 0; i < Questing.UI.Instances.Count; i++)
+
+            foreach (var t in UI.Instances.Where(t => t != null))
             {
-                if (Questing.UI.Instances[i] != null)
-                {
-                    Destroy(Questing.UI.Instances[i]);
-                }
+                Destroy(t);
             }
-            Questing.UI.Instances.Clear();
+
+            UI.Instances.Clear();
         }
 
         public void Awake()
         {
-            // Loads the config and assetbundle
+            // Loads the config and asset bundle
             Questing.Config.Load(Config, false);
 
             var execAssembly = Assembly.GetExecutingAssembly();
             var stream = execAssembly.GetManifestResourceStream("RPGMod.assetbundle");
-            Core.assetBundle = AssetBundle.LoadFromStream(stream);
+            Core.AssetBundle = AssetBundle.LoadFromStream(stream);
 
-            if (Core.assetBundle == null)
+            if (Core.AssetBundle == null)
             {
-                Debug.LogError("RPGMOD: Failed to load assetbundle");
+                Debug.LogError("RPGMOD: Failed to load asset bundle");
                 return;
             }
 
-            if (Questing.Config.questingEnabled)
+            if (Questing.Config.QuestingEnabled)
             {
-
                 // Runs when the game starts
                 On.RoR2.Run.Start += (orig, self) =>
                 {
@@ -308,8 +328,8 @@ namespace RPGMod
                 On.RoR2.Run.OnDisable += (orig, self) =>
                 {
                     GameStarted = false;
-                    Questing.ClientMessage.Instances.Clear();
-                    Questing.ServerMessage.Instances.Clear();
+                    ClientMessage.Instances.Clear();
+                    ServerMessage.Instances.Clear();
 
                     CachedCharacterBody = null;
 
@@ -327,35 +347,35 @@ namespace RPGMod
                         return;
                     }
 
-                    foreach (var message in Questing.ClientMessage.Instances)
+                    foreach (var clientMessage in ClientMessage.Instances)
                     {
-                        message.active = false;
-                        message.advancingStage = true;
-                        message.SendToAll();
+                        clientMessage.Active = false;
+                        clientMessage.AdvancingStage = true;
+                        clientMessage.SendToAll();
                     }
 
-                    if (Core.debugMode)
+                    if (Core.DebugMode)
                     {
                         Debug.Log("Messages removed!");
                     }
 
-                    for (int i = 0; i < Questing.ServerMessage.Instances.Count; i++)
+                    foreach (var serverMessage in ServerMessage.Instances)
                     {
-                        Questing.ServerMessage.Instances[i].awaitingClientMessage = true;
+                        serverMessage.AwaitingClientMessage = true;
                     }
 
-                    if (Core.debugMode)
+                    if (Core.DebugMode)
                     {
                         Debug.Log("Messages expected!");
                     }
 
-                    QuestCooldown = (Run.instance.GetRunStopwatch() - Questing.Config.questCooldownTime + Questing.Config.questCooldownTimeOnSceneChange);
+                    QuestCooldown = Run.instance.GetRunStopwatch() - Questing.Config.QuestCooldownTime + Questing.Config.QuestCooldownTimeOnSceneChange;
 
                     orig(self);
                 };
 
                 // Ensures that objects that have died with no body are ignored by the OnCharacterDeath hook
-                On.RoR2.HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride, damageType) =>
+                HealthComponent.Suicide += (orig, self, killerOverride, inflictorOverride, damageType) =>
                 {
                     if (gameObject.GetComponent<CharacterBody>() == null || self.gameObject.GetComponent<CharacterBody>().isBoss)
                     {
@@ -365,66 +385,62 @@ namespace RPGMod
                 };
 
                 // Handles the enemy drops
-                On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
+                GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
                 {
-                    IgnoreDeath = Questing.Listener.HookOnCharacterDeath(IgnoreDeath, damageReport);
+                    IgnoreDeath = QuestUpdateHandler.HookOnCharacterDeath(IgnoreDeath, damageReport);
                     orig(self, damageReport);
                 };
 
-                // Questing Listener hooks
+                // QuestUpdateHandler hooks
 
-                On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
+                CharacterMaster.GiveMoney += (orig, self, amount) =>
                 {
-                    Questing.Listener.UpdateQuest((int)amount, Questing.Type.CollectGold, "Gold");
+                    QuestUpdateHandler.UpdateQuest((int)amount, QuestType.CollectGold, "Gold");
                     orig(self, amount);
                 };
 
-                On.RoR2.ChestBehavior.ItemDrop += (orig, self) =>
+                ChestBehavior.ItemDrop += (orig, self) =>
                 {
-                    Questing.Listener.UpdateQuest(1, Questing.Type.OpenChests, "Chests");
+                    QuestUpdateHandler.UpdateQuest(1, QuestType.OpenChests, "Chests");
                     orig(self);
                 };
 
-                On.RoR2.HealthComponent.Heal += (orig, self, amount, procChainMask, nonRegen) =>
+                HealthComponent.Heal += (orig, self, amount, procChainMask, nonRegen) =>
                 {
                     if (self.body.isPlayerControlled)
                     {
-                        Questing.Listener.UpdateQuest((int)amount, Questing.Type.Heal, "Damage");
+                        QuestUpdateHandler.UpdateQuest((int)amount, QuestType.Heal, "Damage");
                     }
                     return orig(self, amount, procChainMask, nonRegen);
                 };
-
-                //
-
             }
 
-
             // Injects the spawn percentage into the games director when populating the scene
-            On.RoR2.SceneDirector.PopulateScene += (orig, self) =>
+            SceneDirector.PopulateScene += (orig, self) =>
             {
-                int credit = self.GetFieldValue<int>("interactableCredit");
-                self.SetFieldValue("interactableCredit", (int)(credit * Questing.Config.worldSpawnPercentage));
+                var credit = self.interactableCredit;
+                self.interactableCredit = (int)(credit * Questing.Config.WorldSpawnPercentage);
                 orig(self);
             };
 
-            if (!Questing.Config.defaultWorldSpawnsEnabled)
+            if (!Questing.Config.DefaultWorldSpawnsEnabled)
             {
                 // Handles banned scene spawns
-                On.RoR2.ClassicStageInfo.Awake += (orig, self) =>
+                ClassicStageInfo.Awake += (orig, self) =>
                 {
-                    // Gets card catergories using reflection
-                    DirectorCardCategorySelection cardSelection = self.GetFieldValue<DirectorCardCategorySelection>("interactableCategories");
-                    for (int i = 0; i < cardSelection.categories.Length; i++)
+                    // Gets card categories
+                    var cardSelection = self.interactableCategories;
+                    for (var i = 0; i < cardSelection.categories.Length; i++)
                     {
                         // Makes copy of category to make changes
                         var cardsCopy = cardSelection.categories[i];
-                        cardsCopy.cards = cardSelection.categories[i].cards.Where(val => !Questing.Config.bannedDirectorSpawns.Any(val.spawnCard.prefab.name.Contains)).ToArray();
+                        cardsCopy.cards = cardSelection.categories[i].cards.Where(val => !Questing.Config.BannedDirectorSpawns.Any(val.spawnCard.prefab.name.Contains)).ToArray();
 
                         // Sets category to new edited version
                         cardSelection.categories[i] = cardsCopy;
                     }
                     // Sets new card categories
-                    self.SetFieldValue("interactableCategories", cardSelection);
+                    self.interactableCategories = cardSelection;
 
                     // Runs original function
                     orig(self);
@@ -438,13 +454,13 @@ namespace RPGMod
         {
             if (GameStarted)
             {
-                if (Questing.Config.questingEnabled)
+                if (Questing.Config.QuestingEnabled)
                 {
                     ManageQuests();
                 }
 
                 // Debug Keys
-                if (Core.debugMode)
+                if (Core.DebugMode)
                 {
                     if (Input.GetKeyDown(KeyCode.F3))
                     {
@@ -453,12 +469,13 @@ namespace RPGMod
 
                     if (Input.GetKeyDown(KeyCode.F4))
                     {
-                        Questing.ClientMessage message = Questing.ClientMessage.Instances.Last();
-                        message.active = false;
+                        var message = ClientMessage.Instances.Last();
+                        message.Active = false;
                         message.SendToAll();
                     }
                 }
             }
+
 
             // Reload config key
             if (Input.GetKeyDown(KeyCode.F6))
@@ -468,4 +485,4 @@ namespace RPGMod
             }
         }
     }
-} // namespace RPGMod
+}
