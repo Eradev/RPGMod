@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using RoR2;
+using RPGMod.Utils;
 using UnityEngine;
 
 namespace RPGMod.Questing
@@ -187,19 +188,17 @@ namespace RPGMod.Questing
 
         public static void DisplayQuestInChat(ClientMessage clientMessage, ServerMessage serverMessage)
         {
-            var message = new Chat.SimpleChatMessage
+            if (serverMessage.Objective - serverMessage.Progress > 0)
             {
-                // ReSharper disable once UseStringInterpolation
-                baseToken = string.Format("{0} {1} {2}{3} to receive: <color=#{4}>{5}</color>",
+                RPGModChat.SendMessage(string.Format("{0} {1} {2}{3} to receive: <color=#{4}>{5}</color> (<color=#58F73B>{6}</color> remaining)",
                     Core.QuestDefinitions.Types[(int)serverMessage.QuestType],
                     serverMessage.Objective,
                     clientMessage.Target,
                     serverMessage.QuestType == 0 ? "s" : "",
                     ColorUtility.ToHtmlStringRGBA(serverMessage.Drop.baseColor),
-                    Language.GetString(ItemCatalog.GetItemDef(serverMessage.Drop.itemIndex).nameToken))
-            };
-
-            Chat.SendBroadcastChat(message);
+                    Language.GetString(ItemCatalog.GetItemDef(serverMessage.Drop.itemIndex).nameToken),
+                    serverMessage.Objective - serverMessage.Progress));
+            }
         }
     }
 }

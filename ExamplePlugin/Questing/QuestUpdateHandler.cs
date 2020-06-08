@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using RoR2;
+using RPGMod.Utils;
 using UnityEngine;
 
 namespace RPGMod.Questing
@@ -9,18 +10,15 @@ namespace RPGMod.Questing
         // Updates the relevant quest according to the parameters.
         public static void UpdateQuest(int value, QuestType questType, string target)
         {
-            if (Core.DebugMode)
-            {
-                Debug.Log("Quest Updating [VALUE = " + value + "] [TYPE = " + questType + "] [TARGET = " + target + "]");
-            }
+            RPGModLogger.Debug("Quest Updating [VALUE = " + value + "] [TYPE = " + questType + "] [TARGET = " + target + "]");
 
             for (var i = 0; i < ClientMessage.Instances.Count; i++)
             {
                 if (Core.DebugMode)
                 {
-                    Debug.Log("Quest Checking [TYPE = " + ServerMessage.Instances[i].QuestType + "] [TARGET = " + ClientMessage.Instances[i].Target + "]");
-                    Debug.Log(ServerMessage.Instances[i].QuestType == questType);
-                    Debug.Log(ClientMessage.Instances[i].Target == target);
+                    RPGModLogger.Debug("Quest Checking [TYPE = " + ServerMessage.Instances[i].QuestType + "] [TARGET = " + ClientMessage.Instances[i].Target + "]");
+                    RPGModLogger.Debug($"Is valid quest type? {ServerMessage.Instances[i].QuestType == questType}");
+                    RPGModLogger.Debug($"Is valid target? {ClientMessage.Instances[i].Target == target}");
                 }
 
                 if (ServerMessage.Instances[i].QuestType != questType || 
@@ -35,11 +33,15 @@ namespace RPGMod.Questing
                 ServerMessage.Instances[i] = newServerData;
                 ClientMessage.Instances[i].Description = Quest.GetDescription(ClientMessage.Instances[i], ServerMessage.Instances[i]);
                 CheckQuestStatus(i);
-                if (Core.DebugMode)
-                {
-                    Debug.Log("UPDATED QUEST");
-                }
+
+                RPGModLogger.Debug("Updated quest.");
+
                 ClientMessage.Instances[i].SendToAll();
+
+                if (Config.DisplayQuestsInChat)
+                {
+                    Quest.DisplayQuestInChat(ClientMessage.Instances[i], ServerMessage.Instances[i]);
+                }
             }
         }
 
@@ -69,7 +71,15 @@ namespace RPGMod.Questing
                     player.master.inventory.GiveItem(ServerMessage.Instances[index].Drop.itemIndex);
                 }
             }
+
             ClientMessage.Instances[index].Active = false;
+
+            if (Config.DisplayQuestsInChat)
+            {
+                var item = ServerMessage.Instances[index].Drop;
+
+                RPGModChat.SendMessage($"Congratulations! You received an item for completing a quest: <color=#{ColorUtility.ToHtmlStringRGBA(item.baseColor)}>{Language.GetString(item.nameToken)}</color>");
+            }
         }
 
         public static bool HookOnCharacterDeath(bool ignoreDeath, DamageReport damageReport)
@@ -153,6 +163,8 @@ namespace RPGMod.Questing
             if (Config.DropItemsFromEnemies || list == Run.instance.availableEquipmentDropList)
             {
                 PickupDropletController.CreatePickupDroplet(item.pickupIndex, enemyBody.transform.position, Vector3.up * 20f);
+
+                RPGModChat.SendMessage($"An enemy dropped an item: <color=#{ColorUtility.ToHtmlStringRGBA(item.baseColor)}>{Language.GetString(item.nameToken)}</color>.");
             }
             else
             {
@@ -164,8 +176,6 @@ namespace RPGMod.Questing
                 {
                     attackerController.inventory.GiveItem(item.itemIndex);
                 }
-
-                Chat.AddMessage("Enemy Drop: 1 " + Language.GetString(item.nameToken));
             }
 
             return false;

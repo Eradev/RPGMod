@@ -33,7 +33,7 @@ This mod has a large config with many values to change to your desire with the a
 **Steps on how to configure:**
 
 1. Navigate to the `Risk of Rain 2\BepInEx\config` folder
-2. Open the `com.ghasttear1.rpgmod.cfg` file using your preferred text editor
+2. Open the `com.eradev.rpgmod.cfg` file using your preferred text editor
 3. Edit the values as you wish.
 4. Importantly, don't forget to save the file. If ingame press **F6** to recieve the changes, otherwise starting the game normally will load the new values.
 5. Enjoy!
@@ -59,17 +59,14 @@ This mod has a large config with many values to change to your desire with the a
 - 1.2.6: Had to rebuild mod to work with new game update and updated readme.
 - 2.0.0 (MAJOR UPDATE): Code for questing and more has been completely redone with support for multiple quests at a time, different questing types, a completely new user interface, redone config, turret fixes, better code and much more.
 - 2.0.1: Embedded asset bundle into the mod dll, new option for enemy drops to be added to your inventory directly, new option for each reward tier to have the quest objective scale be adjusted.
+- 3.0.0: Unofficial version ported to RoR2 build #4892828 (new dev). Removed UI for now as it is currently buggy. Modified the in-game messages to be more precise for the lack of UI. Fixed heal quests so they no longer progress when your HP is full.
 ```
 
 ## Issues?
 
 This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.
 
-If you find any issues with my mod please create a new issue on the github, you can find existing issues here:
-https://github.com/ghasttear1/RPGMod/issues
+If you find any issues please create a new issue on the Github, you can find existing issues here:
+https://github.com/Eradev/RPGMod/issues
 
-I may not be able to be very quick to fixing issues due to lack of time but I will try.
-
-## Contact
-
-You can find me on the modding discord, I'm new to modding but I will try my best to answer any questions.
+I will not be working actively on it, but I'll check from time to time.

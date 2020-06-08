@@ -1,13 +1,10 @@
 ﻿using BepInEx.Configuration;
-using RoR2;
+using RPGMod.Utils;
 
 namespace RPGMod.Questing
 {
-    // All the config variables
     public class Config
     {
-        // Attributes
-
         // Chance params
         public static float NormalDropChance;
         public static float EliteDropChance;
@@ -58,7 +55,11 @@ namespace RPGMod.Questing
         public static float WorldSpawnPercentage = 1.0f;
         public static short QuestPort;
 
-        // Refreshes the config values from the config
+        /// <summary>
+        /// Loads the config and asset bundle
+        /// </summary>
+        /// <param name="config">Configuration file</param>
+        /// <param name="reload">Force reload</param>
         public static void Load(ConfigFile config, bool reload)
         {
             if (reload)
@@ -117,7 +118,7 @@ namespace RPGMod.Questing
 
             QuestPort = config.Bind<short>(new ConfigDefinition("Networking", "questPort"), 1337, new ConfigDescription("The port used for the quest networking")).Value;
 
-            Chat.AddMessage("<color=#13d3dd>RPGMod: </color> Config loaded");
+            RPGModChat.SendMessage("Config loaded successfully.");
         }
     }
 }

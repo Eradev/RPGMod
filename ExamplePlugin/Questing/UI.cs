@@ -6,10 +6,11 @@ using UnityEngine.UI;
 
 namespace RPGMod.Questing
 {
-    // Controller for the UI used for each quest.
+    /// <summary>
+    /// Controller for the UI used for each quest.
+    /// </summary>
     public class UI : MonoBehaviour
     {
-        // Attributes
         private GameObject questUI;
         private Transform parent;
         private float startTime;

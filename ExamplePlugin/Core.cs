@@ -8,6 +8,7 @@ namespace RPGMod
 {
     internal static class Core
     {
+        public static readonly bool ConsoleOnly = true;
         public static readonly bool DebugMode = false;
         public static readonly Random Random = new Random();
         public static AssetBundle AssetBundle { get; set; }

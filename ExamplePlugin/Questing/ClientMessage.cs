@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
-using RoR2;
 using UnityEngine.Networking;
 
 namespace RPGMod.Questing
 {
-    // Quest Message that gets sent to all clients
+    /// <summary>
+    /// Quest Message that gets sent to all clients
+    /// </summary>
     public class ClientMessage : MessageBase
     {
         // Attributes
@@ -64,36 +65,6 @@ namespace RPGMod.Questing
             }
 
             NetworkServer.SendToAll(Config.QuestPort, this);
-        }
-    }
-
-    // Server message for each quest
-    public class ServerMessage
-    {
-        // Attributes
-        public PickupDef Drop;
-        public int Objective;
-        public int Progress;
-        public QuestType QuestType;
-        public bool AwaitingClientMessage;
-        public static List<ServerMessage> Instances { get; } = new List<ServerMessage>();
-
-        public ServerMessage()
-        {
-            Progress = 0;
-            Drop = Quest.GetQuestDrop();
-            Objective = 100;
-            AwaitingClientMessage = false;
-        }
-
-        public ServerMessage(QuestType questType) : this()
-        {
-            QuestType = questType;
-        }
-
-        public void RegisterInstance()
-        {
-            Instances.Add(this);
         }
     }
 }
