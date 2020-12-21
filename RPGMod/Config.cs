@@ -4,11 +4,14 @@ namespace RPGMod
 {
 public static class Config {
     public struct Questing {
-        static public int cooldown;
-        static public short port;
-        static public float chanceCommon;
-        static public float chanceUncommon;
-        static public float chanceLegendary;
+        public static int cooldown;
+        public static float chanceCommon;
+        public static float chanceUncommon;
+        public static float chanceLegendary;
+    }
+    public struct Networking {
+        public static short questPort;
+        public static short updateRate;
     }
     public static void Load(ConfigFile config, bool reload)
     {
@@ -23,12 +26,6 @@ public static class Config {
             new ConfigDefinition("Questing", "cooldown"),
             45,
             new ConfigDescription("Time needed to wait after quest completion for a new quest to be generated")
-        ).Value;
-        Questing.port = config.Bind<short>
-        (
-            new ConfigDefinition("Questing", "port"),
-            1337,
-            new ConfigDescription("The port used for communication of questing data")
         ).Value;
         Questing.chanceCommon = config.Bind<float>
         (
@@ -48,6 +45,19 @@ public static class Config {
             1f,
             new ConfigDescription("The percentage chance that the reward for a quest is of legendary rarity")
         ).Value / 100;
+        // Networking
+        Networking.questPort = config.Bind<short>
+        (
+            new ConfigDefinition("Networking", "Questing Port"),
+            1337,
+            new ConfigDescription("The port used for communication of questing data")
+        ).Value;
+        Networking.updateRate = config.Bind<short>
+        (
+            new ConfigDefinition("Networking", "Update Rate(ms)"),
+            100,
+            new ConfigDescription("How frequently clients are synced to the server")
+        ).Value;
     }
 
 }

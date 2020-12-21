@@ -12,107 +12,106 @@ namespace Questing
 public enum QuestType {
     killCommon,
     killElite,
-    killChampion,
-    collectGold,
-    openChests
+    collectGold
 }
-public static class QuestEvents {
-    [Serializable]
-    public class QuestEvent : UnityEvent<int, short>{
-
-    }
+public static class Events {
+    public class QuestEvent : UnityEvent<int, NetworkInstanceId>{}
 
     public static QuestEvent commonKilled = new QuestEvent();
     public static QuestEvent eliteKilled = new QuestEvent();
-    public static QuestEvent championKilled = new QuestEvent();
     public static QuestEvent goldCollected = new QuestEvent();
-    public static QuestEvent chestOpened = new QuestEvent();
 }
 class QuestComponent {
-    public int progress;
-    public int objective;
-    public int playerControllerId;
-    public QuestType questType;
-    public QuestComponent(QuestType questType, short playerControllerId) {
+    private int progress;
+    private bool complete;
+    private int Progress { get { return progress; } set { if (!complete) { progress = value; if (progress >= objective) { Complete = true; } } } }
+    private int objective;
+    private NetworkInstanceId netId;
+    public QuestType questType { get; private set; }
+    public bool Complete { get { return complete; } private set { complete = value; if (complete) { RemoveListener(); Handler.CheckPlayerData(netId); } } }
+    public QuestComponent(QuestType questType, NetworkInstanceId netId) {
         progress = 0;
+        complete = false;
         this.questType = questType;
-        this.playerControllerId = playerControllerId;
+        this.netId = netId;
         objective = GenerateObjective(questType);
         switch (questType) {
             case QuestType.killCommon:
-                QuestEvents.commonKilled.AddListener(this.Listener);
+                Events.commonKilled.AddListener(Listener);
                 break;
             case QuestType.killElite:
-                QuestEvents.eliteKilled.AddListener(this.Listener);
-                break;
-            case QuestType.killChampion:
-                QuestEvents.championKilled.AddListener(this.Listener);
+                Events.eliteKilled.AddListener(Listener);
                 break;
             case QuestType.collectGold:
-                QuestEvents.goldCollected.AddListener(this.Listener);
-                break;
-            case QuestType.openChests:
-                QuestEvents.chestOpened.AddListener(this.Listener);
+                Events.goldCollected.AddListener(Listener);
                 break;
             default:
                 Debug.LogError(questType);
                 break;
         }
     }
-    public int GenerateObjective(QuestType questType) {
+    private int GenerateObjective(QuestType questType) {
         int objective;
         // TODO: Fill out values
         switch (questType) {
             case QuestType.killCommon:
-                objective = 0;
+                objective = 1;
                 break;
             case QuestType.killElite:
-                objective = 0;
-                break;
-            case QuestType.killChampion:
-                objective = 0;
+                objective = 1;
                 break;
             case QuestType.collectGold:
-                objective = 0;
-                break;
-            case QuestType.openChests:
-                objective = 0;
+                objective = 10;
                 break;
             default:
-                objective = 0;
+                objective = 1;
                 Debug.LogError(questType);
                 break;
         }
         return objective;
     }
-    void Listener(int value, short playerControllerId) {
-        Debug.Log(value);
-        Debug.Log(playerControllerId);
-        Debug.Log(this.playerControllerId);
-        if (this.playerControllerId == playerControllerId) {
-            progress += value;
+    void Listener(int value, NetworkInstanceId netId) {
+        if (this.netId == netId) {
+            Progress += value;
         }
         Debug.Log(String.Format("{0}/{1}",progress,objective));
+    }
+    private void RemoveListener() {
+        switch (questType) {
+            case QuestType.killCommon:
+                Events.commonKilled.RemoveListener(Listener);
+                break;
+            case QuestType.killElite:
+                Events.eliteKilled.RemoveListener(Listener);
+                break;
+            case QuestType.collectGold:
+                Events.goldCollected.RemoveListener(Listener);
+                break;
+        }
+    }
+    public static bool isComplete(QuestComponent questComponent)
+    {
+        return questComponent.Complete;
     }
 }
 class PlayerData : MessageBase
 {
-    public bool complete;
-    public float completionTime;
-    public int connectionId;
-    public List<QuestComponent> questComponents;
-    public PickupIndex reward;
-    public short playerControllerId;
+    public bool complete {get; private set;}
+    public float completionTime {get; private set;}
+    public int connectionId {get; private set;}
+    private List<QuestComponent> questComponents;
+    private PickupIndex reward;
+    public NetworkInstanceId netId {get; private set;}
 
     public PlayerData() {
         complete = false;
         completionTime = 0;
-        playerControllerId = 0;
         reward = GenerateReward();
     }
 
     public PlayerData(int connectionId) : this()
     {
+        Debug.Log("CONNECTION ID");
         this.connectionId = connectionId;
         Debug.Log(connectionId);
         Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
@@ -129,18 +128,18 @@ class PlayerData : MessageBase
             return;
         }
 
-        playerControllerId = currentUser.playerControllerId;
+        netId = currentUser.netId;
 
         ItemTier rewardTier = ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(reward).itemIndex).tier;
         switch (rewardTier) {
             case ItemTier.Tier1:
-                questComponents = GenerateQuestComponents(1, playerControllerId);
+                questComponents = GenerateQuestComponents(1, netId);
                 break;
             case ItemTier.Tier2:
-                questComponents = GenerateQuestComponents(2, playerControllerId);
+                questComponents = GenerateQuestComponents(2, netId);
                 break;
             case ItemTier.Tier3:
-                questComponents = GenerateQuestComponents(3, playerControllerId);
+                questComponents = GenerateQuestComponents(3, netId);
                 break;
             default:
                 Debug.LogError(rewardTier);
@@ -169,6 +168,7 @@ class PlayerData : MessageBase
         writer.Write(reward);
         writer.Write(questComponents.Count);
         for (int i = 0; i<questComponents.Count; i++) {
+            // Lazy so using json
             writer.Write(JsonUtility.ToJson(questComponents[i]));
         }
     }
@@ -186,7 +186,7 @@ class PlayerData : MessageBase
     public static void Handler(NetworkMessage networkMessage) {
         Questing.Client.PlayerData = networkMessage.ReadMessage<Questing.PlayerData>();
     }
-    public static PickupIndex GenerateReward() {
+    private static PickupIndex GenerateReward() {
         WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>();
 
         weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.Questing.chanceCommon);
@@ -198,18 +198,39 @@ class PlayerData : MessageBase
 
         return pickupIndex;
     }
-    public static List<QuestComponent> GenerateQuestComponents(int amount, short playerControllerId) {
+    public static List<QuestComponent> GenerateQuestComponents(int amount, NetworkInstanceId netId) {
         List<QuestComponent> questComponents = new List<QuestComponent>();
         List<QuestType> usedTypes = new List<QuestType>();
         for (int i = 0; i < amount; i++) {
             QuestType questType;
             do {
-                questType = (QuestType)Run.instance.runRNG.RangeInt(0,5);
+                questType = (QuestType)Run.instance.runRNG.RangeInt(0,3);
             } while (usedTypes.Contains(questType));
             usedTypes.Add(questType);
-            questComponents.Add(new QuestComponent(questType, playerControllerId));
+            questComponents.Add(new QuestComponent(questType, netId));
         }
         return questComponents;
+    }
+    public void Check() {
+        questComponents.RemoveAll(QuestComponent.isComplete);
+        if (questComponents.Count == 0)
+        {
+            CompleteQuest();
+            foreach (var player in PlayerCharacterMasterController.instances) {
+                Debug.Log(player.networkUser.netId);
+                if (player.networkUser.netId == netId) {
+                    player.master.inventory.GiveItem(PickupCatalog.GetPickupDef(reward).itemIndex);
+                }
+            }
+            Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
+            message.baseToken = "Good work, you have been rewarded.";
+            Chat.SendBroadcastChat(message);
+        }
+    }
+    public void CompleteQuest()
+    {
+        complete = true;
+        completionTime = Run.instance.GetRunStopwatch();
     }
 }
 static class Client
@@ -255,17 +276,25 @@ static class Handler
             }
         }
     }
+    public static void CheckPlayerData(NetworkInstanceId netId)
+    {
+        for (int i = 0; i < Server.PlayerDatas.Count; i++)
+        {
+            if (Server.PlayerDatas[i].netId == netId)
+            {
+                Server.PlayerDatas[i].Check();
+            }
+        }
+    }
     public static void Setup() {
         Client.PlayerData = null;
     }
     public static void CleanUp() {
         Server.PlayerDatas.Clear();
         Client.PlayerData = null;
-        QuestEvents.commonKilled.RemoveAllListeners();
-        QuestEvents.eliteKilled.RemoveAllListeners();
-        QuestEvents.championKilled.RemoveAllListeners();
-        QuestEvents.goldCollected.RemoveAllListeners();
-        QuestEvents.chestOpened.RemoveAllListeners();
+        Events.commonKilled.RemoveAllListeners();
+        Events.eliteKilled.RemoveAllListeners();
+        Events.goldCollected.RemoveAllListeners();
     }
 }
 } // namespace Questing
