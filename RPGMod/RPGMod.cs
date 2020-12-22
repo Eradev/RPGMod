@@ -2,6 +2,7 @@
 using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Reflection;
 
 // Quests are updated by events -- DONE
 // Quests are received by a random time between 30-45s after completion -- DONE
@@ -9,13 +10,13 @@ using UnityEngine.Networking;
 // C - 1, U - 2, L - 3 -- DONE
 // Quests stay at a static difficulty as the game scales anyways
 // Quests have an announcer with a radio icon, text AC style
-// Top right, quest components listed
-// Quests will ensure completion is achievable in the same stage
+// Top right, quest components listed -- DONE
+// Quests will ensure completion is achievable in the same stage -- DONE
 // Option for individual or group tasks with appropriate scaling
-// Players will each be assigned their data - class PlayerData
+// Players will each be assigned their data - class PlayerData -- DONE
 // ClientData fixed sync every 100ms -- DONE
 // ServerData -- DONE
-// All functions should run regardless and should be thoroughly thought out
+// All functions should run regardless and should be thoroughly thought out -- DONE
 // UI must be flawless and dynamic regardless of situation
 // Highlight -- NO
 
@@ -24,10 +25,22 @@ namespace RPGMod
 [BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.0")]
 class RPGMod : BaseUnityPlugin
 {
-    public bool gameStarted = false;
+    private bool gameStarted = false;
     void Awake()
     {
         global::RPGMod.Config.Load(Config, false);
+
+        // Load assetbundle
+        var execAssembly = Assembly.GetExecutingAssembly();
+        var stream = execAssembly.GetManifestResourceStream("RPGMod.assetbundle");
+        UI.assetBundle = AssetBundle.LoadFromStream(stream);
+
+        if (UI.assetBundle == null)
+        {
+            Debug.LogError("RPGMOD: Failed to load assetbundle");
+            return;
+        }
+
         On.RoR2.Run.Start += (orig, self) =>
         {
             Setup();
@@ -89,12 +102,17 @@ class RPGMod : BaseUnityPlugin
                 Networking.Sync();
             }
         }
+        // Reload config key
+        if (Input.GetKeyDown(KeyCode.F6))
+        {
+            global::RPGMod.Config.Load(Config, true);
+            Questing.Client.CleanUp();
+        }
     }
 
     void Setup() {
-        Networking.RegisterHandlers();
+        Networking.Setup();
         gameStarted = true;
-        Questing.Handler.Setup();
     }
     void CleanUp() {
         gameStarted = false;

@@ -21,17 +21,19 @@ public static class Events {
     public static QuestEvent eliteKilled = new QuestEvent();
     public static QuestEvent goldCollected = new QuestEvent();
 }
-class QuestComponent {
+public class QuestComponent {
     private int progress;
-    private bool complete;
-    private int Progress { get { return progress; } set { if (!complete) { progress = value; if (progress >= objective) { Complete = true; } } } }
-    private int objective;
+    public int objective { get; private set; }
+    public bool complete { get; private set; }
     private NetworkInstanceId netId;
     public QuestType questType { get; private set; }
-    public bool Complete { get { return complete; } private set { complete = value; if (complete) { RemoveListener(); Handler.CheckPlayerData(netId); } } }
-    public QuestComponent(QuestType questType, NetworkInstanceId netId) {
-        progress = 0;
+    public int Progress { get { return progress; } set { if (!complete) { progress = value; if (progress >= objective) { complete = true; RemoveListener(); Handler.CheckPlayerData(netId); } } } }
+
+    private QuestComponent() {
         complete = false;
+        progress = 0;
+    }
+    public QuestComponent(QuestType questType, NetworkInstanceId netId) : this() {
         this.questType = questType;
         this.netId = netId;
         objective = GenerateObjective(questType);
@@ -50,18 +52,24 @@ class QuestComponent {
                 break;
         }
     }
+    public QuestComponent(QuestType questType, bool complete, int progress, int objective) {
+        this.questType = questType;
+        this.complete = complete;
+        this.progress = progress;
+        this.objective = objective;
+    }
     private int GenerateObjective(QuestType questType) {
         int objective;
-        // TODO: Fill out values
+        // TODO: Scale values for difficulty
         switch (questType) {
             case QuestType.killCommon:
-                objective = 1;
+                objective = UnityEngine.Random.Range(Config.Questing.killCommonMin, Config.Questing.killCommonMax);
                 break;
             case QuestType.killElite:
-                objective = 1;
+                objective = UnityEngine.Random.Range(Config.Questing.killEliteMin, Config.Questing.killEliteMax);
                 break;
             case QuestType.collectGold:
-                objective = 10;
+                objective = UnityEngine.Random.Range(Config.Questing.collectGoldMin, Config.Questing.collectGoldMax);
                 break;
             default:
                 objective = 1;
@@ -74,7 +82,6 @@ class QuestComponent {
         if (this.netId == netId) {
             Progress += value;
         }
-        Debug.Log(String.Format("{0}/{1}",progress,objective));
     }
     private void RemoveListener() {
         switch (questType) {
@@ -89,20 +96,19 @@ class QuestComponent {
                 break;
         }
     }
-    public static bool isComplete(QuestComponent questComponent)
+    public static bool getComplete(QuestComponent questComponent)
     {
-        return questComponent.Complete;
+        return questComponent.complete;
     }
 }
-class PlayerData : MessageBase
+public class PlayerData : MessageBase
 {
     public bool complete {get; private set;}
     public float completionTime {get; private set;}
     public int connectionId {get; private set;}
-    private List<QuestComponent> questComponents;
-    private PickupIndex reward;
+    public List<QuestComponent> questComponents {get; private set;}
+    public PickupIndex reward {get; private set;}
     public NetworkInstanceId netId {get; private set;}
-
     public PlayerData() {
         complete = false;
         completionTime = 0;
@@ -111,9 +117,7 @@ class PlayerData : MessageBase
 
     public PlayerData(int connectionId) : this()
     {
-        Debug.Log("CONNECTION ID");
         this.connectionId = connectionId;
-        Debug.Log(connectionId);
         Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
 
         NetworkUser currentUser = null;
@@ -146,18 +150,17 @@ class PlayerData : MessageBase
                 break;
         }
 
+        List<String> missions = new List<string>();
+        foreach (var questComponent in questComponents) {
+            missions.Add(UI.questTypeDict[questComponent.questType]);
+        }
+
         message.baseToken = string.Format(
-            "Alright {0}, we'll be needing you to do these missions to receive <b><color=#{1}>{2}</color></b>",
+            "Alright {0}, we'll be needing you to do these missions: <b>({1}),</b> to receive <b><color=#{2}>{3}</color></b>",
             currentUser.GetNetworkPlayerName().GetResolvedName(),
+            String.Join(", ", missions),
             ColorUtility.ToHtmlStringRGBA(PickupCatalog.GetPickupDef(reward).baseColor),
             Language.GetString(PickupCatalog.GetPickupDef(reward).nameToken));
-
-        Debug.Log(questComponents.Count);
-
-        foreach (var questComponent in questComponents) {
-            Debug.Log("NEW COMPONENT");
-            Debug.Log(questComponent.questType);
-        }
 
         Chat.SendBroadcastChat(message);
     }
@@ -168,8 +171,7 @@ class PlayerData : MessageBase
         writer.Write(reward);
         writer.Write(questComponents.Count);
         for (int i = 0; i<questComponents.Count; i++) {
-            // Lazy so using json
-            writer.Write(JsonUtility.ToJson(questComponents[i]));
+            writer.Write(questComponents[i]);
         }
     }
     public override void Deserialize(NetworkReader reader)
@@ -180,7 +182,7 @@ class PlayerData : MessageBase
         questComponents = new List<QuestComponent>();
         int questCount = reader.ReadInt32();
         for (int i = 0; i<questCount; i++) {
-            questComponents.Add(JsonUtility.FromJson<QuestComponent>(reader.ReadString()));
+            questComponents.Add(reader.ReadQuestComponent());
         }
     }
     public static void Handler(NetworkMessage networkMessage) {
@@ -212,30 +214,29 @@ class PlayerData : MessageBase
         return questComponents;
     }
     public void Check() {
-        questComponents.RemoveAll(QuestComponent.isComplete);
-        if (questComponents.Count == 0)
+        if (questComponents.FindAll(QuestComponent.getComplete).Count == questComponents.Count)
         {
             CompleteQuest();
-            foreach (var player in PlayerCharacterMasterController.instances) {
-                Debug.Log(player.networkUser.netId);
-                if (player.networkUser.netId == netId) {
-                    player.master.inventory.GiveItem(PickupCatalog.GetPickupDef(reward).itemIndex);
-                }
-            }
-            Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
-            message.baseToken = "Good work, you have been rewarded.";
-            Chat.SendBroadcastChat(message);
         }
     }
     public void CompleteQuest()
     {
         complete = true;
         completionTime = Run.instance.GetRunStopwatch();
+        foreach (var player in PlayerCharacterMasterController.instances) {
+            if (player.networkUser.netId == netId) {
+                player.master.inventory.GiveItem(PickupCatalog.GetPickupDef(reward).itemIndex);
+                Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
+                message.baseToken = String.Format("Good work {0}, you have been rewarded.", player.networkUser.GetNetworkPlayerName().GetResolvedName());
+                Chat.SendBroadcastChat(message);
+            }
+        }
     }
 }
 static class Client
 {
-    private static PlayerData playerData;
+    private static PlayerData playerData = null;
+    private static UI UI;
     public static PlayerData PlayerData
     {
         get {
@@ -243,7 +244,24 @@ static class Client
         }
         set {
             playerData = value;
+
+            if (UI == null && !playerData.complete) {
+                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+
+                if (localUser?.cachedBody != null)
+                {
+                    UI = localUser.cachedBody.gameObject.AddComponent<UI>();
+                }
+            }
+            if (UI != null) {
+                UI.UpdateData(playerData);
+            }
         }
+    }
+    public static void CleanUp() {
+        UnityEngine.Object.Destroy(UI);
+        UI = null;
+        playerData = null;
     }
 }
 static class Server
@@ -257,6 +275,7 @@ static class Handler
         for (int i = 0; i<NetworkServer.connections.Count; i++) {
             if (NetworkServer.connections[i].isReady) {
                 int dataIndex = -1;
+                // Find existing playerData index
                 for (int j = 0; j < Server.PlayerDatas.Count; j++)
                 {
                     if (Server.PlayerDatas[j].connectionId == NetworkServer.connections[i].connectionId) {
@@ -264,12 +283,14 @@ static class Handler
                         break;
                     }
                 }
+                // If playerData index was found, update if the quest is completed
                 if (dataIndex != -1) {
                     if (Server.PlayerDatas[dataIndex].complete && (Run.instance.GetRunStopwatch() - Server.PlayerDatas[dataIndex].completionTime) > Config.Questing.cooldown)
                     {
                         Server.PlayerDatas[dataIndex] = new PlayerData(NetworkServer.connections[i].connectionId);
                     }
                 }
+                // Otherwise no playerData exists for the player and a new playerData is added
                 else {
                     Server.PlayerDatas.Add(new PlayerData(NetworkServer.connections[i].connectionId));
                 }
@@ -286,12 +307,9 @@ static class Handler
             }
         }
     }
-    public static void Setup() {
-        Client.PlayerData = null;
-    }
     public static void CleanUp() {
         Server.PlayerDatas.Clear();
-        Client.PlayerData = null;
+        Client.CleanUp();
         Events.commonKilled.RemoveAllListeners();
         Events.eliteKilled.RemoveAllListeners();
         Events.goldCollected.RemoveAllListeners();

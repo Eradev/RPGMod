@@ -8,10 +8,21 @@ public static class Config {
         public static float chanceCommon;
         public static float chanceUncommon;
         public static float chanceLegendary;
+        public static int killCommonMin;
+        public static int killCommonMax;
+        public static int killEliteMin;
+        public static int killEliteMax;
+        public static int collectGoldMin;
+        public static int collectGoldMax;
     }
     public struct Networking {
         public static short questPort;
         public static short updateRate;
+    }
+    public struct UI {
+        public static bool useHUDScale;
+        public static float questPositionX;
+        public static float questPositionY;
     }
     public static void Load(ConfigFile config, bool reload)
     {
@@ -23,7 +34,7 @@ public static class Config {
         // Questing
         Questing.cooldown = config.Bind<int>
         (
-            new ConfigDefinition("Questing", "cooldown"),
+            new ConfigDefinition("Questing", "Quest cooldown"),
             45,
             new ConfigDescription("Time needed to wait after quest completion for a new quest to be generated")
         ).Value;
@@ -45,19 +56,74 @@ public static class Config {
             1f,
             new ConfigDescription("The percentage chance that the reward for a quest is of legendary rarity")
         ).Value / 100;
+        Questing.killCommonMin = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Common kill goal minimum"),
+            5,
+            new ConfigDescription("The minimum amount for the range of the kill goal")
+        ).Value;
+        Questing.killCommonMax = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Common kill goal maximum"),
+            9,
+            new ConfigDescription("The maximum amount for the range of the kill goal")
+        ).Value;
+        Questing.killEliteMin = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Elite kill goal minimum"),
+            3,
+            new ConfigDescription("The minimum amount for the range of the kill goal")
+        ).Value;
+        Questing.killEliteMax = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Elite kill goal maximum"),
+            7,
+            new ConfigDescription("The maximum amount for the range of the kill goal")
+        ).Value;
+        Questing.collectGoldMin = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Collect gold goal minimum"),
+            12,
+            new ConfigDescription("The minimum amount for the range of the gold goal")
+        ).Value;
+        Questing.collectGoldMax = config.Bind<int>
+        (
+            new ConfigDefinition("Questing", "Collect gold goal maximum"),
+            31,
+            new ConfigDescription("The maximum amount for the range of the gold goal")
+        ).Value;
         // Networking
         Networking.questPort = config.Bind<short>
         (
-            new ConfigDefinition("Networking", "Questing Port"),
+            new ConfigDefinition("Networking", "Questing port"),
             1337,
             new ConfigDescription("The port used for communication of questing data")
         ).Value;
         Networking.updateRate = config.Bind<short>
         (
-            new ConfigDefinition("Networking", "Update Rate(ms)"),
+            new ConfigDefinition("Networking", "Update rate(ms)"),
             100,
             new ConfigDescription("How frequently clients are synced to the server")
         ).Value;
+        // UI
+        UI.useHUDScale = config.Bind<bool>
+        (
+            new ConfigDefinition("UI", "Use game HUD scale"),
+            true,
+            new ConfigDescription("Determines whether or not the ingame HUD Scale setting is used")
+        ).Value;
+        UI.questPositionX = config.Bind<float>
+        (
+            new ConfigDefinition("UI", "Quest position on screen (x axis)"),
+            88.5f,
+            new ConfigDescription("Location of the quest on the screen (x axis), represented by screen width percentage")
+        ).Value / 100;
+        UI.questPositionY = config.Bind<float>
+        (
+            new ConfigDefinition("UI", "Quest position on screen (y axis)"),
+            70f,
+            new ConfigDescription("Location of the quest on the screen (y axis), represented by screen height percentage")
+        ).Value / 100;
     }
 
 }
