@@ -1,18 +1,14 @@
 # RPGMod
 
-This mod is highly configurable allowing you to have quests, adjustable interactable spawns and heavily customisable enemy drops.
+This mod is configurable and allows you to have quests in singleplayer and with friends.
 
-![Image of questing](https://i.imgur.com/l9laMNp.png)
+![Image of questing](https://i.imgur.com/oog8BE9.jpg)
 
 ## Questing
 
-This mod offers a networked questing system that is synced with others who have the mod installed (host must have it installed). Questing, UI and settings are highly customisable within the config.
+This mod offers a networked questing system that is synced with others who have the mod installed (host must have it installed). Questing, UI and settings are customisable within the config.
 
-**Note:** The mod may lack balancing due to time constraints for testing, however the config should allow for many adjustments.
-
-## Enemy Item Drops
-
-This mod has highly customisable enemy loot drops, with the ability to change the chances of each drop for each tier of enemy. By default it is set to be very uncommon for drops, though this can be changed.
+**Note:** The mod may lack balancing due to time constraints for testing, however the config should allow for some adjustments.
 
 ## Installation
 
@@ -24,11 +20,11 @@ This mod has highly customisable enemy loot drops, with the ability to change th
 
 ## Updating
 
-When updating simply replace the mod files and run the game, the config may change from time to time so make always make a backup if you have changes you want to keep!
+When updating simply replace the mod files and run the game, the config may change from time to time so always make a backup if you have changes you want to keep!
 
 ## Configuration
 
-This mod has a large config with many values to change to your desire with the ability to reload on the go by pressing **F6**.
+This mod has a config with many values to change to your desire with the ability to reload on the go by pressing **F6**.
 
 **Steps on how to configure:**
 
@@ -59,6 +55,7 @@ This mod has a large config with many values to change to your desire with the a
 - 1.2.6: Had to rebuild mod to work with new game update and updated readme.
 - 2.0.0 (MAJOR UPDATE): Code for questing and more has been completely redone with support for multiple quests at a time, different questing types, a completely new user interface, redone config, turret fixes, better code and much more.
 - 2.0.1: Embedded asset bundle into the mod dll, new option for enemy drops to be added to your inventory directly, new option for each reward tier to have the quest objective scale be adjusted.
+- 3.0.0 (MAJOR UPDATE): Completely remade the mod, the mod currently only has individual quests per user, losing many older features. Old features may be re-implemented in the future.
 ```
 
 ## Issues?

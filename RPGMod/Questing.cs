@@ -69,7 +69,7 @@ public class QuestComponent {
                 objective = UnityEngine.Random.Range(Config.Questing.killEliteMin, Config.Questing.killEliteMax);
                 break;
             case QuestType.collectGold:
-                objective = UnityEngine.Random.Range(Config.Questing.collectGoldMin, Config.Questing.collectGoldMax);
+                objective = Run.instance.GetDifficultyScaledCost(UnityEngine.Random.Range(Config.Questing.collectGoldMin, Config.Questing.collectGoldMax));
                 break;
             default:
                 objective = 1;
@@ -101,6 +101,28 @@ public class QuestComponent {
         return questComponent.complete;
     }
 }
+public class Announcement : MessageBase
+{
+    public String message { get; private set; }
+    public Announcement() {
+        this.message = null;
+    }
+    public Announcement(String message) {
+        this.message = message;
+    }
+    public override void Serialize(NetworkWriter writer)
+    {
+        writer.Write(message);
+    }
+    public override void Deserialize(NetworkReader reader)
+    {
+        message = reader.ReadString();
+    }
+    public static void Handler(NetworkMessage networkMessage) {
+        Client.announcement = networkMessage.ReadMessage<Questing.Announcement>();
+        Client.announced = true;
+    }
+}
 public class PlayerData : MessageBase
 {
     public bool complete {get; private set;}
@@ -118,7 +140,6 @@ public class PlayerData : MessageBase
     public PlayerData(int connectionId) : this()
     {
         this.connectionId = connectionId;
-        Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
 
         NetworkUser currentUser = null;
         foreach (NetworkUser user in NetworkUser.readOnlyInstancesList) {
@@ -152,17 +173,17 @@ public class PlayerData : MessageBase
 
         List<String> missions = new List<string>();
         foreach (var questComponent in questComponents) {
-            missions.Add(UI.questTypeDict[questComponent.questType]);
+            missions.Add(QuestUI.questTypeDict[questComponent.questType]);
         }
 
-        message.baseToken = string.Format(
-            "Alright {0}, we'll be needing you to do these missions: <b>({1}),</b> to receive <b><color=#{2}>{3}</color></b>",
+        Announcement message = new Announcement(string.Format(
+            "Alright <b><color=orange>{0}</color></b>, we'll be needing you to do these missions: <b>({1}),</b> to receive <b><color=#{2}>{3}</color></b>",
             currentUser.GetNetworkPlayerName().GetResolvedName(),
             String.Join(", ", missions),
             ColorUtility.ToHtmlStringRGBA(PickupCatalog.GetPickupDef(reward).baseColor),
-            Language.GetString(PickupCatalog.GetPickupDef(reward).nameToken));
+            Language.GetString(PickupCatalog.GetPickupDef(reward).nameToken)));
 
-        Chat.SendBroadcastChat(message);
+        Networking.SendAnnouncement(message, connectionId);
     }
     public override void Serialize(NetworkWriter writer)
     {
@@ -226,9 +247,10 @@ public class PlayerData : MessageBase
         foreach (var player in PlayerCharacterMasterController.instances) {
             if (player.networkUser.netId == netId) {
                 player.master.inventory.GiveItem(PickupCatalog.GetPickupDef(reward).itemIndex);
-                Chat.SimpleChatMessage message = new Chat.SimpleChatMessage();
-                message.baseToken = String.Format("Good work {0}, you have been rewarded.", player.networkUser.GetNetworkPlayerName().GetResolvedName());
-                Chat.SendBroadcastChat(message);
+                Announcement message = new Announcement(
+                    String.Format("Good work {0}, you have been rewarded.", player.networkUser.GetNetworkPlayerName().GetResolvedName())
+                );
+                Networking.SendAnnouncement(message, connectionId);
             }
         }
     }
@@ -236,7 +258,7 @@ public class PlayerData : MessageBase
 static class Client
 {
     private static PlayerData playerData = null;
-    private static UI UI;
+    private static QuestUI questUI;
     public static PlayerData PlayerData
     {
         get {
@@ -245,23 +267,36 @@ static class Client
         set {
             playerData = value;
 
-            if (UI == null && !playerData.complete) {
+            if (questUI == null && !playerData.complete) {
                 LocalUser localUser = LocalUserManager.GetFirstLocalUser();
 
                 if (localUser?.cachedBody != null)
                 {
-                    UI = localUser.cachedBody.gameObject.AddComponent<UI>();
+                    questUI = localUser.cachedBody.gameObject.AddComponent<QuestUI>();
                 }
             }
-            if (UI != null) {
-                UI.UpdateData(playerData);
+            if (questUI != null) {
+                questUI.UpdateData(playerData);
             }
         }
     }
+    public static Announcement announcement;
+    public static bool announced = false;
     public static void CleanUp() {
-        UnityEngine.Object.Destroy(UI);
-        UI = null;
+        UnityEngine.Object.Destroy(questUI);
+        questUI = null;
         playerData = null;
+    }
+    public static void Update() {
+        if (announcement != null && announced) {
+            LocalUser localUser = LocalUserManager.GetFirstLocalUser();
+
+            if (localUser?.cachedBody != null)
+            {
+                localUser.cachedBody.gameObject.AddComponent<AnnouncerUI>().SetMessage(announcement.message);
+                announced = false;
+            }
+        }
     }
 }
 static class Server
@@ -272,8 +307,9 @@ static class Handler
 {
     public static void Update()
     {
+        Questing.Server.PlayerDatas.RemoveAll(BadPlayerData);
         for (int i = 0; i<NetworkServer.connections.Count; i++) {
-            if (NetworkServer.connections[i].isReady) {
+            if (NetworkServer.connections[i]?.connectionId != null && NetworkServer.connections[i].isReady) {
                 int dataIndex = -1;
                 // Find existing playerData index
                 for (int j = 0; j < Server.PlayerDatas.Count; j++)
@@ -307,9 +343,22 @@ static class Handler
             }
         }
     }
+    private static bool BadPlayerData(Questing.PlayerData playerData)
+    {
+        bool bad = true;
+        for (int i = 0; i < NetworkServer.connections.Count; i++)
+        {
+            if (NetworkServer.connections[i]?.connectionId != null && NetworkServer.connections[i].connectionId == playerData.connectionId)
+            {
+                bad = false;
+            }
+        }
+        return bad;
+    }
     public static void CleanUp() {
         Server.PlayerDatas.Clear();
         Client.CleanUp();
+        UI.Setup();
         Events.commonKilled.RemoveAllListeners();
         Events.eliteKilled.RemoveAllListeners();
         Events.goldCollected.RemoveAllListeners();

@@ -2,8 +2,8 @@
     "name": "RPGMod",
     "version_number": "3.0.0",
     "website_url": "https://github.com/ghasttear1/RPGMod",
-    "description": "This mod is highly configurable allowing you to have quests, adjustable interactable spawns, and heavily customisable enemy drops.",
+    "description": "This mod is configurable and allows you to have quests in singleplayer and with friends",
     "dependencies": [
-        "bbepis-BepInExPack-3.0.0"
+        "bbepis-BepInExPack-5.3.1"
     ]
 }

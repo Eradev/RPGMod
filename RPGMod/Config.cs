@@ -16,13 +16,14 @@ public static class Config {
         public static int collectGoldMax;
     }
     public struct Networking {
-        public static short questPort;
+        public static short msgType;
         public static short updateRate;
     }
     public struct UI {
         public static bool useHUDScale;
         public static float questPositionX;
         public static float questPositionY;
+        public static float announcerScaleX;
     }
     public static void Load(ConfigFile config, bool reload)
     {
@@ -93,11 +94,11 @@ public static class Config {
             new ConfigDescription("The maximum amount for the range of the gold goal")
         ).Value;
         // Networking
-        Networking.questPort = config.Bind<short>
+        Networking.msgType = config.Bind<short>
         (
-            new ConfigDefinition("Networking", "Questing port"),
+            new ConfigDefinition("Networking", "Message type"),
             1337,
-            new ConfigDescription("The port used for communication of questing data")
+            new ConfigDescription("The starting number used for identification of messages sent between the client and server (both clients and server must be the same) (it is highly unlikely existing mods will conflict with the default value)")
         ).Value;
         Networking.updateRate = config.Bind<short>
         (
@@ -124,6 +125,12 @@ public static class Config {
             70f,
             new ConfigDescription("Location of the quest on the screen (y axis), represented by screen height percentage")
         ).Value / 100;
+        UI.announcerScaleX = config.Bind<float>
+        (
+            new ConfigDefinition("UI", "Scale of announcer (x axis)"),
+            0.3f,
+            new ConfigDescription("Controls the percentage screen width (x axis) used for the announcer box")
+        ).Value;
     }
 
 }

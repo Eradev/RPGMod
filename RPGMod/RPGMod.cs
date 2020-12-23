@@ -9,7 +9,8 @@ using System.Reflection;
 // Quests consist of 1-3 components for the rarity of the reward respectively -- DONE
 // C - 1, U - 2, L - 3 -- DONE
 // Quests stay at a static difficulty as the game scales anyways
-// Quests have an announcer with a radio icon, text AC style
+// Quests have an announcer with a radio icon, text AC style -- DONE
+// ANNOUNCER SHOULD BE PLAYER SPECIFIC -- DONE
 // Top right, quest components listed -- DONE
 // Quests will ensure completion is achievable in the same stage -- DONE
 // Option for individual or group tasks with appropriate scaling
@@ -17,8 +18,9 @@ using System.Reflection;
 // ClientData fixed sync every 100ms -- DONE
 // ServerData -- DONE
 // All functions should run regardless and should be thoroughly thought out -- DONE
-// UI must be flawless and dynamic regardless of situation
+// UI must be flawless and dynamic regardless of situation -- DONE
 // Highlight -- NO
+// ENSURE THAT PLAYERS LEAVING ARE REMOVED FROM QUESTS
 
 namespace RPGMod
 {
@@ -91,12 +93,13 @@ class RPGMod : BaseUnityPlugin
             orig(self, damageReport);
         };
         // NETWORK BYPASS -- REMOVE
-        On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
+        // On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
     }
 
     void Update()
     {
         if (gameStarted) {
+            Questing.Client.Update();
             if (NetworkServer.active) {
                 Questing.Handler.Update();
                 Networking.Sync();
@@ -112,6 +115,7 @@ class RPGMod : BaseUnityPlugin
 
     void Setup() {
         Networking.Setup();
+        UI.Setup();
         gameStarted = true;
     }
     void CleanUp() {

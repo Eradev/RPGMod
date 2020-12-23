@@ -13,8 +13,7 @@ public class CreateAssetBundles
     {
         string[] assets = new string[]
         {
-            "Assets/QuestUI.prefab",
-            "Assets/QuestComponent.prefab"
+            "Assets/UIBorder.png"
         };
 
         AssetBundleBuild bundle = new AssetBundleBuild
