@@ -56,6 +56,7 @@ This mod has a config with many values to change to your desire with the ability
 - 2.0.0 (MAJOR UPDATE): Code for questing and more has been completely redone with support for multiple quests at a time, different questing types, a completely new user interface, redone config, turret fixes, better code and much more.
 - 2.0.1: Embedded asset bundle into the mod dll, new option for enemy drops to be added to your inventory directly, new option for each reward tier to have the quest objective scale be adjusted.
 - 3.0.0 (MAJOR UPDATE): Completely remade the mod, the mod currently only has individual quests per user, losing many older features. Old features may be re-implemented in the future.
+- 3.0.1: Fixed mod fully breaking after death and continuing
 ```
 
 ## Issues?

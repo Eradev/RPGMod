@@ -39,7 +39,6 @@ public class QuestUI : MonoBehaviour {
         questUI.AddComponent<RectTransform>();
         questUI.AddComponent<Image>();
         questUI.AddComponent<CanvasGroup>();
-        questUI.AddComponent<CanvasRenderer>();
 
         questUI.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
         questUI.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
@@ -55,7 +54,6 @@ public class QuestUI : MonoBehaviour {
 
         questTitle.AddComponent<RectTransform>();
         questTitle.AddComponent<TextMeshProUGUI>();
-        questTitle.AddComponent<CanvasRenderer>();
 
         questTitle.transform.SetParent(questUI.transform);
 
@@ -75,7 +73,6 @@ public class QuestUI : MonoBehaviour {
 
         rewardBacking.AddComponent<RectTransform>();
         rewardBacking.AddComponent<Image>();
-        rewardBacking.AddComponent<CanvasRenderer>();
 
         rewardBacking.transform.SetParent(questTitle.transform);
 
@@ -91,7 +88,6 @@ public class QuestUI : MonoBehaviour {
 
         rewardBackground.AddComponent<RectTransform>();
         rewardBackground.AddComponent<Image>();
-        rewardBackground.AddComponent<CanvasRenderer>();
 
         rewardBackground.transform.SetParent(rewardBacking.transform);
 
@@ -107,7 +103,6 @@ public class QuestUI : MonoBehaviour {
 
         reward.AddComponent<RectTransform>();
         reward.AddComponent<RawImage>();
-        reward.AddComponent<CanvasRenderer>();
 
         reward.transform.SetParent(rewardBackground.transform);
 
@@ -123,7 +118,6 @@ public class QuestUI : MonoBehaviour {
 
         rewardText.AddComponent<RectTransform>();
         rewardText.AddComponent<TextMeshProUGUI>();
-        rewardText.AddComponent<CanvasRenderer>();
 
         rewardText.transform.SetParent(reward.transform);
 
@@ -156,10 +150,10 @@ public class QuestUI : MonoBehaviour {
             }
         }
     }
-    public void UpdateData(Questing.PlayerData playerData) {
+    public void UpdateData(Questing.ClientData clientData) {
 
 
-        if ((playerData == null || playerData.complete) && !finished) {
+        if ((clientData is null || clientData.complete) && !finished) {
             startTime = Run.instance.GetRunStopwatch();
             targetAlpha = 0;
             targetX = Screen.width * Config.UI.questPositionX + 60;
@@ -172,20 +166,19 @@ public class QuestUI : MonoBehaviour {
                 }
             }
 
-            rewardText.GetComponent<TextMeshProUGUI>().text = Language.GetString(PickupCatalog.GetPickupDef(playerData.reward).nameToken);
+            rewardText.GetComponent<TextMeshProUGUI>().text = Language.GetString(PickupCatalog.GetPickupDef(clientData.reward).nameToken);
             rewardText.GetComponent<RectTransform>().sizeDelta = rewardText.GetComponent<TextMeshProUGUI>().GetPreferredValues();
-            rewardText.GetComponent<TextMeshProUGUI>().color = PickupCatalog.GetPickupDef(playerData.reward).baseColor;
-            reward.GetComponent<RawImage>().texture = PickupCatalog.GetPickupDef(playerData.reward).iconTexture;
+            rewardText.GetComponent<TextMeshProUGUI>().color = PickupCatalog.GetPickupDef(clientData.reward).baseColor;
+            reward.GetComponent<RawImage>().texture = PickupCatalog.GetPickupDef(clientData.reward).iconTexture;
 
             // Update QuestComponents
             int j = 0;
-            for (int i = 0; i < playerData.questComponents.Count; i++) {
-                if (!indexes.Contains(i) && !playerData.questComponents[i].complete) {
+            for (int i = 0; i < clientData.questComponents.Count; i++) {
+                if (!indexes.Contains(i) && !clientData.questComponents[i].complete) {
                     indexes.Add(i);
                     GameObject questComponent = new GameObject();
                     // questComponent
                     questComponent.AddComponent<RectTransform>();
-                    questComponent.AddComponent<CanvasRenderer>();
 
                     questComponent.transform.SetParent(rewardText.transform);
 
@@ -200,7 +193,6 @@ public class QuestUI : MonoBehaviour {
 
                     description.AddComponent<RectTransform>();
                     description.AddComponent<TextMeshProUGUI>();
-                    description.AddComponent<CanvasRenderer>();
 
                     description.transform.SetParent(questComponent.transform);
 
@@ -219,7 +211,6 @@ public class QuestUI : MonoBehaviour {
 
                     progress.AddComponent<RectTransform>();
                     progress.AddComponent<TextMeshProUGUI>();
-                    progress.AddComponent<CanvasRenderer>();
 
                     progress.transform.SetParent(questComponent.transform);
 
@@ -238,7 +229,6 @@ public class QuestUI : MonoBehaviour {
 
                     progressBarBackground.AddComponent<RectTransform>();
                     progressBarBackground.AddComponent<Image>();
-                    progressBarBackground.AddComponent<CanvasRenderer>();
 
                     progressBarBackground.transform.SetParent(description.transform);
 
@@ -258,7 +248,6 @@ public class QuestUI : MonoBehaviour {
 
                     progressBar.AddComponent<RectTransform>();
                     progressBar.AddComponent<Image>();
-                    progressBar.AddComponent<CanvasRenderer>();
 
                     progressBar.transform.SetParent(progressBarBackground.transform);
 
@@ -273,20 +262,20 @@ public class QuestUI : MonoBehaviour {
                     questComponents.Add(questComponent);
                 }
                 if (indexes.Contains(i)) {
-                    if (playerData.questComponents[i].complete) {
+                    if (clientData.questComponents[i].complete) {
                         Destroy(questComponents[j]);
                         questComponents.RemoveAt(j);
                         progressVels.RemoveAt(j);
                         indexes.Remove(i);
                     }
                     else {
-                        questComponents[j].transform.Find("description").GetComponent<TextMeshProUGUI>().text = questTypeDict[playerData.questComponents[i].questType];
+                        questComponents[j].transform.Find("description").GetComponent<TextMeshProUGUI>().text = questTypeDict[clientData.questComponents[i].questType];
                         questComponents[j].transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponents[j].transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
-                        questComponents[j].transform.Find("progress").GetComponent<TextMeshProUGUI>().text = String.Format("{0}/{1}", playerData.questComponents[i].Progress, playerData.questComponents[i].objective);
+                        questComponents[j].transform.Find("progress").GetComponent<TextMeshProUGUI>().text = String.Format("{0}/{1}", clientData.questComponents[i].Progress, clientData.questComponents[i].objective);
                         questComponents[j].transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponents[j].transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
                         float vel = progressVels[j];
-                        questComponents[j].transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponents[j].transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, (float)playerData.questComponents[i].Progress/(float)playerData.questComponents[i].objective, ref vel, 0.7f),1,1);
+                        questComponents[j].transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponents[j].transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, (float)clientData.questComponents[i].Progress/(float)clientData.questComponents[i].objective, ref vel, 0.7f),1,1);
                         progressVels[j] = vel;
 
                         questComponents[j].GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * j), 0);

@@ -25,7 +25,6 @@ public class AnnouncerUI : MonoBehaviour {
         announcerUI.AddComponent<RectTransform>();
         announcerUI.AddComponent<Image>();
         announcerUI.AddComponent<CanvasGroup>();
-        announcerUI.AddComponent<CanvasRenderer>();
 
         announcerUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
         announcerUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
@@ -40,7 +39,6 @@ public class AnnouncerUI : MonoBehaviour {
 
         announcerText.AddComponent<RectTransform>();
         announcerText.AddComponent<TextMeshProUGUI>();
-        announcerText.AddComponent<CanvasRenderer>();
 
         announcerText.transform.SetParent(announcerUI.transform);
 

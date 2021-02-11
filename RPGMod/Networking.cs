@@ -1,5 +1,4 @@
 using UnityEngine.Networking;
-using System.Collections.Generic;
 using RoR2;
 
 namespace RPGMod {
@@ -8,7 +7,7 @@ public static class Networking {
     private static void RegisterHandlers() {
         NetworkClient client = NetworkManager.singleton.client;
 
-        client.RegisterHandler(Config.Networking.msgType, Questing.PlayerData.Handler);
+        client.RegisterHandler(Config.Networking.msgType, Questing.ClientData.Handler);
         client.RegisterHandler((short)(Config.Networking.msgType + 1), Questing.Announcement.Handler);
     }
     public static void Setup() {
@@ -17,8 +16,8 @@ public static class Networking {
     }
     public static void Sync() {
         if (Config.Networking.updateRate == 0 || Run.instance.GetRunStopwatch() - lastUpdate >= (Config.Networking.updateRate / 1000)) {
-            foreach (var playerData in Questing.Server.PlayerDatas) {
-                NetworkServer.SendToClient(playerData.connectionId, Config.Networking.msgType, playerData);
+            foreach (var clientData in Questing.Server.ClientDatas) {
+                NetworkServer.SendToClient(clientData.connectionId, Config.Networking.msgType, clientData);
             }
 
             lastUpdate = Run.instance.GetRunStopwatch();

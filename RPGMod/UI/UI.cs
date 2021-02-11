@@ -27,7 +27,6 @@ public static class UI {
 
         border.AddComponent<RectTransform>();
         border.AddComponent<Image>();
-        border.AddComponent<CanvasRenderer>();
 
         border.transform.SetParent(element.transform);
 

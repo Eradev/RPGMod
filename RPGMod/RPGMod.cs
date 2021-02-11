@@ -4,53 +4,43 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Reflection;
 
-// Quests are updated by events -- DONE
-// Quests are received by a random time between 30-45s after completion -- DONE
-// Quests consist of 1-3 components for the rarity of the reward respectively -- DONE
-// C - 1, U - 2, L - 3 -- DONE
-// Quests stay at a static difficulty as the game scales anyways
-// Quests have an announcer with a radio icon, text AC style -- DONE
-// ANNOUNCER SHOULD BE PLAYER SPECIFIC -- DONE
-// Top right, quest components listed -- DONE
-// Quests will ensure completion is achievable in the same stage -- DONE
-// Option for individual or group tasks with appropriate scaling
-// Players will each be assigned their data - class PlayerData -- DONE
-// ClientData fixed sync every 100ms -- DONE
-// ServerData -- DONE
-// All functions should run regardless and should be thoroughly thought out -- DONE
-// UI must be flawless and dynamic regardless of situation -- DONE
-// Highlight -- NO
-// ENSURE THAT PLAYERS LEAVING ARE REMOVED FROM QUESTS
-
 namespace RPGMod
 {
-[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.0")]
+enum ModState {
+    awaiting,
+    starting,
+    started,
+    ending
+}
+[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.1")]
 class RPGMod : BaseUnityPlugin
 {
-    private bool gameStarted = false;
+    private ModState modState;
     void Awake()
     {
         global::RPGMod.Config.Load(Config, false);
+        modState = ModState.awaiting;
 
         // Load assetbundle
         var execAssembly = Assembly.GetExecutingAssembly();
         var stream = execAssembly.GetManifestResourceStream("RPGMod.assetbundle");
         UI.assetBundle = AssetBundle.LoadFromStream(stream);
 
-        if (UI.assetBundle == null)
+        if (UI.assetBundle is null)
         {
             Debug.LogError("RPGMOD: Failed to load assetbundle");
             return;
         }
 
+        // Hooks
         On.RoR2.Run.Start += (orig, self) =>
         {
-            Setup();
+            modState = ModState.starting;
             orig(self);
         };
         On.RoR2.Run.OnDisable += (orig, self) =>
         {
-            CleanUp();
+            modState = ModState.ending;
             orig(self);
         };
         On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
@@ -60,21 +50,8 @@ class RPGMod : BaseUnityPlugin
             }
             orig(self, amount);
         };
-        // On.RoR2.PurchaseInteraction.OnInteractionBegin += (orig, self, activator) => {
-        //     Debug.Log("INTERACTION");
-        //     Debug.Log(Language.GetString(self?.displayNameToken ?? "???"));
-        //     Debug.Log(self?.lockGameObject);
-        //     if (NetworkServer.active && self?.GetComponent<ChestBehavior>() != null) {
-        //         Questing.Events.chestOpened.Invoke(1, activator.GetComponent<CharacterMaster>().GetComponent<PlayerCharacterMasterController>().networkUser.playerControllerId);
-        //     }
-        //     orig(self,activator);
-        // };
         On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
         {
-            if (!damageReport.victim)
-            {
-                return;
-            }
             CharacterBody enemyBody = damageReport?.victimBody;
             GameObject attackerMaster = damageReport?.damageInfo?.attacker?.GetComponent<CharacterBody>()?.masterObject;
             CharacterMaster attackerController = attackerMaster?.GetComponent<CharacterMaster>();
@@ -82,9 +59,6 @@ class RPGMod : BaseUnityPlugin
             if (attackerController?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null) {
                 if (enemyBody?.isElite ?? false) {
                     Questing.Events.eliteKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser.netId);
-                }
-                else if (enemyBody?.isChampion ?? false) {
-                    //Questing.Events.championKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser.playerControllerId);
                 }
                 else {
                     Questing.Events.commonKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser.netId);
@@ -98,14 +72,26 @@ class RPGMod : BaseUnityPlugin
 
     void Update()
     {
-        if (gameStarted) {
-            Questing.Client.Update();
-            if (NetworkServer.active) {
-                Questing.Handler.Update();
-                Networking.Sync();
-            }
+        switch(modState) {
+            case ModState.starting:
+                Setup();
+                modState = ModState.started;
+                break;
+            case ModState.started:
+                Questing.Client.Update();
+                if (NetworkServer.active) {
+                    Questing.Manager.Update();
+                    Networking.Sync();
+                }
+                break;
+            case ModState.ending:
+                CleanUp();
+                modState = ModState.awaiting;
+                break;
+            default:
+                break;
         }
-        // Reload config key
+        // Reload config
         if (Input.GetKeyDown(KeyCode.F6))
         {
             global::RPGMod.Config.Load(Config, true);
@@ -116,11 +102,9 @@ class RPGMod : BaseUnityPlugin
     void Setup() {
         Networking.Setup();
         UI.Setup();
-        gameStarted = true;
     }
     void CleanUp() {
-        gameStarted = false;
-        Questing.Handler.CleanUp();
+        Questing.Manager.CleanUp();
     }
 }
 } // namespace RPGMod

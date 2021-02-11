@@ -42,7 +42,7 @@ public static class Config {
         Questing.chanceCommon = config.Bind<float>
         (
             new ConfigDefinition("Questing", "Common reward chance"),
-            80f,
+            70f,
             new ConfigDescription("The percentage chance that the reward for a quest is of common rarity")
         ).Value / 100;
         Questing.chanceUncommon = config.Bind<float>
@@ -54,7 +54,7 @@ public static class Config {
         Questing.chanceLegendary = config.Bind<float>
         (
             new ConfigDefinition("Questing", "Legendary reward chance"),
-            1f,
+            10f,
             new ConfigDescription("The percentage chance that the reward for a quest is of legendary rarity")
         ).Value / 100;
         Questing.killCommonMin = config.Bind<int>
