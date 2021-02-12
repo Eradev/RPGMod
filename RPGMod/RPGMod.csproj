@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="assetbundle" />
+    <None Remove="rpgmodbundle" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="assetbundle" />
+    <EmbeddedResource Include="rpgmodbundle" />
   </ItemGroup>
 
   <ItemGroup>

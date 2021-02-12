@@ -18,7 +18,7 @@ public class CreateAssetBundles
 
         AssetBundleBuild bundle = new AssetBundleBuild
         {
-            assetBundleName = "assetBundle",
+            assetBundleName = "rpgmodbundle",
             assetNames = assets
         };
 

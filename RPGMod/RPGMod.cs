@@ -12,7 +12,7 @@ enum ModState {
     started,
     ending
 }
-[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.1")]
+[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.2")]
 class RPGMod : BaseUnityPlugin
 {
     private ModState modState;
@@ -23,7 +23,7 @@ class RPGMod : BaseUnityPlugin
 
         // Load assetbundle
         var execAssembly = Assembly.GetExecutingAssembly();
-        var stream = execAssembly.GetManifestResourceStream("RPGMod.assetbundle");
+        var stream = execAssembly.GetManifestResourceStream("RPGMod.rpgmodbundle");
         UI.assetBundle = AssetBundle.LoadFromStream(stream);
 
         if (UI.assetBundle is null)

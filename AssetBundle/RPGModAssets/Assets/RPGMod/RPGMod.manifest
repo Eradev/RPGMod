@@ -1,7 +1,7 @@
 ManifestFileVersion: 0
-CRC: 4031856977
+CRC: 2592593842
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: assetbundle
+      Name: rpgmodbundle
       Dependencies: {}
