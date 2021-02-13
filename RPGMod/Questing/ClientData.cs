@@ -57,7 +57,7 @@ public class ClientData : MessageBase
 
         List<String> missions = new List<string>();
         foreach (var questComponent in questComponents) {
-            missions.Add(QuestUI.questTypeDict[questComponent.questType]);
+            missions.Add(UI.Quest.questTypeDict[questComponent.questType]);
         }
 
         Announcement message = new Announcement(string.Format(

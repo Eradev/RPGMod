@@ -116,7 +116,7 @@ public static class Config {
         UI.questPositionX = config.Bind<float>
         (
             new ConfigDefinition("UI", "Quest position on screen (x axis)"),
-            88.5f,
+            87f,
             new ConfigDescription("Location of the quest on the screen (x axis), represented by screen width percentage")
         ).Value / 100;
         UI.questPositionY = config.Bind<float>

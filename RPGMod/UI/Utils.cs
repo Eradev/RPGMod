@@ -1,12 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
+using RoR2;
+using System.Collections;
 
-namespace RPGMod
-{
-public static class UI {
+namespace RPGMod {
+namespace UI {
+
+enum UIState {
+    creating,
+    updating
+}
+public static class Utils {
     public static AssetBundle assetBundle;
     public static float hudScale { get; private set; }
-    public static void Setup() {
+    public static Vector2 screenSize;
+    public static bool ready = false;
+    public static IEnumerator Setup() {
+        ready = false;
         var hudConVar = RoR2.Console.instance.FindConVar("hud_scale");
 
         if (Config.UI.useHUDScale)
@@ -18,6 +28,16 @@ public static class UI {
         }
         else {
             hudScale = 1f;
+        }
+
+        while (!ready) {
+            yield return new WaitForSeconds(0.1f);
+            if (LocalUserManager.GetFirstLocalUser() != null && LocalUserManager.GetFirstLocalUser()?.cameraRigController?.hud != null) {
+                screenSize = LocalUserManager.GetFirstLocalUser()?.cameraRigController?.hud.GetComponent<RectTransform>().sizeDelta ?? new Vector2(0,0);
+                if (!(screenSize.x <= 1 || screenSize.y <= 1)) {
+                    ready = true;
+                };
+            }
         }
     }
     public static void AddBorder(GameObject element) {
@@ -40,4 +60,6 @@ public static class UI {
         border.GetComponent<Image>().type = Image.Type.Sliced;
     }
 }
+
+} // namespace UI
 } // namespace RPGMod

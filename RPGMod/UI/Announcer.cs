@@ -1,25 +1,31 @@
 using RoR2;
 using System;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-namespace RPGMod
-{
-public class AnnouncerUI : MonoBehaviour {
+namespace RPGMod {
+namespace UI {
+class Announcer : MonoBehaviour {
     private GameObject announcerUI;
     private GameObject announcerText;
-    private bool attached;
-    private bool finished = false;
+    private bool finished;
     private float startTime;
-    private float vel = 0;
-    private float vel2 = 0;
-    private float targetY = 30;
-    private float targetAlpha = 1;
-    private float fadeTime = 0.7f;
-    private void Awake() {
+    private float vel;
+    private float vel2;
+    private float targetY;
+    private float targetAlpha;
+    private float fadeTime;
+    Announcer() {
+        finished = false;
+        vel = 0;
+        vel2 = 0;
+        targetY = UI.Utils.screenSize.y * 0.03f;
+        targetAlpha = 1;
+        fadeTime = 0.7f;
+
+        //announcerUI
         announcerUI = new GameObject();
 
         announcerUI.AddComponent<RectTransform>();
@@ -29,12 +35,14 @@ public class AnnouncerUI : MonoBehaviour {
         announcerUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
         announcerUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
         announcerUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0);
-        announcerUI.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width * Config.UI.announcerScaleX, 100);
+        announcerUI.GetComponent<RectTransform>().sizeDelta = new Vector2(UI.Utils.screenSize.x * Config.UI.announcerScaleX, 100);
 
         announcerUI.GetComponent<Image>().color = new Color(0.16f,0.16f,0.16f,0.9f);
 
         announcerUI.GetComponent<CanvasGroup>().alpha = 0;
+        UI.Utils.AddBorder(announcerUI);
 
+        // announcerText
         announcerText = new GameObject();
 
         announcerText.AddComponent<RectTransform>();
@@ -53,32 +61,21 @@ public class AnnouncerUI : MonoBehaviour {
         announcerText.GetComponent<TextMeshProUGUI>().fontSize = 24;
         announcerText.GetComponent<TextMeshProUGUI>().margin = new Vector4(10,10,10,10);
         announcerText.GetComponent<TextMeshProUGUI>().text = "";
+
+        announcerUI.transform.SetParent(this.transform);
+        announcerUI.GetComponent<RectTransform>().localPosition = new Vector3(0,0,0);
+        announcerUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -UI.Utils.screenSize.y * 0.03f, 0);
+        announcerUI.GetComponent<RectTransform>().localScale = new Vector3(UI.Utils.hudScale,UI.Utils.hudScale,UI.Utils.hudScale);
     }
     public void SetMessage(String message) {
         StartCoroutine(PlayText(message));
     }
     private void Update() {
-        if (!attached) {
-            LocalUser localUser = LocalUserManager.GetFirstLocalUser();
-            if (localUser?.cameraRigController?.hud?.mainContainer != null)
-            {
-                announcerUI.transform.SetParent(localUser.cameraRigController.hud.mainContainer.transform);
-                announcerUI.GetComponent<RectTransform>().localPosition = new Vector3(0,0,0);
-                announcerUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -30, 0);
-                announcerUI.GetComponent<RectTransform>().localScale = new Vector3(UI.hudScale,UI.hudScale,UI.hudScale);
+        announcerUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, Mathf.SmoothDamp(announcerUI.GetComponent<RectTransform>().anchoredPosition.y, targetY, ref vel, fadeTime), 0);
+        announcerUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(announcerUI.GetComponent<CanvasGroup>().alpha, targetAlpha, ref vel2, fadeTime);
 
-                attached = true;
-
-            }
-        }
-        else {
-            announcerUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, Mathf.SmoothDamp(announcerUI.GetComponent<RectTransform>().anchoredPosition.y, targetY, ref vel, fadeTime), 0);
-            announcerUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(announcerUI.GetComponent<CanvasGroup>().alpha, targetAlpha, ref vel2, fadeTime);
-            if (finished) {
-                if (Run.instance.GetRunStopwatch() - startTime >= fadeTime + 0.5f) {
-                    Destroy(this);
-                }
-            }
+        if (finished && Run.instance.GetRunStopwatch() - startTime >= fadeTime + 0.5f) {
+            Destroy();
         }
     }
     IEnumerator PlayText(String text)
@@ -103,14 +100,17 @@ public class AnnouncerUI : MonoBehaviour {
             }
         }
         yield return new WaitForSeconds (5);
+
         startTime = Run.instance.GetRunStopwatch();
         targetAlpha = 0;
         targetY = -30;
         finished = true;
 	}
-    private void OnDestroy()
-    {
+    public void Destroy() {
         Destroy(announcerUI);
+        Destroy(this);
     }
 }
+
+} // namespace UI
 } // namespace RPGMod

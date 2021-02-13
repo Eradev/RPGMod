@@ -12,7 +12,7 @@ enum ModState {
     started,
     ending
 }
-[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.2")]
+[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.3")]
 class RPGMod : BaseUnityPlugin
 {
     private ModState modState;
@@ -24,9 +24,9 @@ class RPGMod : BaseUnityPlugin
         // Load assetbundle
         var execAssembly = Assembly.GetExecutingAssembly();
         var stream = execAssembly.GetManifestResourceStream("RPGMod.rpgmodbundle");
-        UI.assetBundle = AssetBundle.LoadFromStream(stream);
+        UI.Utils.assetBundle = AssetBundle.LoadFromStream(stream);
 
-        if (UI.assetBundle is null)
+        if (UI.Utils.assetBundle is null)
         {
             Debug.LogError("RPGMOD: Failed to load assetbundle");
             return;
@@ -78,10 +78,12 @@ class RPGMod : BaseUnityPlugin
                 modState = ModState.started;
                 break;
             case ModState.started:
-                Questing.Client.Update();
-                if (NetworkServer.active) {
-                    Questing.Manager.Update();
-                    Networking.Sync();
+                if (UI.Utils.ready) {
+                    Questing.Client.Update();
+                    if (NetworkServer.active) {
+                        Questing.Manager.Update();
+                        Networking.Sync();
+                    }
                 }
                 break;
             case ModState.ending:
@@ -95,13 +97,16 @@ class RPGMod : BaseUnityPlugin
         if (Input.GetKeyDown(KeyCode.F6))
         {
             global::RPGMod.Config.Load(Config, true);
+            if (modState == ModState.started) {
+                StartCoroutine(UI.Utils.Setup());
+            }
             Questing.Client.CleanUp();
         }
     }
 
     void Setup() {
         Networking.Setup();
-        UI.Setup();
+        StartCoroutine(UI.Utils.Setup());
     }
     void CleanUp() {
         Questing.Manager.CleanUp();

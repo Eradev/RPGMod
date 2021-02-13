@@ -24,6 +24,7 @@ public static class Events {
 
 public class Announcement : MessageBase
 {
+    public bool displayed = false;
     public String message { get; private set; }
     public Announcement() {
         this.message = null;
@@ -41,14 +42,13 @@ public class Announcement : MessageBase
     }
     public static void Handler(NetworkMessage networkMessage) {
         Client.announcement = networkMessage.ReadMessage<Questing.Announcement>();
-        Client.announced = true;
     }
 }
 
 static class Client
 {
     private static ClientData clientData = null;
-    private static QuestUI questUI;
+    private static UI.Quest questUI;
     public static ClientData ClientData
     {
         get {
@@ -56,37 +56,39 @@ static class Client
         }
         set {
             clientData = value;
+            if (clientData != null) {
+                if (questUI == null && !(clientData?.complete ?? true)) {
+                    LocalUser localUser = LocalUserManager.GetFirstLocalUser();
 
-            if (questUI is null && !(clientData?.complete ?? true)) {
-                LocalUser localUser = LocalUserManager.GetFirstLocalUser();
-
-                if (localUser?.cachedBody != null)
-                {
-                    questUI = localUser.cachedBody.gameObject.AddComponent<QuestUI>();
+                    if (localUser?.cameraRigController?.hud?.mainContainer != null)
+                    {
+                        questUI = localUser.cameraRigController.hud.mainContainer.AddComponent<UI.Quest>();
+                    }
                 }
-            }
-            if (questUI != null) {
-                questUI.UpdateData(clientData);
+                else if(questUI != null) {
+                    questUI.UpdateData(clientData);
+                }
             }
         }
     }
     public static Announcement announcement;
-    public static bool announced = false;
+    private static UI.Announcer announcerUI;
     public static void CleanUp() {
-        UnityEngine.Object.Destroy(questUI);
-        announced = false;
+        questUI.Destroy();
+        announcerUI.Destroy();
         questUI = null;
         clientData = null;
     }
     public static void Update() {
-        if (announcement != null && announced) {
+        if (announcerUI == null && !(announcement?.displayed ?? true)) {
             LocalUser localUser = LocalUserManager.GetFirstLocalUser();
 
-            if (localUser?.cachedBody != null)
+            if (localUser?.cameraRigController?.hud?.mainContainer != null)
             {
-                localUser.cachedBody.gameObject.AddComponent<AnnouncerUI>().SetMessage(announcement.message);
-                announced = false;
+                announcerUI = localUser.cameraRigController.hud.mainContainer.AddComponent<UI.Announcer>();
+                announcerUI.SetMessage(announcement.message);
             }
+            announcement.displayed = true;
         }
     }
 }
@@ -149,7 +151,6 @@ static class Manager
     public static void CleanUp() {
         Server.ClientDatas.Clear();
         Client.CleanUp();
-        UI.Setup();
         Events.commonKilled.RemoveAllListeners();
         Events.eliteKilled.RemoveAllListeners();
         Events.goldCollected.RemoveAllListeners();
