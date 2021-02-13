@@ -40,6 +40,7 @@ This mod has a config with many values to change to your desire with the ability
 - 3.0.0 (MAJOR UPDATE): Completely remade the mod, the mod currently only has individual quests per user, losing many older features. Old features may be re-implemented in the future.
 - 3.0.1: Fixed mod fully breaking after death and continuing (issue #29)
 - 3.0.2: Fixed mod breaking when using other mods that import assetbundles with the "assetbundle" name (issue #33)
+- 3.0.3 (URGENT UPDATE): Fixed issues #34 and #35. Cleaned up UI Code
 ```
 
 ## Issues?
