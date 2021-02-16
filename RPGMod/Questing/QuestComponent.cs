@@ -13,17 +13,17 @@ public class QuestComponent {
     private int progress;
     public int objective { get; private set; }
     public bool complete { get; private set; }
-    private NetworkInstanceId netId;
+    private NetworkUser networkUser;
     public QuestType questType { get; private set; }
-    public int Progress { get { return progress; } set { if (!complete) { progress = value; if (progress >= objective) { complete = true; RemoveListener(); Manager.CheckClientData(netId); } } } }
+    public int Progress { get { return progress; } set { if (!complete) { progress = value; if (progress >= objective) { complete = true; RemoveListener(); Manager.CheckClientData(networkUser); } } } }
 
     private QuestComponent() {
         complete = false;
         progress = 0;
     }
-    public QuestComponent(QuestType questType, NetworkInstanceId netId) : this() {
+    public QuestComponent(QuestType questType, NetworkUser networkUser) : this() {
         this.questType = questType;
-        this.netId = netId;
+        this.networkUser = networkUser;
         objective = GenerateObjective(questType);
         switch (questType) {
             case QuestType.killCommon:
@@ -40,7 +40,7 @@ public class QuestComponent {
                 break;
         }
     }
-    public QuestComponent(QuestType questType, bool complete, int progress, int objective) {
+    public QuestComponent(QuestType questType, bool complete, int progress, int objective) : this() {
         this.questType = questType;
         this.complete = complete;
         this.progress = progress;
@@ -66,8 +66,8 @@ public class QuestComponent {
         }
         return objective;
     }
-    void Listener(int value, NetworkInstanceId netId) {
-        if (this.netId == netId) {
+    void Listener(int value, NetworkUser networkUser) {
+        if (this.networkUser == networkUser) {
             Progress += value;
         }
     }
@@ -89,5 +89,6 @@ public class QuestComponent {
         return questComponent.complete;
     }
 }
-}
-}
+
+} // namespace Questing
+} // namespace RPGMod

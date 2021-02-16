@@ -7,21 +7,22 @@ namespace RPGMod {
 namespace UI {
 class QuestComponent : MonoBehaviour {
     private float progressVel;
-    private GameObject questComponent;
+    private GameObject questComponentUI;
+    private Questing.QuestComponent questComponent;
     public int index;
     QuestComponent() {
         progressVel = 0.0f;
 
         // questComponent
-        questComponent = new GameObject();
-        questComponent.AddComponent<RectTransform>();
+        questComponentUI = new GameObject();
+        questComponentUI.AddComponent<RectTransform>();
 
-        questComponent.transform.SetParent(this.transform);
+        questComponentUI.transform.SetParent(this.transform);
 
-        questComponent.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
-        questComponent.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-        questComponent.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-        questComponent.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+        questComponentUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+        questComponentUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+        questComponentUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+        questComponentUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
 
         //description
         GameObject description = new GameObject();
@@ -31,7 +32,7 @@ class QuestComponent : MonoBehaviour {
         description.AddComponent<RectTransform>();
         description.AddComponent<TextMeshProUGUI>();
 
-        description.transform.SetParent(questComponent.transform);
+        description.transform.SetParent(questComponentUI.transform);
 
         description.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
         description.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
@@ -50,7 +51,7 @@ class QuestComponent : MonoBehaviour {
         progress.AddComponent<RectTransform>();
         progress.AddComponent<TextMeshProUGUI>();
 
-        progress.transform.SetParent(questComponent.transform);
+        progress.transform.SetParent(questComponentUI.transform);
 
         progress.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
         progress.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
@@ -75,7 +76,7 @@ class QuestComponent : MonoBehaviour {
         progressBarBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
         progressBarBackground.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
         progressBarBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
-        progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(questComponent.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
+        progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(questComponentUI.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
 
         progressBarBackground.GetComponent<Image>().color = new Color(0,0,0,0.7f);
 
@@ -99,17 +100,19 @@ class QuestComponent : MonoBehaviour {
         progressBar.GetComponent<RectTransform>().localScale = new Vector3(0, 1, 1);
     }
     public void UpdateData(Questing.QuestComponent questComponent, int i) {
-        this.questComponent.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.questTypeDict[questComponent.questType];
-        this.questComponent.transform.Find("description").GetComponent<RectTransform>().sizeDelta = this.questComponent.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
-        this.questComponent.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = String.Format("{0}/{1}", questComponent.Progress, questComponent.objective);
-        this.questComponent.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = this.questComponent.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+        this.questComponent = questComponent;
+        questComponentUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
+    }
+    private void Update() {
+        questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.questTypeDict[questComponent.questType];
+        questComponentUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+        questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = String.Format("{0}/{1}", questComponent.Progress, questComponent.objective);
+        questComponentUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
-        this.questComponent.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(this.questComponent.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, (float)questComponent.Progress/(float)questComponent.objective, ref progressVel, 0.7f),1,1);
-
-        this.questComponent.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
+        questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, (float)questComponent.Progress/(float)questComponent.objective, ref progressVel, 0.7f),1,1);
     }
     public void Destroy() {
-        Destroy(questComponent);
+        Destroy(questComponentUI);
     }
 }
 

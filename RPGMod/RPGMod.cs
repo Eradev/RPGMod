@@ -12,7 +12,7 @@ enum ModState {
     started,
     ending
 }
-[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.3")]
+[BepInPlugin("com.ghasttear1.rpgmod", "RPGMod", "3.0.4")]
 class RPGMod : BaseUnityPlugin
 {
     private ModState modState;
@@ -46,7 +46,7 @@ class RPGMod : BaseUnityPlugin
         On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
         {
             if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null) {
-                Questing.Events.goldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser.netId);
+                Questing.Events.goldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
             }
             orig(self, amount);
         };
@@ -58,10 +58,10 @@ class RPGMod : BaseUnityPlugin
 
             if (attackerController?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null) {
                 if (enemyBody?.isElite ?? false) {
-                    Questing.Events.eliteKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser.netId);
+                    Questing.Events.eliteKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
                 else {
-                    Questing.Events.commonKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser.netId);
+                    Questing.Events.commonKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
             }
             orig(self, damageReport);
@@ -102,6 +102,10 @@ class RPGMod : BaseUnityPlugin
             }
             Questing.Client.CleanUp();
         }
+        // if (Input.GetKeyDown(KeyCode.F8))
+        // {
+        //     Questing.Server.ClientDatas[0].QuestData.CompleteQuest();
+        // }
     }
 
     void Setup() {

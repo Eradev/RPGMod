@@ -30,6 +30,7 @@ public class Quest : MonoBehaviour {
     private List<QuestComponent> questComponents;
     private bool finished;
     private UIState state;
+    private Questing.QuestData clientData;
     Quest() {
         targetX = UI.Utils.screenSize.x * Config.UI.questPositionX;
         backgroundVel = 0.0f;
@@ -142,7 +143,13 @@ public class Quest : MonoBehaviour {
         rewardText.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
         rewardText.GetComponent<TextMeshProUGUI>().fontSize = 20;
     }
-    public void UpdateData(Questing.ClientData clientData) {
+    public void UpdateData(Questing.QuestData clientData) {
+        this.clientData = clientData;
+    }
+    private void Update() {
+        if (clientData == null) {
+            return;
+        }
         switch (state) {
             case UIState.creating:
 
@@ -159,7 +166,7 @@ public class Quest : MonoBehaviour {
                 }
 
                 questUI.transform.SetParent(this.transform);
-                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * clientData.questComponents.Count) + 15);
+                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * clientData.questComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y);
                 questUI.GetComponent<RectTransform>().localPosition = new Vector3(0,0,0);
                 questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(UI.Utils.screenSize.x * Config.UI.questPositionX + 60, UI.Utils.screenSize.y * Config.UI.questPositionY);
                 questUI.GetComponent<RectTransform>().localScale = new Vector3(UI.Utils.hudScale,UI.Utils.hudScale,UI.Utils.hudScale);
@@ -187,7 +194,7 @@ public class Quest : MonoBehaviour {
 
                 questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().anchoredPosition.x, targetX, ref moveVel, fadeTime), UI.Utils.screenSize.y * Config.UI.questPositionY);
                 questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(questUI.GetComponent<CanvasGroup>().alpha, targetAlpha, ref alphaVel, fadeTime);
-                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().sizeDelta.y, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * questComponents.Count) + 15, ref backgroundVel, 0.7f));
+                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().sizeDelta.y, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * questComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y, ref backgroundVel, 0.7f));
                 questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUI.GetComponent<RectTransform>().sizeDelta.x + 2, questUI.GetComponent<RectTransform>().sizeDelta.y + 2);
 
                 break;

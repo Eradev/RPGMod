@@ -7,7 +7,7 @@ public static class Networking {
     private static void RegisterHandlers() {
         NetworkClient client = NetworkManager.singleton.client;
 
-        client.RegisterHandler(Config.Networking.msgType, Questing.ClientData.Handler);
+        client.RegisterHandler(Config.Networking.msgType, Questing.QuestData.Handler);
         client.RegisterHandler((short)(Config.Networking.msgType + 1), Questing.Announcement.Handler);
     }
     public static void Setup() {
@@ -17,7 +17,7 @@ public static class Networking {
     public static void Sync() {
         if (Config.Networking.updateRate == 0 || Run.instance.GetRunStopwatch() - lastUpdate >= (Config.Networking.updateRate / 1000)) {
             foreach (var clientData in Questing.Server.ClientDatas) {
-                NetworkServer.SendToClient(clientData.connectionId, Config.Networking.msgType, clientData);
+                NetworkServer.SendToClient(clientData.networkUser.connectionToClient.connectionId, Config.Networking.msgType, clientData.QuestData);
             }
 
             lastUpdate = Run.instance.GetRunStopwatch();

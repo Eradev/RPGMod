@@ -15,7 +15,7 @@ public enum QuestType {
     collectGold
 }
 public static class Events {
-    public class QuestEvent : UnityEvent<int, NetworkInstanceId>{}
+    public class QuestEvent : UnityEvent<int, NetworkUser>{}
 
     public static QuestEvent commonKilled = new QuestEvent();
     public static QuestEvent eliteKilled = new QuestEvent();
@@ -47,17 +47,17 @@ public class Announcement : MessageBase
 
 static class Client
 {
-    private static ClientData clientData = null;
+    private static QuestData questData = null;
     private static UI.Quest questUI;
-    public static ClientData ClientData
+    public static QuestData QuestData
     {
         get {
-            return clientData;
+            return questData;
         }
         set {
-            clientData = value;
-            if (clientData != null) {
-                if (questUI == null && !(clientData?.complete ?? true)) {
+            questData = value;
+            if (questData != null) {
+                if (questUI == null && !(questData?.complete ?? true)) {
                     LocalUser localUser = LocalUserManager.GetFirstLocalUser();
 
                     if (localUser?.cameraRigController?.hud?.mainContainer != null)
@@ -66,7 +66,7 @@ static class Client
                     }
                 }
                 else if(questUI != null) {
-                    questUI.UpdateData(clientData);
+                    questUI.UpdateData(questData);
                 }
             }
         }
@@ -77,7 +77,7 @@ static class Client
         questUI.Destroy();
         announcerUI.Destroy();
         questUI = null;
-        clientData = null;
+        questData = null;
     }
     public static void Update() {
         if (announcerUI == null && !(announcement?.displayed ?? true)) {
@@ -101,47 +101,49 @@ static class Manager
     public static void Update()
     {
         Questing.Server.ClientDatas.RemoveAll(BadClientData);
-        for (int i = 0; i<NetworkServer.connections.Count; i++) {
-            if (NetworkServer.connections[i]?.connectionId != null && NetworkServer.connections[i].isReady) {
-                int dataIndex = -1;
-                // Find existing clientData index
-                for (int j = 0; j < Server.ClientDatas.Count; j++)
-                {
-                    if (Server.ClientDatas[j].connectionId == NetworkServer.connections[i].connectionId) {
-                        dataIndex = j;
-                        break;
+
+        // Create new quest if necessary
+        for (int i = 0; i < Server.ClientDatas.Count; i++)
+        {
+            if (Server.ClientDatas[i].QuestData.complete && (Run.instance.GetRunStopwatch() - Server.ClientDatas[i].QuestData.completionTime) > Config.Questing.cooldown)
+            {
+                Server.ClientDatas[i].NewQuest();
+            }
+        }
+
+        foreach (NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
+        {
+            if (networkUser?.connectionToClient?.isReady ?? false)
+            {
+                bool match = false;
+                foreach (ClientData clientData in Server.ClientDatas) {
+                    if (clientData.networkUser == networkUser) {
+                        match = true;
                     }
                 }
-                // If clientData index was found, update if the quest is completed
-                if (dataIndex != -1) {
-                    if (Server.ClientDatas[dataIndex].complete && (Run.instance.GetRunStopwatch() - Server.ClientDatas[dataIndex].completionTime) > Config.Questing.cooldown)
-                    {
-                        Server.ClientDatas[dataIndex] = new ClientData(NetworkServer.connections[i].connectionId);
-                    }
-                }
-                // Otherwise no clientData exists for the player and a new clientData is added
-                else {
-                    Server.ClientDatas.Add(new ClientData(NetworkServer.connections[i].connectionId));
+
+                if (!match) {
+                    Server.ClientDatas.Add(new ClientData(networkUser));
                 }
             }
         }
     }
-    public static void CheckClientData(NetworkInstanceId netId)
+    public static void CheckClientData(NetworkUser networkUser)
     {
         for (int i = 0; i < Server.ClientDatas.Count; i++)
         {
-            if (Server.ClientDatas[i].netId == netId)
+            if (Server.ClientDatas[i].networkUser == networkUser)
             {
-                Server.ClientDatas[i].Check();
+                Server.ClientDatas[i].QuestData.Check();
             }
         }
     }
     private static bool BadClientData(Questing.ClientData clientData)
     {
         bool bad = true;
-        for (int i = 0; i < NetworkServer.connections.Count; i++)
+        foreach(NetworkUser networkUser in NetworkUser.readOnlyInstancesList)
         {
-            if (NetworkServer.connections[i]?.connectionId != null && NetworkServer.connections[i].connectionId == clientData.connectionId)
+            if (networkUser == clientData.networkUser && networkUser.connectionToClient.isReady)
             {
                 bad = false;
             }
@@ -156,5 +158,6 @@ static class Manager
         Events.goldCollected.RemoveAllListeners();
     }
 }
+
 } // namespace Questing
 } // namespace RPGMod
