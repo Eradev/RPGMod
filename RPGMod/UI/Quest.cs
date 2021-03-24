@@ -12,7 +12,8 @@ public class Quest : MonoBehaviour {
     public static Dictionary<Questing.QuestType, String> questTypeDict = new Dictionary<Questing.QuestType, String>() {
         { Questing.QuestType.killCommon, "Kill common enemies" },
         { Questing.QuestType.killElite, "Kill elite enemies" },
-        { Questing.QuestType.collectGold, "Collect gold" }
+        { Questing.QuestType.collectGold, "Collect gold" },
+        { Questing.QuestType.attemptShrineChance, "Attempt chance shrines" }
     };
     private GameObject questUI;
     private GameObject questTitle;
@@ -176,7 +177,7 @@ public class Quest : MonoBehaviour {
                 break;
             case UIState.updating:
 
-                if (clientData?.complete ?? true && !finished) {
+                if ((clientData?.complete ?? false) && !finished) {
                     startTime = Run.instance.GetRunStopwatch();
                     targetAlpha = 0;
                     targetX = UI.Utils.screenSize.x * Config.UI.questPositionX + 60;

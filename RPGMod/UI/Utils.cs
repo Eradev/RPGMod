@@ -27,7 +27,7 @@ public static class Utils {
             }
         }
         else {
-            hudScale = 1f;
+            hudScale = Config.UI.overrideHUDScale;
         }
 
         while (!ready) {
@@ -56,7 +56,7 @@ public static class Utils {
         border.GetComponent<RectTransform>().sizeDelta = new Vector2(element.GetComponent<RectTransform>().sizeDelta.x + 2, element.GetComponent<RectTransform>().sizeDelta.y + 2);
         border.GetComponent<RectTransform>().anchoredPosition = new Vector3(0,0,0);
 
-        border.GetComponent<Image>().sprite = UnityEngine.Object.Instantiate(assetBundle.LoadAsset<Sprite>("Assets/UIBorder.png"));;
+        border.GetComponent<Image>().sprite = UnityEngine.Object.Instantiate(assetBundle.LoadAsset<Sprite>("Assets/UIBorder.png"));
         border.GetComponent<Image>().type = Image.Type.Sliced;
     }
 }

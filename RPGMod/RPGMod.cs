@@ -46,6 +46,7 @@ class RPGMod : BaseUnityPlugin
         On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
         {
             if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null) {
+                Questing.Server.CheckAllowedType(Questing.QuestType.collectGold);
                 Questing.Events.goldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
             }
             orig(self, amount);
@@ -58,13 +59,45 @@ class RPGMod : BaseUnityPlugin
 
             if (attackerController?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null) {
                 if (enemyBody?.isElite ?? false) {
+                    Questing.Server.CheckAllowedType(Questing.QuestType.killElite);
                     Questing.Events.eliteKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
                 else {
+                    Questing.Server.CheckAllowedType(Questing.QuestType.killCommon);
                     Questing.Events.commonKilled.Invoke(1, attackerController.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
             }
             orig(self, damageReport);
+        };
+        // On.RoR2.SceneDirector.PopulateScene += (orig,self) => {
+        //     Xoroshiro128Plus xoroshiro128Plus = new Xoroshiro128Plus((ulong)Run.instance.stageRng.nextUint);
+        //     GameObject shrine = DirectorCore.instance.TrySpawnObject(new DirectorSpawnRequest(Resources.Load<SpawnCard>("SpawnCards/InteractableSpawnCard/iscShrineChance"), new DirectorPlacementRule
+        //     {
+        //         placementMode = DirectorPlacementRule.PlacementMode.Random
+        //     }, xoroshiro128Plus));
+        //     Debug.Log(shrine.transform.position);
+        //     shrine.GetComponent<ShrineChanceBehavior>().shrineColor = Color.cyan;
+        //     shrine.GetComponent<ShrineChanceBehavior>().name = "quest";
+
+        //     orig(self);
+        // };
+        On.RoR2.ShrineChanceBehavior.AddShrineStack += (orig,self,interactor) => {
+            // if (self.name == "quest") {
+            //     foreach(Questing.ClientData clientData in Questing.Server.ClientDatas) {
+            //         if (Util.LookUpBodyNetworkUser(interactor.GetComponent<CharacterBody>()) == clientData.networkUser) {
+            //             clientData.NewQuest();
+            //         }
+            //     }
+            //     FieldInfo purchaseCountInfo = typeof(ShrineChanceBehavior).GetField("successfulPurchaseCount",BindingFlags.NonPublic | BindingFlags.Instance);
+            //     purchaseCountInfo.SetValue(self, (int)purchaseCountInfo.GetValue(self) + 1);
+            //     if ((int)purchaseCountInfo.GetValue(self) >= self.maxPurchaseCount)
+            //     {
+            //         self.symbolTransform.gameObject.SetActive(false);
+            //     }
+            // }
+            Questing.Server.CheckAllowedType(Questing.QuestType.attemptShrineChance);
+            Questing.Events.chanceShrineAttempted.Invoke(1, Util.LookUpBodyNetworkUser(interactor.GetComponent<CharacterBody>()));
+            orig(self,interactor);
         };
         // NETWORK BYPASS -- REMOVE
         // On.RoR2.Networking.GameNetworkManager.OnClientConnect += (self, user, t) => { };
@@ -105,6 +138,9 @@ class RPGMod : BaseUnityPlugin
         // if (Input.GetKeyDown(KeyCode.F8))
         // {
         //     Questing.Server.ClientDatas[0].QuestData.CompleteQuest();
+        // }
+        // if (Input.GetKeyDown(KeyCode.F7)) {
+        //     Debug.Log(PlayerCharacterMasterController.instances[0].GetComponent<CharacterBody>().transform.position);
         // }
     }
 

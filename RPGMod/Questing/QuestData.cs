@@ -14,18 +14,28 @@ public class QuestData : MessageBase
     public float completionTime {get; private set;}
     public List<QuestComponent> questComponents {get; private set;}
     public PickupIndex reward {get; private set;}
+    public int guid {get; private set;}
     private NetworkUser networkUser;
     public QuestData() {
         complete = false;
         completionTime = 0;
     }
-    public QuestData(NetworkUser networkUser) : this()
+    public QuestData(NetworkUser networkUser, int questsCompleted, int oldGuid) : this()
     {
+        // astronomically low chance that the guid will be equal but im paranoid
+        do {
+            guid = Guid.NewGuid().GetHashCode();
+        } while (guid == oldGuid);
+
         this.networkUser = networkUser;
 
-        reward = GenerateReward();
+        reward = GenerateReward(questsCompleted);
 
-        ItemTier rewardTier = ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(reward).itemIndex).tier;
+        ItemTier rewardTier;
+        do {
+            rewardTier = ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(reward).itemIndex).tier;
+        } while (!((int)rewardTier < Server.AllowedTypes.Count));
+
         switch (rewardTier) {
             case ItemTier.Tier1:
                 questComponents = GenerateQuestComponents(1, this.networkUser);
@@ -57,6 +67,7 @@ public class QuestData : MessageBase
     }
     public override void Serialize(NetworkWriter writer)
     {
+        writer.Write(guid);
         writer.Write(complete);
         writer.Write(completionTime);
         writer.Write(reward);
@@ -67,6 +78,7 @@ public class QuestData : MessageBase
     }
     public override void Deserialize(NetworkReader reader)
     {
+        guid = reader.ReadInt32();
         complete = reader.ReadBoolean();
         completionTime = reader.ReadSingle();
         reward = reader.ReadPickupIndex();
@@ -79,12 +91,12 @@ public class QuestData : MessageBase
     public static void Handler(NetworkMessage networkMessage) {
         Questing.Client.QuestData = networkMessage.ReadMessage<Questing.QuestData>();
     }
-    private PickupIndex GenerateReward() {
+    private PickupIndex GenerateReward(int questsCompleted) {
         WeightedSelection<List<PickupIndex>> weightedSelection = new WeightedSelection<List<PickupIndex>>();
 
-        weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.Questing.chanceCommon);
-        weightedSelection.AddChoice(Run.instance.availableTier2DropList, Config.Questing.chanceUncommon);
-        weightedSelection.AddChoice(Run.instance.availableTier3DropList, Config.Questing.chanceLegendary);
+        weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.Questing.chanceCommon - (questsCompleted * Config.Questing.chanceAdjustmentPercent));
+        weightedSelection.AddChoice(Run.instance.availableTier2DropList, Config.Questing.chanceUncommon + (questsCompleted * Config.Questing.chanceAdjustmentPercent / 2));
+        weightedSelection.AddChoice(Run.instance.availableTier3DropList, Config.Questing.chanceLegendary + (questsCompleted * Config.Questing.chanceAdjustmentPercent / 2));
 
         List<PickupIndex> pickupList = weightedSelection.Evaluate(UnityEngine.Random.value);
         PickupIndex pickupIndex = pickupList[UnityEngine.Random.Range(0, pickupList.Count)];
@@ -97,7 +109,7 @@ public class QuestData : MessageBase
         for (int i = 0; i < amount; i++) {
             QuestType questType;
             do {
-                questType = (QuestType)Run.instance.runRNG.RangeInt(0, QuestType.GetNames(typeof(QuestType)).Length);
+                questType = Server.AllowedTypes[Run.instance.runRNG.RangeInt(0, Server.AllowedTypes.Count)];
             } while (usedTypes.Contains(questType));
             usedTypes.Add(questType);
             questComponents.Add(new QuestComponent(questType, networkUser));
@@ -112,6 +124,7 @@ public class QuestData : MessageBase
     }
     public void CompleteQuest()
     {
+        Server.CompletedQuest(networkUser);
         complete = true;
         completionTime = Run.instance.GetRunStopwatch();
         foreach (var player in PlayerCharacterMasterController.instances) {

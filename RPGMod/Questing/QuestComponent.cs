@@ -59,6 +59,9 @@ public class QuestComponent {
             case QuestType.collectGold:
                 objective = Run.instance.GetDifficultyScaledCost(UnityEngine.Random.Range(Config.Questing.collectGoldMin, Config.Questing.collectGoldMax));
                 break;
+            case QuestType.attemptShrineChance:
+                objective = UnityEngine.Random.Range(Config.Questing.attemptShrineChanceMin, Config.Questing.attemptShrineChanceMax);;
+                break;
             default:
                 objective = 1;
                 Debug.LogError(questType);
@@ -81,6 +84,9 @@ public class QuestComponent {
                 break;
             case QuestType.collectGold:
                 Events.goldCollected.RemoveListener(Listener);
+                break;
+            case QuestType.attemptShrineChance:
+                Events.chanceShrineAttempted.RemoveListener(Listener);
                 break;
         }
     }
