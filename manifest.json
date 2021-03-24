@@ -1,6 +1,6 @@
 {
     "name": "RPGMod",
-    "version_number": "3.0.3",
+    "version_number": "3.0.4",
     "website_url": "https://github.com/ghasttear1/RPGMod",
     "description": "This mod is configurable and allows you to have quests in singleplayer and with friends",
     "dependencies": [
