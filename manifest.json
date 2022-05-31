@@ -1,7 +1,7 @@
 {
     "name": "RPGMod",
-    "version_number": "3.0.4",
-    "website_url": "https://github.com/ghasttear1/RPGMod",
+    "version_number": "3.1.0",
+    "website_url": "https://github.com/Eradev/RPGMod",
     "description": "This mod is configurable and allows you to have quests in singleplayer and with friends",
     "dependencies": [
         "bbepis-BepInExPack-5.3.1"
