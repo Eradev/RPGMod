@@ -1,120 +1,130 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace RPGMod {
-namespace UI {
-class QuestComponent : MonoBehaviour {
-    private float progressVel;
-    private GameObject questComponentUI;
-    private Questing.QuestComponent questComponent;
-    public int index;
-    QuestComponent() {
-        progressVel = 0.0f;
+namespace RPGMod.UI
+{
+    public class QuestComponent : MonoBehaviour
+    {
+        private float progressVel;
+        private GameObject questComponentUI;
+        private Questing.QuestComponent questComponent;
+        public int index;
 
-        // questComponent
-        questComponentUI = new GameObject();
-        questComponentUI.AddComponent<RectTransform>();
+        private QuestComponent()
+        {
+            progressVel = 0.0f;
 
-        questComponentUI.transform.SetParent(this.transform);
+            // questComponent
+            questComponentUI = new GameObject();
+            questComponentUI.AddComponent<RectTransform>();
 
-        questComponentUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
-        questComponentUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-        questComponentUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-        questComponentUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+            questComponentUI.transform.SetParent(transform);
 
-        //description
-        GameObject description = new GameObject();
+            questComponentUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+            questComponentUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+            questComponentUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            questComponentUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
 
-        description.name = "description";
+            //description
+            var description = new GameObject
+            {
+                name = "description"
+            };
 
-        description.AddComponent<RectTransform>();
-        description.AddComponent<TextMeshProUGUI>();
+            description.AddComponent<RectTransform>();
+            description.AddComponent<TextMeshProUGUI>();
 
-        description.transform.SetParent(questComponentUI.transform);
+            description.transform.SetParent(questComponentUI.transform);
 
-        description.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
-        description.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
-        description.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        description.GetComponent<RectTransform>().anchoredPosition = new Vector3(10, -10, 0);
+            description.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
+            description.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
+            description.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+            description.GetComponent<RectTransform>().anchoredPosition = new Vector3(10, -10, 0);
 
-        description.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.BottomLeft;
-        description.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
-        description.GetComponent<TextMeshProUGUI>().fontSize = 16.5f;
+            description.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.BottomLeft;
+            description.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            description.GetComponent<TextMeshProUGUI>().fontSize = 16.5f;
 
-        // progress
-        GameObject progress = new GameObject();
+            // progress
+            var progress = new GameObject
+            {
+                name = "progress"
+            };
 
-        progress.name = "progress";
+            progress.AddComponent<RectTransform>();
+            progress.AddComponent<TextMeshProUGUI>();
 
-        progress.AddComponent<RectTransform>();
-        progress.AddComponent<TextMeshProUGUI>();
+            progress.transform.SetParent(questComponentUI.transform);
 
-        progress.transform.SetParent(questComponentUI.transform);
+            progress.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
+            progress.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
+            progress.GetComponent<RectTransform>().pivot = new Vector2(1, 1);
+            progress.GetComponent<RectTransform>().anchoredPosition = new Vector3(-10, -10, 0);
 
-        progress.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
-        progress.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
-        progress.GetComponent<RectTransform>().pivot = new Vector2(1, 1);
-        progress.GetComponent<RectTransform>().anchoredPosition = new Vector3(-10, -10, 0);
+            progress.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.BottomRight;
+            progress.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            progress.GetComponent<TextMeshProUGUI>().fontSize = 16.5f;
 
-        progress.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.BottomRight;
-        progress.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
-        progress.GetComponent<TextMeshProUGUI>().fontSize = 16.5f;
+            // progressBarBackground
+            var progressBarBackground = new GameObject
+            {
+                name = "progressBarBackground"
+            };
 
-        // progressBarBackground
-        GameObject progressBarBackground = new GameObject();
+            progressBarBackground.AddComponent<RectTransform>();
+            progressBarBackground.AddComponent<Image>();
 
-        progressBarBackground.name = "progressBarBackground";
+            progressBarBackground.transform.SetParent(description.transform);
 
-        progressBarBackground.AddComponent<RectTransform>();
-        progressBarBackground.AddComponent<Image>();
+            progressBarBackground.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
+            progressBarBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
+            progressBarBackground.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+            progressBarBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
+            progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(questComponentUI.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
 
-        progressBarBackground.transform.SetParent(description.transform);
+            progressBarBackground.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
 
-        progressBarBackground.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
-        progressBarBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
-        progressBarBackground.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        progressBarBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
-        progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(questComponentUI.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
+            Utils.AddBorder(progressBarBackground);
 
-        progressBarBackground.GetComponent<Image>().color = new Color(0,0,0,0.7f);
+            // progressBar
+            var progressBar = new GameObject
+            {
+                name = "progressBar"
+            };
 
-        UI.Utils.AddBorder(progressBarBackground);
+            progressBar.AddComponent<RectTransform>();
+            progressBar.AddComponent<Image>();
 
-        // progressBar
-        GameObject progressBar = new GameObject();
+            progressBar.transform.SetParent(progressBarBackground.transform);
 
-        progressBar.name = "progressBar";
+            progressBar.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
+            progressBar.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
+            progressBar.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
+            progressBar.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            progressBar.GetComponent<RectTransform>().sizeDelta = progressBarBackground.GetComponent<RectTransform>().sizeDelta;
+            progressBar.GetComponent<RectTransform>().localScale = new Vector3(0, 1, 1);
+        }
 
-        progressBar.AddComponent<RectTransform>();
-        progressBar.AddComponent<Image>();
+        public void UpdateData(Questing.QuestComponent questComponent, int i)
+        {
+            this.questComponent = questComponent;
+            questComponentUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
+        }
 
-        progressBar.transform.SetParent(progressBarBackground.transform);
+        private void Update()
+        {
+            questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.questTypeDict[questComponent.QuestType];
+            questComponentUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+            questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = $"{questComponent.Progress}/{questComponent.Objective}";
+            questComponentUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
-        progressBar.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
-        progressBar.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
-        progressBar.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
-        progressBar.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
-        progressBar.GetComponent<RectTransform>().sizeDelta = progressBarBackground.GetComponent<RectTransform>().sizeDelta;
-        progressBar.GetComponent<RectTransform>().localScale = new Vector3(0, 1, 1);
-    }
-    public void UpdateData(Questing.QuestComponent questComponent, int i) {
-        this.questComponent = questComponent;
-        questComponentUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
-    }
-    private void Update() {
-        questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.questTypeDict[questComponent.questType];
-        questComponentUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
-        questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = String.Format("{0}/{1}", questComponent.Progress, questComponent.objective);
-        questComponentUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+            questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, questComponent.Progress / (float)questComponent.Objective, ref progressVel, 0.7f), 1, 1);
+        }
 
-        questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, (float)questComponent.Progress/(float)questComponent.objective, ref progressVel, 0.7f),1,1);
-    }
-    public void Destroy() {
-        Destroy(questComponentUI);
+        public void Destroy()
+        {
+            Destroy(questComponentUI);
+        }
     }
 }
-
-} // namespace UI
-} // namespace RPGMod

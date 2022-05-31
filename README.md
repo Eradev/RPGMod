@@ -29,7 +29,7 @@ This mod has a config with many values to change to your desire with the ability
 **Steps on how to configure:**
 
 1. Navigate to the `Risk of Rain 2\BepInEx\config` folder
-2. Open the `com.ghasttear1.rpgmod.cfg` file using your preferred text editor
+2. Open the `RPGMod.cfg` file using your preferred text editor
 3. Edit the values as you wish.
 4. Importantly, don't forget to save the file. If ingame press **F6** to recieve the changes, otherwise starting the game normally will load the new values.
 5. Enjoy!
@@ -40,8 +40,22 @@ This mod has a config with many values to change to your desire with the ability
 - 3.0.0 (MAJOR UPDATE): Completely remade the mod, the mod currently only has individual quests per user, losing many older features. Old features may be re-implemented in the future.
 - 3.0.1: Fixed mod fully breaking after death and continuing (issue #29)
 - 3.0.2: Fixed mod breaking when using other mods that import assetbundles with the "assetbundle" name (issue #33)
-- 3.0.3 (URGENT UPDATE): Fixed issues #34 and #35. Cleaned up UI Code
-- 3.0.4: Added hudscale override config, Attempt shrine quest, Ensured quests are achievable before sending them, Announcements now queue up
+- 3.0.3 (URGENT UPDATE): 
+	* Fixed issues #34 and #35.
+	* Cleaned up UI Code
+- 3.0.4:
+	* Added hudscale override config.
+	* Attempt shrine quest.
+	* Ensured quests are achievable before sending them.
+	* Announcements now queue up.
+- 3.1.0:
+	* Updated for RoR2 1.24.
+	* Removed Attempt Chance Shrine mission.
+	* Added Kill Champion enemies, Kill flying enemies, Kill Celestine enemies, and Kill Malachite enemies missions.
+	* Quests are now cleared between stages.
+	* Minion kills now count toward missions progress.
+	* Added missions scaling as you progress through the stages.
+	* You can now position the announcer on the Y axis.
 ```
 
 ## Issues?

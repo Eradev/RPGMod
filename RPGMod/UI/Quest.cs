@@ -1,214 +1,238 @@
 using RoR2;
-using System;
 using System.Collections.Generic;
+using RPGMod.Questing;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace RPGMod
+namespace RPGMod.UI
 {
-namespace UI {
-public class Quest : MonoBehaviour {
-    public static Dictionary<Questing.QuestType, String> questTypeDict = new Dictionary<Questing.QuestType, String>() {
-        { Questing.QuestType.killCommon, "Kill common enemies" },
-        { Questing.QuestType.killElite, "Kill elite enemies" },
-        { Questing.QuestType.collectGold, "Collect gold" },
-        { Questing.QuestType.attemptShrineChance, "Attempt chance shrines" }
-    };
-    private GameObject questUI;
-    private GameObject questTitle;
-    private GameObject rewardBacking;
-    private GameObject rewardBackground;
-    private GameObject rewardText;
-    private GameObject reward;
-    private float backgroundVel;
-    private float fadeTime;
-    private float startTime;
-    private float moveVel;
-    private float alphaVel;
-    private float targetX;
-    private float targetAlpha;
-    private List<QuestComponent> questComponents;
-    private bool finished;
-    private UIState state;
-    private Questing.QuestData clientData;
-    Quest() {
-        targetX = UI.Utils.screenSize.x * Config.UI.questPositionX;
-        backgroundVel = 0.0f;
-        fadeTime = 0.7f;
-        finished = false;
-        moveVel = 0;
-        alphaVel = 0;
-        targetAlpha = 1;
-        state = UIState.creating;
+    public class Quest : MonoBehaviour
+    {
+        public static Dictionary<QuestType, string> questTypeDict = new Dictionary<QuestType, string>
+        {
+            { QuestType.killCommon, "Kill common enemies" },
+            { QuestType.killElite, "Kill elite enemies" },
+            { QuestType.killChampion, "Kill champion enemies" },
+            { QuestType.killFlying, "Kill flying enemies" },
+            { QuestType.killHaunted, "Kill Celestine enemies" },
+            { QuestType.killPoison, "Kill Malachine enemies" },
+            { QuestType.collectGold, "Collect gold" }
+        };
 
-        // questUI
-        questUI = new GameObject();
+        private readonly GameObject questUI;
+        private readonly GameObject questTitle;
+        private readonly GameObject rewardBacking;
+        private readonly GameObject rewardBackground;
+        private readonly GameObject rewardText;
+        private readonly GameObject reward;
+        private float backgroundVel;
+        private readonly float fadeTime;
+        private float startTime;
+        private float moveVel;
+        private float alphaVel;
+        private float targetX;
+        private float targetAlpha;
+        private List<QuestComponent> questComponents;
+        private bool finished;
+        private UIState state;
+        private QuestData clientData;
 
-        questUI.AddComponent<RectTransform>();
-        questUI.AddComponent<Image>();
-        questUI.AddComponent<CanvasGroup>();
+        private Quest()
+        {
+            targetX = Utils.screenSize.x * Config.UI.questPositionX;
+            backgroundVel = 0.0f;
+            fadeTime = 0.7f;
+            finished = false;
+            moveVel = 0;
+            alphaVel = 0;
+            targetAlpha = 1;
+            state = UIState.creating;
 
-        questUI.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
-        questUI.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
-        questUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            // questUI
+            questUI = new GameObject();
 
-        questUI.GetComponent<Image>().color = new Color(0.16f,0.16f,0.16f,0.9f);
+            questUI.AddComponent<RectTransform>();
+            questUI.AddComponent<Image>();
+            questUI.AddComponent<CanvasGroup>();
 
-        questUI.GetComponent<CanvasGroup>().alpha = 0;
+            questUI.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
+            questUI.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
+            questUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
 
-        UI.Utils.AddBorder(questUI);
+            questUI.GetComponent<Image>().color = new Color(0.16f, 0.16f, 0.16f, 0.9f);
 
-        // questTitle
-        questTitle = new GameObject();
+            questUI.GetComponent<CanvasGroup>().alpha = 0;
 
-        questTitle.AddComponent<RectTransform>();
-        questTitle.AddComponent<TextMeshProUGUI>();
+            Utils.AddBorder(questUI);
 
-        questTitle.transform.SetParent(questUI.transform);
+            // questTitle
+            questTitle = new GameObject();
 
-        questTitle.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1);
-        questTitle.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1);
-        questTitle.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-        questTitle.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            questTitle.AddComponent<RectTransform>();
+            questTitle.AddComponent<TextMeshProUGUI>();
 
-        questTitle.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
-        questTitle.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
-        questTitle.GetComponent<TextMeshProUGUI>().fontSize = 38;
-        questTitle.GetComponent<TextMeshProUGUI>().text = "QUEST";
+            questTitle.transform.SetParent(questUI.transform);
 
-        questTitle.GetComponent<RectTransform>().sizeDelta = questTitle.GetComponent<TextMeshProUGUI>().GetPreferredValues();
+            questTitle.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 1);
+            questTitle.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 1);
+            questTitle.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            questTitle.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
 
-        // rewardBacking
-        rewardBacking = new GameObject();
+            questTitle.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            questTitle.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            questTitle.GetComponent<TextMeshProUGUI>().fontSize = 38;
+            questTitle.GetComponent<TextMeshProUGUI>().text = "QUEST";
 
-        rewardBacking.AddComponent<RectTransform>();
-        rewardBacking.AddComponent<Image>();
+            questTitle.GetComponent<RectTransform>().sizeDelta = questTitle.GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
-        rewardBacking.transform.SetParent(questTitle.transform);
+            // rewardBacking
+            rewardBacking = new GameObject();
 
-        rewardBacking.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
-        rewardBacking.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-        rewardBacking.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-        rewardBacking.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
-        rewardBacking.GetComponent<RectTransform>().sizeDelta = new Vector2(240, 65);
+            rewardBacking.AddComponent<RectTransform>();
+            rewardBacking.AddComponent<Image>();
 
-        rewardBacking.GetComponent<Image>().color = new Color(0,0,0,0.5f);
+            rewardBacking.transform.SetParent(questTitle.transform);
 
-        // rewardBackground
-        rewardBackground = new GameObject();
+            rewardBacking.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+            rewardBacking.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+            rewardBacking.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            rewardBacking.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
+            rewardBacking.GetComponent<RectTransform>().sizeDelta = new Vector2(240, 65);
 
-        rewardBackground.AddComponent<RectTransform>();
-        rewardBackground.AddComponent<Image>();
+            rewardBacking.GetComponent<Image>().color = new Color(0, 0, 0, 0.5f);
 
-        rewardBackground.transform.SetParent(rewardBacking.transform);
+            // rewardBackground
+            rewardBackground = new GameObject();
 
-        rewardBackground.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0.5f);
-        rewardBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.5f);
-        rewardBackground.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
-        rewardBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
-        rewardBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(72, 72);
+            rewardBackground.AddComponent<RectTransform>();
+            rewardBackground.AddComponent<Image>();
 
-        rewardBackground.GetComponent<Image>().color = new Color(0.16f,0.16f,0.16f);
+            rewardBackground.transform.SetParent(rewardBacking.transform);
 
-        // reward
-        reward = new GameObject();
+            rewardBackground.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0.5f);
+            rewardBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.5f);
+            rewardBackground.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+            rewardBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            rewardBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(72, 72);
 
-        reward.AddComponent<RectTransform>();
-        reward.AddComponent<RawImage>();
+            rewardBackground.GetComponent<Image>().color = new Color(0.16f, 0.16f, 0.16f);
 
-        reward.transform.SetParent(rewardBackground.transform);
+            // reward
+            reward = new GameObject();
 
-        reward.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0.5f);
-        reward.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.5f);
-        reward.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
-        reward.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
-        reward.GetComponent<RectTransform>().sizeDelta = rewardBackground.GetComponent<RectTransform>().sizeDelta;
+            reward.AddComponent<RectTransform>();
+            reward.AddComponent<RawImage>();
 
-        UI.Utils.AddBorder(reward);
+            reward.transform.SetParent(rewardBackground.transform);
 
-        // rewardText
-        rewardText = new GameObject();
+            reward.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0.5f);
+            reward.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0.5f);
+            reward.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+            reward.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+            reward.GetComponent<RectTransform>().sizeDelta = rewardBackground.GetComponent<RectTransform>().sizeDelta;
 
-        rewardText.AddComponent<RectTransform>();
-        rewardText.AddComponent<TextMeshProUGUI>();
+            Utils.AddBorder(reward);
 
-        rewardText.transform.SetParent(reward.transform);
+            // rewardText
+            rewardText = new GameObject();
 
-        rewardText.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
-        rewardText.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-        rewardText.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-        rewardText.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
+            rewardText.AddComponent<RectTransform>();
+            rewardText.AddComponent<TextMeshProUGUI>();
 
-        rewardText.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
-        rewardText.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
-        rewardText.GetComponent<TextMeshProUGUI>().fontSize = 20;
-    }
-    public void UpdateData(Questing.QuestData clientData) {
-        this.clientData = clientData;
-    }
-    private void Update() {
-        if (clientData == null) {
-            return;
+            rewardText.transform.SetParent(reward.transform);
+
+            rewardText.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+            rewardText.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+            rewardText.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            rewardText.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
+
+            rewardText.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            rewardText.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            rewardText.GetComponent<TextMeshProUGUI>().fontSize = 20;
         }
-        switch (state) {
-            case UIState.creating:
 
-                rewardText.GetComponent<TextMeshProUGUI>().text = Language.GetString(PickupCatalog.GetPickupDef(clientData.reward).nameToken);
-                rewardText.GetComponent<RectTransform>().sizeDelta = rewardText.GetComponent<TextMeshProUGUI>().GetPreferredValues();
-                rewardText.GetComponent<TextMeshProUGUI>().color = PickupCatalog.GetPickupDef(clientData.reward).baseColor;
-                reward.GetComponent<RawImage>().texture = PickupCatalog.GetPickupDef(clientData.reward).iconTexture;
+        public void UpdateData(QuestData newQuestData)
+        {
+            clientData = newQuestData;
+        }
 
-                questComponents = new List<QuestComponent>();
-                for (int i = 0; i < clientData.questComponents.Count; i++) {
-                    QuestComponent questComponent = rewardText.AddComponent<QuestComponent>();
-                    questComponent.index = i;
-                    questComponents.Add(questComponent);
-                }
+        private void Update()
+        {
+            if (clientData == null)
+            {
+                return;
+            }
 
-                questUI.transform.SetParent(this.transform);
-                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * clientData.questComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y);
-                questUI.GetComponent<RectTransform>().localPosition = new Vector3(0,0,0);
-                questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(UI.Utils.screenSize.x * Config.UI.questPositionX + 60, UI.Utils.screenSize.y * Config.UI.questPositionY);
-                questUI.GetComponent<RectTransform>().localScale = new Vector3(UI.Utils.hudScale,UI.Utils.hudScale,UI.Utils.hudScale);
+            switch (state)
+            {
+                case UIState.creating:
 
-                state = UIState.updating;
+                    rewardText.GetComponent<TextMeshProUGUI>().text = Language.GetString(PickupCatalog.GetPickupDef(clientData.Reward).nameToken);
+                    rewardText.GetComponent<RectTransform>().sizeDelta = rewardText.GetComponent<TextMeshProUGUI>().GetPreferredValues();
+                    rewardText.GetComponent<TextMeshProUGUI>().color = PickupCatalog.GetPickupDef(clientData.Reward).baseColor;
+                    reward.GetComponent<RawImage>().texture = PickupCatalog.GetPickupDef(clientData.Reward).iconTexture;
 
-                break;
-            case UIState.updating:
+                    questComponents = new List<QuestComponent>();
+                    for (var i = 0; i < clientData.QuestComponents.Count; i++)
+                    {
+                        var questComponent = rewardText.AddComponent<QuestComponent>();
+                        questComponent.index = i;
+                        questComponents.Add(questComponent);
+                    }
 
-                if ((clientData?.complete ?? false) && !finished) {
-                    startTime = Run.instance.GetRunStopwatch();
-                    targetAlpha = 0;
-                    targetX = UI.Utils.screenSize.x * Config.UI.questPositionX + 60;
-                    finished = true;
-                }
+                    questUI.transform.SetParent(transform);
+                    questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * clientData.QuestComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y);
+                    questUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
+                    questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.screenSize.x * Config.UI.questPositionX + 60, Utils.screenSize.y * Config.UI.questPositionY);
+                    questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.hudScale, Utils.hudScale, Utils.hudScale);
 
-                for (int i = questComponents.Count - 1; i >= 0; i--) {
-                    questComponents[i].UpdateData(clientData.questComponents[questComponents[i].index], i);
-                    if (clientData.questComponents[questComponents[i].index].complete) {
+                    state = UIState.updating;
+
+                    break;
+
+                case UIState.updating:
+
+                    if ((clientData?.Complete ?? false) && !finished)
+                    {
+                        startTime = Run.instance.GetRunStopwatch();
+                        targetAlpha = 0;
+                        targetX = Utils.screenSize.x * Config.UI.questPositionX + 60;
+                        finished = true;
+                    }
+
+                    for (var i = questComponents.Count - 1; i >= 0; i--)
+                    {
+                        questComponents[i].UpdateData(clientData.QuestComponents[questComponents[i].index], i);
+
+                        if (!clientData.QuestComponents[questComponents[i].index].Complete)
+                        {
+                            continue;
+                        }
+
                         questComponents[i].Destroy();
                         Destroy(questComponents[i]);
                         questComponents.RemoveAt(i);
                     }
-                }
 
-                questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().anchoredPosition.x, targetX, ref moveVel, fadeTime), UI.Utils.screenSize.y * Config.UI.questPositionY);
-                questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(questUI.GetComponent<CanvasGroup>().alpha, targetAlpha, ref alphaVel, fadeTime);
-                questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().sizeDelta.y, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * questComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y, ref backgroundVel, 0.7f));
-                questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUI.GetComponent<RectTransform>().sizeDelta.x + 2, questUI.GetComponent<RectTransform>().sizeDelta.y + 2);
+                    questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().anchoredPosition.x, targetX, ref moveVel, fadeTime), Utils.screenSize.y * Config.UI.questPositionY);
+                    questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(questUI.GetComponent<CanvasGroup>().alpha, targetAlpha, ref alphaVel, fadeTime);
+                    questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUI.GetComponent<RectTransform>().sizeDelta.y, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * questComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y, ref backgroundVel, 0.7f));
+                    questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUI.GetComponent<RectTransform>().sizeDelta.x + 2, questUI.GetComponent<RectTransform>().sizeDelta.y + 2);
 
-                break;
+                    break;
+            }
+
+            if (finished && Run.instance.GetRunStopwatch() - startTime >= fadeTime + 0.5f)
+            {
+                Destroy();
+            }
         }
-        if (finished && Run.instance.GetRunStopwatch() - startTime >= fadeTime + 0.5f) {
-            Destroy();
+
+        public void Destroy()
+        {
+            Destroy(questUI);
+            Destroy(this);
         }
-    }
-    public void Destroy() {
-        Destroy(questUI);
-        Destroy(this);
     }
 }
-
-} // namespace UI
-} // namespace RPGMod
