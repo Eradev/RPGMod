@@ -57,53 +57,149 @@ namespace RPGMod
                 if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
                 {
                     Questing.Server.CheckAllowedType(Questing.QuestType.collectGold);
-                    Questing.Events.goldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
+                    Questing.Events.GoldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
                 orig(self, amount);
             };
 
             On.RoR2.GlobalEventManager.OnCharacterDeath += (orig, self, damageReport) =>
             {
-                var enemyBody = damageReport?.victimBody;
-                var attackerMaster = damageReport?.damageInfo?.attacker?.GetComponent<CharacterBody>()?.masterObject;
-                var attackerController = attackerMaster?.GetComponent<CharacterMaster>();
-                var attackerNetworkUser = GetKillerNetworkUser(attackerController);
+                var enemyBody = damageReport.victimBody;
+                var damageInfo = damageReport.damageInfo;
+                var attackerBody = damageInfo?.attacker?.GetComponent<CharacterBody>();
+                var attackerNetworkUser = GetKillerNetworkUser(attackerBody?.masterObject?.GetComponent<CharacterMaster>());
 
                 if (enemyBody != null && attackerNetworkUser?.netId != null)
                 {
                     if (enemyBody.isFlying)
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killFlying);
-                        Questing.Events.flyingKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killFlyingEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killFlying);
+                        }
+
+                        Questing.Events.FlyingKilled.Invoke(1, attackerNetworkUser);
+                    }
+
+                    // ReSharper disable once PossibleNullReferenceException
+                    if ((damageInfo.damageType & DamageType.DoT) != DamageType.DoT &&
+                        (
+                            damageInfo.procChainMask.HasProc(ProcType.Backstab) ||
+                            // ReSharper disable once PossibleNullReferenceException
+                            BackstabManager.IsBackstab(attackerBody.corePosition - damageInfo.position, enemyBody)
+                        ))
+                    {
+                        if (global::RPGMod.Config.Questing.killByBackstabEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killByBackstab);
+                        }
+
+                        Questing.Events.KilledByBackstab.Invoke(1, attackerNetworkUser);
                     }
 
                     // Buffs
+                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixRed))
+                    {
+                        if (global::RPGMod.Config.Questing.killRedEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killRed);
+                        }
+
+                        Questing.Events.RedKilled.Invoke(1, attackerNetworkUser);
+                    }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixHaunted))
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killHaunted);
-                        Questing.Events.hauntedKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killHauntedEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killHaunted);
+                        }
+
+                        Questing.Events.HauntedKilled.Invoke(1, attackerNetworkUser);
+                    }
+                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixWhite))
+                    {
+                        if (global::RPGMod.Config.Questing.killWhiteEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killWhite);
+                        }
+
+                        Questing.Events.WhiteKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixPoison))
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killPoison);
-                        Questing.Events.poisonKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killPoisonEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killPoison);
+                        }
+
+                        Questing.Events.PoisonKilled.Invoke(1, attackerNetworkUser);
+                    }
+                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixBlue))
+                    {
+                        if (global::RPGMod.Config.Questing.killBlueEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killBlue);
+                        }
+
+                        Questing.Events.BlueKilled.Invoke(1, attackerNetworkUser);
+                    }
+                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixLunar))
+                    {
+                        if (global::RPGMod.Config.Questing.killLunarEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killLunar);
+                        }
+
+                        Questing.Events.LunarKilled.Invoke(1, attackerNetworkUser);
+                    }
+
+                    // DLC1
+                    if (enemyBody.HasBuff(DLC1Content.Buffs.EliteEarth))
+                    {
+                        if (global::RPGMod.Config.Questing.killEarthEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killEarthDLC1);
+                        }
+
+                        Questing.Events.EarthKilledDLC1.Invoke(1, attackerNetworkUser);
+                    }
+                    if (global::RPGMod.Config.Questing.killCommonEnabled && enemyBody.HasBuff(DLC1Content.Buffs.EliteVoid))
+                    {
+                        if (global::RPGMod.Config.Questing.killVoidEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killVoidDLC1);
+                        }
+
+                        Questing.Events.VoidKilledDLC1.Invoke(1, attackerNetworkUser);
                     }
 
                     // By rarity
                     if (enemyBody.isChampion)
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killChampion);
-                        Questing.Events.championKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killChampionEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killChampion);
+                        }
+
+                        Questing.Events.ChampionKilled.Invoke(1, attackerNetworkUser);
                     }
                     else if (enemyBody.isElite)
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killElite);
-                        Questing.Events.eliteKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killEliteEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killElite);
+                        }
+
+                        Questing.Events.EliteKilled.Invoke(1, attackerNetworkUser);
                     }
                     else
                     {
-                        Questing.Server.CheckAllowedType(Questing.QuestType.killCommon);
-                        Questing.Events.commonKilled.Invoke(1, attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.killCommonEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.QuestType.killCommon);
+                        }
+
+                        Questing.Events.CommonKilled.Invoke(1, attackerNetworkUser);
                     }
                 }
 

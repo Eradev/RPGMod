@@ -9,14 +9,21 @@ namespace RPGMod.UI
 {
     public class Quest : MonoBehaviour
     {
-        public static Dictionary<QuestType, string> questTypeDict = new Dictionary<QuestType, string>
+        public static readonly Dictionary<QuestType, string> QuestTypeDict = new Dictionary<QuestType, string>
         {
             { QuestType.killCommon, "Kill common enemies" },
             { QuestType.killElite, "Kill elite enemies" },
             { QuestType.killChampion, "Kill champion enemies" },
             { QuestType.killFlying, "Kill flying enemies" },
+            { QuestType.killRed, "Kill Blazing enemies" },
             { QuestType.killHaunted, "Kill Celestine enemies" },
-            { QuestType.killPoison, "Kill Malachine enemies" },
+            { QuestType.killWhite, "Kill Glacial enemies" },
+            { QuestType.killPoison, "Kill Malachite enemies" },
+            { QuestType.killBlue, "Kill Overloading enemies" },
+            { QuestType.killLunar, "Kill Perfected enemies" },
+            { QuestType.killEarthDLC1, "Kill Mending enemies" },
+            { QuestType.killVoidDLC1, "Kill Voidtouched enemies" },
+            { QuestType.killByBackstab, "Kill enemies with a backstab" },
             { QuestType.collectGold, "Collect gold" }
         };
 

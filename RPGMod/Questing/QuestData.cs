@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using RoR2;
@@ -60,7 +59,7 @@ namespace RPGMod.Questing
                     break;
             }
 
-            var missions = QuestComponents.Select(questComponent => UI.Quest.questTypeDict[questComponent.QuestType]).ToList();
+            var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.QuestType]).ToList();
 
             var message = new Announcement(
                 $"Alright <b><color=orange>{this.networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(PickupCatalog.GetPickupDef(Reward).baseColor)}>{Language.GetString(PickupCatalog.GetPickupDef(Reward).nameToken)}</color></b>");

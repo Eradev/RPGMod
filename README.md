@@ -10,6 +10,12 @@ This mod offers a networked questing system that is synced with others who have 
 
 **Note:** The mod may lack balancing due to time constraints for testing, however the config should allow for some adjustments.
 
+## Version 3.1.0+
+
+This is not an official update from ghasttear1. The mod hasn't been updated in a while, and I decided to do it. Please contact Eradev#1842 if you have any issues with this version.
+
+I will remove this version if ghasttear1 decides to work on it again, or want me to merge into his repo.
+
 ## Installation
 
 1. Make sure BepInEx is installed
@@ -51,24 +57,18 @@ This mod has a config with many values to change to your desire with the ability
 - 3.1.0:
 	* Updated for RoR2 1.24.
 	* Removed Attempt Chance Shrine mission.
-	* Added Kill Champion enemies, Kill flying enemies, Kill Celestine enemies, and Kill Malachite enemies missions.
+	* Added Kill champion enemies, Kill flying enemies, Kill Celestine enemies, and Kill Malachite enemies missions.
 	* Quests are now cleared between stages.
 	* Minion kills now count toward missions progress.
 	* Added missions scaling as you progress through the stages.
 	* You can now position the announcer on the Y axis.
+- 3.1.1
+	* Added missions for other Elite buffs, including the two from DLC1.
+	* Added Kill enemies with a backstab mission.
+	* Added option to disable certain missions in the config file.
+	* Fixed some typos in the config file. Please check if you have changed the default values.
 ```
 
 ## Issues?
 
 This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.
-
-If you find any issues with my mod please create a new issue on the github, you can find existing issues here:
-
-**Please include information for replicating the issue and preferably a log file.**
-https://github.com/ghasttear1/RPGMod/issues
-
-I may not be able to be very quick to fixing issues due to lack of time but I will try.
-
-## Contact
-
-You can find me on the modding discord, I'm not the best at modding but I will try my best to answer any questions.

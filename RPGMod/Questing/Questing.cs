@@ -13,23 +13,40 @@ namespace RPGMod.Questing
         killChampion,
         collectGold,
         killFlying,
+        killRed,
         killHaunted,
-        killPoison
+        killWhite,
+        killPoison,
+        killBlue,
+        killLunar,
+        killEarthDLC1,
+        killVoidDLC1,
+        killByBackstab
     }
 
     public static class Events
     {
         public class QuestEvent : UnityEvent<int, NetworkUser> { }
 
-        public static QuestEvent commonKilled = new QuestEvent();
-        public static QuestEvent eliteKilled = new QuestEvent();
-        public static QuestEvent championKilled = new QuestEvent();
+        public static readonly QuestEvent CommonKilled = new QuestEvent();
+        public static readonly QuestEvent EliteKilled = new QuestEvent();
+        public static readonly QuestEvent ChampionKilled = new QuestEvent();
 
-        public static QuestEvent flyingKilled = new QuestEvent();
-        public static QuestEvent hauntedKilled = new QuestEvent();
-        public static QuestEvent poisonKilled = new QuestEvent();
+        public static readonly QuestEvent FlyingKilled = new QuestEvent();
 
-        public static QuestEvent goldCollected = new QuestEvent();
+        public static readonly QuestEvent RedKilled = new QuestEvent();
+        public static readonly QuestEvent HauntedKilled = new QuestEvent();
+        public static readonly QuestEvent WhiteKilled = new QuestEvent();
+        public static readonly QuestEvent PoisonKilled = new QuestEvent();
+        public static readonly QuestEvent BlueKilled = new QuestEvent();
+        public static readonly QuestEvent LunarKilled = new QuestEvent();
+
+        public static readonly QuestEvent EarthKilledDLC1 = new QuestEvent();
+        public static readonly QuestEvent VoidKilledDLC1 = new QuestEvent();
+
+        public static readonly QuestEvent KilledByBackstab = new QuestEvent();
+
+        public static readonly QuestEvent GoldCollected = new QuestEvent();
     }
 
     public class Announcement : MessageBase
@@ -209,15 +226,10 @@ namespace RPGMod.Questing
             Server.timeoutStart = 0f;
             Client.CleanUp();
 
-            Events.commonKilled.RemoveAllListeners();
-            Events.eliteKilled.RemoveAllListeners();
-            Events.championKilled.RemoveAllListeners();
-
-            Events.flyingKilled.RemoveAllListeners();
-            Events.hauntedKilled.RemoveAllListeners();
-            Events.poisonKilled.RemoveAllListeners();
-
-            Events.goldCollected.RemoveAllListeners();
+            foreach (var keyValuePair in QuestComponent.QuestEventByQuestType)
+            {
+                keyValuePair.Value.RemoveAllListeners();
+            }
         }
     }
 }

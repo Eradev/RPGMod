@@ -114,7 +114,7 @@ namespace RPGMod.UI
 
         private void Update()
         {
-            questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.questTypeDict[questComponent.QuestType];
+            questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.QuestTypeDict[questComponent.QuestType];
             questComponentUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
             questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = $"{questComponent.Progress}/{questComponent.Objective}";
             questComponentUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
