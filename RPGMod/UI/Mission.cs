@@ -4,29 +4,29 @@ using UnityEngine.UI;
 
 namespace RPGMod.UI
 {
-    public class QuestComponent : MonoBehaviour
+    public class Mission : MonoBehaviour
     {
         private float progressVel;
-        private GameObject questComponentUI;
-        private Questing.QuestComponent questComponent;
+        private GameObject missionUI;
+        private Questing.Mission mission;
         public int index;
 
-        private QuestComponent()
+        private Mission()
         {
             progressVel = 0.0f;
 
-            // questComponent
-            questComponentUI = new GameObject();
-            questComponentUI.AddComponent<RectTransform>();
+            // mission
+            missionUI = new GameObject();
+            missionUI.AddComponent<RectTransform>();
 
-            questComponentUI.transform.SetParent(transform);
+            missionUI.transform.SetParent(transform);
 
-            questComponentUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
-            questComponentUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
-            questComponentUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-            questComponentUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
+            missionUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+            missionUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+            missionUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            missionUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, 60);
 
-            //description
+            // description
             var description = new GameObject
             {
                 name = "description"
@@ -35,7 +35,7 @@ namespace RPGMod.UI
             description.AddComponent<RectTransform>();
             description.AddComponent<TextMeshProUGUI>();
 
-            description.transform.SetParent(questComponentUI.transform);
+            description.transform.SetParent(missionUI.transform);
 
             description.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
             description.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
@@ -55,7 +55,7 @@ namespace RPGMod.UI
             progress.AddComponent<RectTransform>();
             progress.AddComponent<TextMeshProUGUI>();
 
-            progress.transform.SetParent(questComponentUI.transform);
+            progress.transform.SetParent(missionUI.transform);
 
             progress.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
             progress.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
@@ -81,7 +81,7 @@ namespace RPGMod.UI
             progressBarBackground.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
             progressBarBackground.GetComponent<RectTransform>().pivot = new Vector2(0, 1);
             progressBarBackground.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
-            progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(questComponentUI.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
+            progressBarBackground.GetComponent<RectTransform>().sizeDelta = new Vector2(missionUI.GetComponent<RectTransform>().sizeDelta.x - 20, 8);
 
             progressBarBackground.GetComponent<Image>().color = new Color(0, 0, 0, 0.7f);
 
@@ -106,25 +106,25 @@ namespace RPGMod.UI
             progressBar.GetComponent<RectTransform>().localScale = new Vector3(0, 1, 1);
         }
 
-        public void UpdateData(Questing.QuestComponent questComponent, int i)
+        public void UpdateData(Questing.Mission mission, int i)
         {
-            this.questComponent = questComponent;
-            questComponentUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
+            this.mission = mission;
+            missionUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);
         }
 
         private void Update()
         {
-            questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.QuestTypeDict[questComponent.QuestType];
-            questComponentUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
-            questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = $"{questComponent.Progress}/{questComponent.Objective}";
-            questComponentUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = questComponentUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+            missionUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.QuestTypeDict[mission.MissionType];
+            missionUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = missionUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
+            missionUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = $"{mission.Progress}/{mission.Objective}";
+            missionUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = missionUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
-            questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(questComponentUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, questComponent.Progress / (float)questComponent.Objective, ref progressVel, 0.7f), 1, 1);
+            missionUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale = new Vector3(Mathf.SmoothDamp(missionUI.transform.Find("description").Find("progressBarBackground").Find("progressBar").transform.localScale.x, mission.Progress / (float)mission.Objective, ref progressVel, 0.7f), 1, 1);
         }
 
         public void Destroy()
         {
-            Destroy(questComponentUI);
+            Destroy(missionUI);
         }
     }
 }

@@ -1,4 +1,5 @@
 using BepInEx.Configuration;
+using RPGMod.Questing;
 
 namespace RPGMod
 {
@@ -11,6 +12,8 @@ namespace RPGMod
             public static float chanceUncommon;
             public static float chanceLegendary;
             public static float chanceAdjustmentPercent;
+
+            public static string[] blacklist;
 
             public static bool killCommonEnabled;
             public static int killCommonMin;
@@ -115,6 +118,13 @@ namespace RPGMod
                 2f,
                 new ConfigDescription("Multiplied by the amount of quests completed, the percentage to increase the chance of uncommon and legendary rewards and decrease the chance of common quests")
             ).Value / 100;
+
+            Questing.blacklist = config.Bind
+            (
+                new ConfigDefinition("Questing", "Blacklist"),
+                string.Empty,
+                new ConfigDescription("Items ID to blacklist. They will not show up as quest reward. Separated with a comma.")
+            ).Value.Split(',');
 
             Questing.killCommonEnabled = config.Bind
             (
@@ -427,6 +437,8 @@ namespace RPGMod
                 0.03f,
                 new ConfigDescription("Location of the announcer on the screen (y axis), represented by screen height percentage")
             ).Value;
+
+            Blacklist.Recalculate();
         }
     }
 }

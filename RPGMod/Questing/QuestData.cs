@@ -10,7 +10,7 @@ namespace RPGMod.Questing
     {
         public bool Complete { get; private set; }
         public float CompletionTime { get; private set; }
-        public List<QuestComponent> QuestComponents { get; private set; }
+        public List<Mission> QuestComponents { get; private set; }
         public PickupIndex Reward { get; private set; }
         public int Guid { get; private set; }
 
@@ -33,11 +33,12 @@ namespace RPGMod.Questing
             this.networkUser = networkUser;
 
             ItemTier rewardTier;
+            PickupDef rewardDef;
             do
             {
                 Reward = GenerateReward(questsCompleted);
-
-                rewardTier = ItemCatalog.GetItemDef(PickupCatalog.GetPickupDef(Reward).itemIndex).tier;
+                rewardDef = PickupCatalog.GetPickupDef(Reward);
+                rewardTier = ItemCatalog.GetItemDef(rewardDef!.itemIndex).tier;
             } while (!((int)rewardTier < Server.AllowedTypes.Count));
 
             switch (rewardTier)
@@ -55,14 +56,14 @@ namespace RPGMod.Questing
                     break;
 
                 default:
-                    Debug.LogError(rewardTier);
+                    RPGMod.Log.LogError(rewardTier);
                     break;
             }
 
-            var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.QuestType]).ToList();
+            var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
 
             var message = new Announcement(
-                $"Alright <b><color=orange>{this.networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(PickupCatalog.GetPickupDef(Reward).baseColor)}>{Language.GetString(PickupCatalog.GetPickupDef(Reward).nameToken)}</color></b>");
+                $"Alright <b><color=orange>{this.networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(rewardDef.baseColor)}>{Language.GetString(rewardDef.nameToken)}</color></b>");
 
             Networking.SendAnnouncement(message, this.networkUser.connectionToClient.connectionId);
         }
@@ -87,12 +88,12 @@ namespace RPGMod.Questing
             Complete = reader.ReadBoolean();
             CompletionTime = reader.ReadSingle();
             Reward = reader.ReadPickupIndex();
-            QuestComponents = new List<QuestComponent>();
+            QuestComponents = new List<Mission>();
 
             var questCount = reader.ReadInt32();
             for (var i = 0; i < questCount; i++)
             {
-                QuestComponents.Add(reader.ReadQuestComponent());
+                QuestComponents.Add(reader.ReadMission());
             }
         }
 
@@ -105,32 +106,32 @@ namespace RPGMod.Questing
         {
             var weightedSelection = new WeightedSelection<List<PickupIndex>>();
 
-            weightedSelection.AddChoice(Run.instance.availableTier1DropList, Config.Questing.chanceCommon - questsCompleted * Config.Questing.chanceAdjustmentPercent);
-            weightedSelection.AddChoice(Run.instance.availableTier2DropList, Config.Questing.chanceUncommon + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
-            weightedSelection.AddChoice(Run.instance.availableTier3DropList, Config.Questing.chanceLegendary + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier1DropList, Config.Questing.chanceCommon - questsCompleted * Config.Questing.chanceAdjustmentPercent);
+            weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, Config.Questing.chanceUncommon + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.chanceLegendary + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
 
-            var pickupList = weightedSelection.Evaluate(UnityEngine.Random.value);
-            var pickupIndex = pickupList[UnityEngine.Random.Range(0, pickupList.Count)];
+            var pickupList = weightedSelection.Evaluate(Random.value);
+            var pickupIndex = pickupList[Random.Range(0, pickupList.Count)];
 
             return pickupIndex;
         }
 
-        public List<QuestComponent> GenerateQuestComponents(int amount, NetworkUser networkUser)
+        public List<Mission> GenerateQuestComponents(int amount, NetworkUser networkUser)
         {
-            var questComponents = new List<QuestComponent>();
-            var usedTypes = new List<QuestType>();
+            var questComponents = new List<Mission>();
+            var usedTypes = new List<MissionType>();
 
             for (var i = 0; i < amount; i++)
             {
-                QuestType questType;
+                MissionType missionType;
                 do
                 {
-                    questType = Server.AllowedTypes[Run.instance.runRNG.RangeInt(0, Server.AllowedTypes.Count)];
+                    missionType = Server.AllowedTypes[Run.instance.runRNG.RangeInt(0, Server.AllowedTypes.Count)];
 
-                } while (usedTypes.Contains(questType));
+                } while (usedTypes.Contains(missionType));
 
-                usedTypes.Add(questType);
-                questComponents.Add(new QuestComponent(questType, networkUser));
+                usedTypes.Add(missionType);
+                questComponents.Add(new Mission(missionType, networkUser));
             }
 
             return questComponents;
@@ -138,7 +139,7 @@ namespace RPGMod.Questing
 
         public void Check()
         {
-            if (QuestComponents.FindAll(QuestComponent.GetComplete).Count == QuestComponents.Count)
+            if (QuestComponents.Count(x => x.IsCompleted) == QuestComponents.Count)
             {
                 CompleteQuest();
             }
@@ -150,21 +151,17 @@ namespace RPGMod.Questing
             Complete = true;
             CompletionTime = Run.instance.GetRunStopwatch();
 
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                if (player.networkUser != networkUser)
-                {
-                    continue;
-                }
+            var player = PlayerCharacterMasterController.instances.Single(x => x.networkUser == networkUser);
+            var reward = PickupCatalog.GetPickupDef(Reward);
 
-                player.master.inventory.GiveItem(PickupCatalog.GetPickupDef(Reward).itemIndex);
+            player.master.inventory.GiveItem(reward.itemIndex);
 
-                var message = new Announcement(
-                    $"Good work <b><color=orange>{networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded."
-                );
+            var message = new Announcement(
+                $"Good work <b><color=orange>{networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
+            );
 
-                Networking.SendAnnouncement(message, networkUser.connectionToClient.connectionId);
-            }
+            Networking.SendAnnouncement(message, networkUser.connectionToClient.connectionId);
+            Networking.SendItemReceivedMessage(new ItemReceived(reward.itemIndex), networkUser.connectionToClient.connectionId);
         }
     }
 }

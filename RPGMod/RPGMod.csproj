@@ -6,7 +6,8 @@
     <PackageId>com.ghasttear1.rpgmod</PackageId>
     <Description>A Risk of Rain 2 mod.</Description>
     <Company>com.ghasttear1.rpgmod</Company>
-    <Version>3.1.1</Version>
+    <Version>3.2.0</Version>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -68,9 +69,4 @@
       <HintPath>F:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;C:\Users\admin\AppData\Roaming\r2modmanPlus-local\RiskOfRain2\profiles\Default\BepInEx\plugins\Eradev-RPGMod\$(TargetFileName)&quot;" />
-  </Target>
-
 </Project>

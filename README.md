@@ -12,19 +12,25 @@ This mod offers a networked questing system that is synced with others who have 
 
 ## Version 3.1.0+
 
-This is not an official update from ghasttear1. The mod hasn't been updated in a while, and I decided to do it. Please contact Eradev#1842 if you have any issues with this version.
+Versions starting from 3.1.0 aren't official updates from the original mod creator ghasttear1. I will remove this version if ghasttear1 decides to work on it again, or want me to merge into his repo.
 
-I will remove this version if ghasttear1 decides to work on it again, or want me to merge into his repo.
+If you have any issues, please create an issue at https://github.com/Eradev/RPGMod/issues.
 
 ## Installation
+
+Using a mod manager such as r2modman is strongly recommended.
+
+### Manual installation
 
 1. Make sure BepInEx is installed
 2. Move `RPGMod.dll` into `Risk of Rain 2\BepInEx\plugins` folder
 3. Run the game and enjoy.
 
-**Uninstalling:** Simply delete the `RPGMod.dll` file in your plugins folder.
+### Uninstalling
 
-## Updating
+Simply delete the `RPGMod.dll` file in your plugins folder.
+
+### Updating
 
 When updating simply replace the mod files and run the game, the config may change from time to time so always make a backup if you have changes you want to keep!
 
@@ -67,8 +73,7 @@ This mod has a config with many values to change to your desire with the ability
 	* Added Kill enemies with a backstab mission.
 	* Added option to disable certain missions in the config file.
 	* Fixed some typos in the config file. Please check if you have changed the default values.
+- 3.2.0
+	* Items granted now unlock logbook entries, and display notification for new items.
+	* Added option to blacklist items.
 ```
-
-## Issues?
-
-This mod is **WORK IN PROGRESS**, meaning that there is a good chance that there are issues.

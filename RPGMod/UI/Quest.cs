@@ -9,22 +9,22 @@ namespace RPGMod.UI
 {
     public class Quest : MonoBehaviour
     {
-        public static readonly Dictionary<QuestType, string> QuestTypeDict = new Dictionary<QuestType, string>
+        public static readonly Dictionary<MissionType, string> QuestTypeDict = new Dictionary<MissionType, string>
         {
-            { QuestType.killCommon, "Kill common enemies" },
-            { QuestType.killElite, "Kill elite enemies" },
-            { QuestType.killChampion, "Kill champion enemies" },
-            { QuestType.killFlying, "Kill flying enemies" },
-            { QuestType.killRed, "Kill Blazing enemies" },
-            { QuestType.killHaunted, "Kill Celestine enemies" },
-            { QuestType.killWhite, "Kill Glacial enemies" },
-            { QuestType.killPoison, "Kill Malachite enemies" },
-            { QuestType.killBlue, "Kill Overloading enemies" },
-            { QuestType.killLunar, "Kill Perfected enemies" },
-            { QuestType.killEarthDLC1, "Kill Mending enemies" },
-            { QuestType.killVoidDLC1, "Kill Voidtouched enemies" },
-            { QuestType.killByBackstab, "Kill enemies with a backstab" },
-            { QuestType.collectGold, "Collect gold" }
+            { MissionType.killCommon, "Kill common enemies" },
+            { MissionType.killElite, "Kill elite enemies" },
+            { MissionType.killChampion, "Kill champion enemies" },
+            { MissionType.killFlying, "Kill flying enemies" },
+            { MissionType.killRed, "Kill Blazing enemies" },
+            { MissionType.killHaunted, "Kill Celestine enemies" },
+            { MissionType.killWhite, "Kill Glacial enemies" },
+            { MissionType.killPoison, "Kill Malachite enemies" },
+            { MissionType.killBlue, "Kill Overloading enemies" },
+            { MissionType.killLunar, "Kill Perfected enemies" },
+            { MissionType.killEarthDLC1, "Kill Mending enemies" },
+            { MissionType.killVoidDLC1, "Kill Voidtouched enemies" },
+            { MissionType.killByBackstab, "Kill enemies with a backstab" },
+            { MissionType.collectGold, "Collect gold" }
         };
 
         private readonly GameObject questUI;
@@ -40,7 +40,7 @@ namespace RPGMod.UI
         private float alphaVel;
         private float targetX;
         private float targetAlpha;
-        private List<QuestComponent> questComponents;
+        private List<Mission> questComponents;
         private bool finished;
         private UIState state;
         private QuestData clientData;
@@ -180,10 +180,10 @@ namespace RPGMod.UI
                     rewardText.GetComponent<TextMeshProUGUI>().color = PickupCatalog.GetPickupDef(clientData.Reward).baseColor;
                     reward.GetComponent<RawImage>().texture = PickupCatalog.GetPickupDef(clientData.Reward).iconTexture;
 
-                    questComponents = new List<QuestComponent>();
+                    questComponents = new List<Mission>();
                     for (var i = 0; i < clientData.QuestComponents.Count; i++)
                     {
-                        var questComponent = rewardText.AddComponent<QuestComponent>();
+                        var questComponent = rewardText.AddComponent<Mission>();
                         questComponent.index = i;
                         questComponents.Add(questComponent);
                     }
@@ -192,7 +192,7 @@ namespace RPGMod.UI
                     questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * clientData.QuestComponents.Count) + rewardText.GetComponent<RectTransform>().sizeDelta.y);
                     questUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
                     questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.screenSize.x * Config.UI.questPositionX + 60, Utils.screenSize.y * Config.UI.questPositionY);
-                    questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.hudScale, Utils.hudScale, Utils.hudScale);
+                    questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.HudScale, Utils.HudScale, Utils.HudScale);
 
                     state = UIState.updating;
 
@@ -200,7 +200,7 @@ namespace RPGMod.UI
 
                 case UIState.updating:
 
-                    if ((clientData?.Complete ?? false) && !finished)
+                    if ((bool)clientData?.Complete && !finished)
                     {
                         startTime = Run.instance.GetRunStopwatch();
                         targetAlpha = 0;
@@ -212,7 +212,7 @@ namespace RPGMod.UI
                     {
                         questComponents[i].UpdateData(clientData.QuestComponents[questComponents[i].index], i);
 
-                        if (!clientData.QuestComponents[questComponents[i].index].Complete)
+                        if (!clientData.QuestComponents[questComponents[i].index].IsCompleted)
                         {
                             continue;
                         }

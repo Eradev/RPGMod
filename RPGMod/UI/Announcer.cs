@@ -67,7 +67,7 @@ namespace RPGMod.UI
             announcerUI.transform.SetParent(transform);
             announcerUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
             announcerUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -Utils.screenSize.y * 0.03f, 0);
-            announcerUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.hudScale, Utils.hudScale, Utils.hudScale);
+            announcerUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.HudScale, Utils.HudScale, Utils.HudScale);
         }
 
         public void SetMessage(string message)

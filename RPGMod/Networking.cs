@@ -14,6 +14,7 @@ namespace RPGMod
 
             client.RegisterHandler(Config.Networking.msgType, QuestData.Handler);
             client.RegisterHandler((short)(Config.Networking.msgType + 1), Announcement.Handler);
+            client.RegisterHandler((short)(Config.Networking.msgType + 2), ItemReceived.Handler);
         }
 
         public static void Setup()
@@ -39,18 +40,17 @@ namespace RPGMod
         }
 
         // NetworkWriter methods
-        public static void Write(this NetworkWriter writer, QuestType questType)
+        public static void Write(this NetworkWriter writer, MissionType missionType)
         {
-            writer.Write((int)questType);
+            writer.Write((int)missionType);
         }
 
-        public static void Write(this NetworkWriter writer, QuestComponent questComponent)
+        public static void Write(this NetworkWriter writer, Mission mission)
         {
-            writer.Write(questComponent.QuestType);
-            writer.Write(QuestComponent.GetComplete(questComponent));
-            writer.Write(questComponent.Progress);
-            writer.Write(questComponent.Objective);
-
+            writer.Write(mission.MissionType);
+            writer.Write(mission.IsCompleted);
+            writer.Write(mission.Progress);
+            writer.Write(mission.Objective);
         }
 
         public static void SendAnnouncement(Announcement message, int connectionId)
@@ -58,20 +58,25 @@ namespace RPGMod
             NetworkServer.SendToClient(connectionId, (short)(Config.Networking.msgType + 1), message);
         }
 
-        // NetworkReader methods
-        public static QuestComponent ReadQuestComponent(this NetworkReader reader)
+        public static void SendItemReceivedMessage(ItemReceived itemReceived, int connectionId)
         {
-            return new QuestComponent(
-                reader.ReadQuestType(),
+            NetworkServer.SendToClient(connectionId, (short)(Config.Networking.msgType + 2), itemReceived);
+        }
+
+        // NetworkReader methods
+        public static Mission ReadMission(this NetworkReader reader)
+        {
+            return new Mission(
+                reader.ReadMissionType(),
                 reader.ReadBoolean(),
                 reader.ReadInt32(),
                 reader.ReadInt32()
             );
         }
 
-        public static QuestType ReadQuestType(this NetworkReader reader)
+        public static MissionType ReadMissionType(this NetworkReader reader)
         {
-            return (QuestType)reader.ReadInt32();
+            return (MissionType)reader.ReadInt32();
         }
     }
 }

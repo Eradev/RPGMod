@@ -5,7 +5,7 @@ using System.Collections;
 
 namespace RPGMod.UI
 {
-    enum UIState
+    internal enum UIState
     {
         creating,
         updating
@@ -14,9 +14,10 @@ namespace RPGMod.UI
     public static class Utils
     {
         public static AssetBundle assetBundle;
-        public static float hudScale { get; private set; }
         public static Vector2 screenSize;
         public static bool ready;
+
+        public static float HudScale { get; private set; }
 
         public static IEnumerator Setup()
         {
@@ -27,12 +28,12 @@ namespace RPGMod.UI
             {
                 if (hudConVar != null && TextSerialization.TryParseInvariant(hudConVar.GetString(), out float num))
                 {
-                    hudScale = num / 100f;
+                    HudScale = num / 100f;
                 }
             }
             else
             {
-                hudScale = Config.UI.overrideHUDScale;
+                HudScale = Config.UI.overrideHUDScale;
             }
 
             while (!ready)
