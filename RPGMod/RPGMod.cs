@@ -86,7 +86,7 @@ namespace RPGMod
                         (
                             damageInfo.procChainMask.HasProc(ProcType.Backstab) ||
                             // ReSharper disable once PossibleNullReferenceException
-                            BackstabManager.IsBackstab(attackerBody.corePosition - damageInfo.position, enemyBody)
+                            BackstabManager.IsBackstab(-(attackerBody.corePosition - damageInfo.position), enemyBody)
                         ))
                     {
                         if (global::RPGMod.Config.Questing.killByBackstabEnabled)
