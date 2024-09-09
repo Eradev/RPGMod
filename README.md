@@ -77,7 +77,7 @@ This mod has a config with many values to change to your desire with the ability
 	* Items granted now unlock logbook entries, and display notification for new items.
 	* Added option to blacklist items.
 - 3.3.0
-    * Updated for RoR2 1.32.
+	* Updated for RoR2 1.32.
 	* Fixed some options' description.
 	* Removed Kill enemies with a backstab mission.
 	* Added 4 new missions: Kill any enemy, Kill any buffed elite enemy, Kill Gilded enemy (DLC2), and Kill Twisted enemy (DLC2).
