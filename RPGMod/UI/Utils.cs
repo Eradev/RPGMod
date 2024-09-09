@@ -1,30 +1,30 @@
-using UnityEngine;
-using UnityEngine.UI;
 using RoR2;
 using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace RPGMod.UI
 {
     internal enum UIState
     {
-        creating,
-        updating
+        Creating,
+        Updating
     }
 
     public static class Utils
     {
-        public static AssetBundle assetBundle;
-        public static Vector2 screenSize;
-        public static bool ready;
+        public static AssetBundle AssetBundle;
+        public static Vector2 ScreenSize;
+        public static bool IsReady;
 
         public static float HudScale { get; private set; }
 
         public static IEnumerator Setup()
         {
-            ready = false;
+            IsReady = false;
             var hudConVar = Console.instance.FindConVar("hud_scale");
 
-            if (Config.UI.useHUDScale)
+            if (Config.UI.UseHUDScale)
             {
                 if (hudConVar != null && TextSerialization.TryParseInvariant(hudConVar.GetString(), out float num))
                 {
@@ -33,10 +33,10 @@ namespace RPGMod.UI
             }
             else
             {
-                HudScale = Config.UI.overrideHUDScale;
+                HudScale = Config.UI.OverrideHUDScale;
             }
 
-            while (!ready)
+            while (!IsReady)
             {
                 yield return new WaitForSeconds(0.1f);
 
@@ -45,10 +45,10 @@ namespace RPGMod.UI
                     continue;
                 }
 
-                screenSize = LocalUserManager.GetFirstLocalUser()?.cameraRigController?.hud.GetComponent<RectTransform>().sizeDelta ?? new Vector2(0, 0);
-                if (!(screenSize.x <= 1 || screenSize.y <= 1))
+                ScreenSize = LocalUserManager.GetFirstLocalUser()?.cameraRigController?.hud.GetComponent<RectTransform>().sizeDelta ?? new Vector2(0, 0);
+                if (!(ScreenSize.x <= 1 || ScreenSize.y <= 1))
                 {
-                    ready = true;
+                    IsReady = true;
                 }
             }
         }
@@ -71,7 +71,7 @@ namespace RPGMod.UI
             border.GetComponent<RectTransform>().sizeDelta = new Vector2(element.GetComponent<RectTransform>().sizeDelta.x + 2, element.GetComponent<RectTransform>().sizeDelta.y + 2);
             border.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
 
-            border.GetComponent<Image>().sprite = Object.Instantiate(assetBundle.LoadAsset<Sprite>("Assets/UIBorder.png"));
+            border.GetComponent<Image>().sprite = Object.Instantiate(AssetBundle.LoadAsset<Sprite>("Assets/UIBorder.png"));
             border.GetComponent<Image>().type = Image.Type.Sliced;
         }
     }

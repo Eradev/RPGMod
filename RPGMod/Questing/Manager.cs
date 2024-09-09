@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using RoR2;
+﻿using RoR2;
+using System.Linq;
 
 namespace RPGMod.Questing
 {
@@ -11,12 +11,12 @@ namespace RPGMod.Questing
 
             // Create new quest if necessary
             foreach (var clientData in Server.ClientDatas
-                         .Where(clientData => clientData.QuestData.Complete && Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.cooldown))
+                         .Where(clientData => clientData.QuestData.Complete && Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown))
             {
                 clientData.NewQuest();
             }
 
-            if (Server.AllowedTypes.Count <= 0 || !(Run.instance.GetRunStopwatch() - Server.timeoutStart > 4f))
+            if (Server.AllowedTypes.Count <= 0 || !(Run.instance.GetRunStopwatch() - Server.TimeoutStart > 4f))
             {
                 return;
             }
@@ -28,7 +28,7 @@ namespace RPGMod.Questing
                     continue;
                 }
 
-                if (Server.ClientDatas.All(x => x.networkUser != networkUser))
+                if (Server.ClientDatas.All(x => x.NetworkUser != networkUser))
                 {
                     Server.ClientDatas.Add(new ClientData(networkUser));
                 }
@@ -37,7 +37,7 @@ namespace RPGMod.Questing
 
         public static void CheckClientData(NetworkUser networkUser)
         {
-            foreach (var clientData in Server.ClientDatas.Where(clientData => clientData.networkUser == networkUser))
+            foreach (var clientData in Server.ClientDatas.Where(clientData => clientData.NetworkUser == networkUser))
             {
                 clientData.QuestData.Check();
             }
@@ -45,14 +45,14 @@ namespace RPGMod.Questing
 
         private static bool BadClientData(ClientData clientData)
         {
-            return NetworkUser.readOnlyInstancesList.All(networkUser => networkUser != clientData.networkUser && networkUser.connectionToClient.isReady);
+            return NetworkUser.readOnlyInstancesList.All(networkUser => networkUser != clientData.NetworkUser && networkUser.connectionToClient.isReady);
         }
 
         public static void CleanUp()
         {
             Server.ClientDatas.Clear();
             Server.AllowedTypes.Clear();
-            Server.timeoutStart = 0f;
+            Server.TimeoutStart = 0f;
             Client.CleanUp();
 
             foreach (var keyValuePair in Mission.EventsByMissionType)

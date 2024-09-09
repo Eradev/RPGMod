@@ -2,19 +2,23 @@
 {
     public enum MissionType
     {
-        killCommon,
-        killElite,
-        killChampion,
-        collectGold,
-        killFlying,
-        killRed,
-        killHaunted,
-        killWhite,
-        killPoison,
-        killBlue,
-        killLunar,
-        killEarthDLC1,
-        killVoidDLC1,
-        killByBackstab
+        KillCommon,
+        KillElite,
+        KillChampion,
+        CollectGold,
+        KillFlying,
+        KillRed,
+        KillHaunted,
+        KillWhite,
+        KillPoison,
+        KillBlue,
+        KillLunar,
+        KillEarthDLC1,
+        KillVoidDLC1,
+        KillByBackstab,
+        KillAurelioniteDLC2,
+        KillBeadDLC2,
+        KillAny,
+        KillAnyBuff
     }
 }

@@ -7,6 +7,9 @@ namespace RPGMod.Questing
     {
         public class QuestEvent : UnityEvent<int, NetworkUser> { }
 
+        public static readonly QuestEvent AnyKilled = new QuestEvent();
+        public static readonly QuestEvent AnyBuffKilled = new QuestEvent();
+
         public static readonly QuestEvent CommonKilled = new QuestEvent();
         public static readonly QuestEvent EliteKilled = new QuestEvent();
         public static readonly QuestEvent ChampionKilled = new QuestEvent();
@@ -23,7 +26,8 @@ namespace RPGMod.Questing
         public static readonly QuestEvent EarthKilledDLC1 = new QuestEvent();
         public static readonly QuestEvent VoidKilledDLC1 = new QuestEvent();
 
-        public static readonly QuestEvent KilledByBackstab = new QuestEvent();
+        public static readonly QuestEvent AurelioniteKilledDLC2 = new QuestEvent();
+        public static readonly QuestEvent BeadKilledDLC2 = new QuestEvent();
 
         public static readonly QuestEvent GoldCollected = new QuestEvent();
     }

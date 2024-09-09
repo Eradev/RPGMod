@@ -1,24 +1,24 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
 using RoR2;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Reflection;
-using BepInEx.Logging;
 
 namespace RPGMod
 {
     internal enum ModState
     {
-        awaiting,
-        starting,
-        started,
-        ending
+        Awaiting,
+        Starting,
+        Started,
+        Ending
     }
 
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    public class RPGMod : BaseUnityPlugin
+    [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    public class RpgMod : BaseUnityPlugin
     {
-        private ModState modState;
+        private ModState _modState;
 
         public static ManualLogSource Log;
 
@@ -27,14 +27,14 @@ namespace RPGMod
             Log = Logger;
 
             global::RPGMod.Config.Load(Config, false);
-            modState = ModState.awaiting;
+            _modState = ModState.Awaiting;
 
             // Load AssetBundle
             var execAssembly = Assembly.GetExecutingAssembly();
             var stream = execAssembly.GetManifestResourceStream("RPGMod.rpgmodbundle");
-            UI.Utils.assetBundle = AssetBundle.LoadFromStream(stream);
+            UI.Utils.AssetBundle = AssetBundle.LoadFromStream(stream);
 
-            if (UI.Utils.assetBundle is null)
+            if (UI.Utils.AssetBundle is null)
             {
                 return;
             }
@@ -42,13 +42,13 @@ namespace RPGMod
             // Hooks
             On.RoR2.Run.Start += (orig, self) =>
             {
-                modState = ModState.starting;
+                _modState = ModState.Starting;
                 orig(self);
             };
 
             On.RoR2.Run.OnDisable += (orig, self) =>
             {
-                modState = ModState.ending;
+                _modState = ModState.Ending;
                 orig(self);
             };
 
@@ -56,7 +56,7 @@ namespace RPGMod
             {
                 if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
                 {
-                    Questing.Server.CheckAllowedType(Questing.MissionType.collectGold);
+                    Questing.Server.CheckAllowedType(Questing.MissionType.CollectGold);
                     Questing.Events.GoldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
                 orig(self, amount);
@@ -69,85 +69,82 @@ namespace RPGMod
                 var attackerBody = damageInfo?.attacker?.GetComponent<CharacterBody>();
                 var attackerNetworkUser = GetKillerNetworkUser(attackerBody?.masterObject?.GetComponent<CharacterMaster>());
 
-                if (enemyBody != null && attackerNetworkUser?.netId != null)
+                if (enemyBody != null && attackerBody != null && attackerNetworkUser?.netId != null)
                 {
+                    if (global::RPGMod.Config.Questing.KillAnyEnabled)
+                    {
+                        Questing.Server.CheckAllowedType(Questing.MissionType.KillAny);
+                    }
+
+                    Questing.Events.AnyKilled.Invoke(1, attackerNetworkUser);
+
                     if (enemyBody.isFlying)
                     {
-                        if (global::RPGMod.Config.Questing.killFlyingEnabled)
+                        if (global::RPGMod.Config.Questing.KillFlyingEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killFlying);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillFlying);
                         }
 
                         Questing.Events.FlyingKilled.Invoke(1, attackerNetworkUser);
                     }
 
-                    // ReSharper disable once PossibleNullReferenceException
-                    if ((damageInfo.damageType & DamageType.DoT) != DamageType.DoT &&
-                        (
-                            damageInfo.procChainMask.HasProc(ProcType.Backstab) ||
-                            // ReSharper disable once PossibleNullReferenceException
-                            BackstabManager.IsBackstab(-(attackerBody.corePosition - damageInfo.position), enemyBody)
-                        ))
-                    {
-                        if (global::RPGMod.Config.Questing.killByBackstabEnabled)
-                        {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killByBackstab);
-                        }
-
-                        Questing.Events.KilledByBackstab.Invoke(1, attackerNetworkUser);
-                    }
-
                     // Buffs
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixRed))
                     {
-                        if (global::RPGMod.Config.Questing.killRedEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillRedEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killRed);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillRed);
                         }
 
                         Questing.Events.RedKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixHaunted))
                     {
-                        if (global::RPGMod.Config.Questing.killHauntedEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillHauntedEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killHaunted);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillHaunted);
                         }
 
                         Questing.Events.HauntedKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixWhite))
                     {
-                        if (global::RPGMod.Config.Questing.killWhiteEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillWhiteEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killWhite);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillWhite);
                         }
 
                         Questing.Events.WhiteKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixPoison))
                     {
-                        if (global::RPGMod.Config.Questing.killPoisonEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillPoisonEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killPoison);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillPoison);
                         }
 
                         Questing.Events.PoisonKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixBlue))
                     {
-                        if (global::RPGMod.Config.Questing.killBlueEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillBlueEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killBlue);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillBlue);
                         }
 
                         Questing.Events.BlueKilled.Invoke(1, attackerNetworkUser);
                     }
                     if (enemyBody.HasBuff(RoR2Content.Buffs.AffixLunar))
                     {
-                        if (global::RPGMod.Config.Questing.killLunarEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillLunarEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killLunar);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillLunar);
                         }
 
                         Questing.Events.LunarKilled.Invoke(1, attackerNetworkUser);
@@ -156,47 +153,73 @@ namespace RPGMod
                     // DLC1
                     if (enemyBody.HasBuff(DLC1Content.Buffs.EliteEarth))
                     {
-                        if (global::RPGMod.Config.Questing.killEarthEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillEarthEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killEarthDLC1);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillEarthDLC1);
                         }
 
                         Questing.Events.EarthKilledDLC1.Invoke(1, attackerNetworkUser);
                     }
-                    if (global::RPGMod.Config.Questing.killCommonEnabled && enemyBody.HasBuff(DLC1Content.Buffs.EliteVoid))
+
+                    if (enemyBody.HasBuff(DLC1Content.Buffs.EliteVoid))
                     {
-                        if (global::RPGMod.Config.Questing.killVoidEnabled)
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillVoidEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killVoidDLC1);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillVoidDLC1);
                         }
 
                         Questing.Events.VoidKilledDLC1.Invoke(1, attackerNetworkUser);
                     }
 
+                    // DLC2
+                    if (enemyBody.HasBuff(DLC2Content.Buffs.EliteAurelionite))
+                    {
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillAurelioniteEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillAurelioniteDLC2);
+                        }
+
+                        Questing.Events.AurelioniteKilledDLC2.Invoke(1, attackerNetworkUser);
+                    }
+
+                    if (enemyBody.HasBuff(DLC2Content.Buffs.EliteBead))
+                    {
+                        CheckAnyBuffKilled(attackerNetworkUser);
+                        if (global::RPGMod.Config.Questing.KillBeadEnabled)
+                        {
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillBeadDLC2);
+                        }
+
+                        Questing.Events.BeadKilledDLC2.Invoke(1, attackerNetworkUser);
+                    }
+
                     // By rarity
                     if (enemyBody.isChampion)
                     {
-                        if (global::RPGMod.Config.Questing.killChampionEnabled)
+                        if (global::RPGMod.Config.Questing.KillChampionEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killChampion);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillChampion);
                         }
 
                         Questing.Events.ChampionKilled.Invoke(1, attackerNetworkUser);
                     }
                     else if (enemyBody.isElite)
                     {
-                        if (global::RPGMod.Config.Questing.killEliteEnabled)
+                        if (global::RPGMod.Config.Questing.KillEliteEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killElite);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillElite);
                         }
 
                         Questing.Events.EliteKilled.Invoke(1, attackerNetworkUser);
                     }
                     else
                     {
-                        if (global::RPGMod.Config.Questing.killCommonEnabled)
+                        if (global::RPGMod.Config.Questing.KillCommonEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.killCommon);
+                            Questing.Server.CheckAllowedType(Questing.MissionType.KillCommon);
                         }
 
                         Questing.Events.CommonKilled.Invoke(1, attackerNetworkUser);
@@ -214,18 +237,28 @@ namespace RPGMod
             };
         }
 
+        private void CheckAnyBuffKilled(NetworkUser networkUser)
+        {
+            if (global::RPGMod.Config.Questing.KillAnyBuffEnabled)
+            {
+                Questing.Server.CheckAllowedType(Questing.MissionType.KillAnyBuff);
+            }
+
+            Questing.Events.AnyBuffKilled.Invoke(1, networkUser);
+        }
+
         private void Update()
         {
-            switch (modState)
+            switch (_modState)
             {
-                case ModState.starting:
+                case ModState.Starting:
                     Setup();
-                    modState = ModState.started;
+                    _modState = ModState.Started;
 
                     break;
 
-                case ModState.started:
-                    if (UI.Utils.ready)
+                case ModState.Started:
+                    if (UI.Utils.IsReady)
                     {
                         Questing.Client.Update();
 
@@ -238,9 +271,9 @@ namespace RPGMod
 
                     break;
 
-                case ModState.ending:
+                case ModState.Ending:
                     CleanUp();
-                    modState = ModState.awaiting;
+                    _modState = ModState.Awaiting;
 
                     break;
             }
@@ -250,7 +283,7 @@ namespace RPGMod
             if (Input.GetKeyDown(KeyCode.F6))
             {
                 global::RPGMod.Config.Load(Config, true);
-                if (modState == ModState.started)
+                if (_modState == ModState.Started)
                 {
                     StartCoroutine(UI.Utils.Setup());
                 }
@@ -284,12 +317,9 @@ namespace RPGMod
                 return master?.playerCharacterMasterController?.networkUser;
             }
 
-            if (master?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser)
-            {
-                return master?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser;
-            }
-
-            return null;
+            return master?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser
+                ? master?.minionOwnership?.ownerMaster?.playerCharacterMasterController?.networkUser
+                : null;
         }
     }
 }

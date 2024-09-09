@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RoR2;
+using System.Collections.Generic;
 using System.Linq;
-using RoR2;
 
 namespace RPGMod.Questing
 {
@@ -22,7 +22,7 @@ namespace RPGMod.Questing
         private static void LoadBlackListItems()
         {
             _blacklistedItems = new ItemMask();
-            foreach (var itemName in Config.Questing.blacklist)
+            foreach (var itemName in Config.Questing.Blacklist)
             {
                 var item = ItemCatalog.FindItemIndex(itemName);
 

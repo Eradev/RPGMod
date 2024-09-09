@@ -6,13 +6,13 @@ namespace RPGMod.Questing
     {
         public QuestData QuestData { get; private set; }
 
-        public NetworkUser networkUser;
-        public int questsCompleted;
+        public readonly NetworkUser NetworkUser;
+        public int QuestsCompleted;
 
         public ClientData(NetworkUser networkUser)
         {
-            questsCompleted = 0;
-            this.networkUser = networkUser;
+            QuestsCompleted = 0;
+            NetworkUser = networkUser;
             NewQuest();
         }
 
@@ -23,7 +23,7 @@ namespace RPGMod.Questing
                 return;
             }
 
-            QuestData = new QuestData(networkUser, questsCompleted, QuestData?.Guid ?? 0);
+            QuestData = new QuestData(NetworkUser, QuestsCompleted, QuestData?.Guid ?? 0);
         }
     }
 }

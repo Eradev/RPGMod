@@ -1,6 +1,6 @@
+using RoR2;
 using System.Collections.Generic;
 using System.Linq;
-using RoR2;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,7 +14,7 @@ namespace RPGMod.Questing
         public PickupIndex Reward { get; private set; }
         public int Guid { get; private set; }
 
-        private readonly NetworkUser networkUser;
+        private readonly NetworkUser _networkUser;
 
         public QuestData()
         {
@@ -24,13 +24,13 @@ namespace RPGMod.Questing
 
         public QuestData(NetworkUser networkUser, int questsCompleted, int oldGuid) : this()
         {
-            // Astronomically low chance that the GUID will be equal but I'm paranoid
+            // Astronomically low chance that the GUID will be equal, but I'm paranoid
             do
             {
                 Guid = System.Guid.NewGuid().GetHashCode();
             } while (Guid == oldGuid);
 
-            this.networkUser = networkUser;
+            this._networkUser = networkUser;
 
             ItemTier rewardTier;
             PickupDef rewardDef;
@@ -44,28 +44,28 @@ namespace RPGMod.Questing
             switch (rewardTier)
             {
                 case ItemTier.Tier1:
-                    QuestComponents = GenerateQuestComponents(1, this.networkUser);
+                    QuestComponents = GenerateQuestComponents(1, this._networkUser);
                     break;
 
                 case ItemTier.Tier2:
-                    QuestComponents = GenerateQuestComponents(2, this.networkUser);
+                    QuestComponents = GenerateQuestComponents(2, this._networkUser);
                     break;
 
                 case ItemTier.Tier3:
-                    QuestComponents = GenerateQuestComponents(3, this.networkUser);
+                    QuestComponents = GenerateQuestComponents(3, this._networkUser);
                     break;
 
                 default:
-                    RPGMod.Log.LogError(rewardTier);
+                    RpgMod.Log.LogError(rewardTier);
                     break;
             }
 
             var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
 
             var message = new Announcement(
-                $"Alright <b><color=orange>{this.networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(rewardDef.baseColor)}>{Language.GetString(rewardDef.nameToken)}</color></b>");
+                $"Alright <b><color=orange>{this._networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(rewardDef.baseColor)}>{Language.GetString(rewardDef.nameToken)}</color></b>");
 
-            Networking.SendAnnouncement(message, this.networkUser.connectionToClient.connectionId);
+            Networking.SendAnnouncement(message, this._networkUser.connectionToClient.connectionId);
         }
 
         public override void Serialize(NetworkWriter writer)
@@ -106,9 +106,9 @@ namespace RPGMod.Questing
         {
             var weightedSelection = new WeightedSelection<List<PickupIndex>>();
 
-            weightedSelection.AddChoice(Blacklist.AvailableTier1DropList, Config.Questing.chanceCommon - questsCompleted * Config.Questing.chanceAdjustmentPercent);
-            weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, Config.Questing.chanceUncommon + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
-            weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.chanceLegendary + questsCompleted * Config.Questing.chanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier1DropList, Config.Questing.ChanceCommon - questsCompleted * Config.Questing.ChanceAdjustmentPercent);
+            weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, Config.Questing.ChanceUncommon + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.ChanceLegendary + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
 
             var pickupList = weightedSelection.Evaluate(Random.value);
             var pickupIndex = pickupList[Random.Range(0, pickupList.Count)];
@@ -127,7 +127,6 @@ namespace RPGMod.Questing
                 do
                 {
                     missionType = Server.AllowedTypes[Run.instance.runRNG.RangeInt(0, Server.AllowedTypes.Count)];
-
                 } while (usedTypes.Contains(missionType));
 
                 usedTypes.Add(missionType);
@@ -147,21 +146,21 @@ namespace RPGMod.Questing
 
         public void CompleteQuest()
         {
-            Server.CompletedQuest(networkUser);
+            Server.CompletedQuest(_networkUser);
             Complete = true;
             CompletionTime = Run.instance.GetRunStopwatch();
 
-            var player = PlayerCharacterMasterController.instances.Single(x => x.networkUser == networkUser);
+            var player = PlayerCharacterMasterController.instances.Single(x => x.networkUser == _networkUser);
             var reward = PickupCatalog.GetPickupDef(Reward);
 
             player.master.inventory.GiveItem(reward.itemIndex);
 
             var message = new Announcement(
-                $"Good work <b><color=orange>{networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
+                $"Good work <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
             );
 
-            Networking.SendAnnouncement(message, networkUser.connectionToClient.connectionId);
-            Networking.SendItemReceivedMessage(new ItemReceived(reward.itemIndex), networkUser.connectionToClient.connectionId);
+            Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
+            Networking.SendItemReceivedMessage(new ItemReceived(reward.itemIndex), _networkUser.connectionToClient.connectionId);
         }
     }
 }

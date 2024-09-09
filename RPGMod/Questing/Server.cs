@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RoR2;
+using System.Collections.Generic;
 using System.Linq;
-using RoR2;
 
 namespace RPGMod.Questing
 {
@@ -8,13 +8,13 @@ namespace RPGMod.Questing
     {
         public static List<MissionType> AllowedTypes { get; } = new List<MissionType>();
         public static List<ClientData> ClientDatas { get; } = new List<ClientData>();
-        public static float timeoutStart;
+        public static float TimeoutStart;
 
         public static void CompletedQuest(NetworkUser networkUser)
         {
-            foreach (var clientData in ClientDatas.Where(clientData => clientData.networkUser == networkUser))
+            foreach (var clientData in ClientDatas.Where(clientData => clientData.NetworkUser == networkUser))
             {
-                clientData.questsCompleted += 1;
+                clientData.QuestsCompleted += 1;
             }
         }
 
@@ -26,8 +26,9 @@ namespace RPGMod.Questing
             }
 
             AllowedTypes.Add(missionType);
+            RpgMod.Log.LogDebug($"Unlocked mission type {missionType}");
 
-            timeoutStart = Run.instance.GetRunStopwatch();
+            TimeoutStart = Run.instance.GetRunStopwatch();
         }
     }
 }

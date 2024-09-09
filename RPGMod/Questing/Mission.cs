@@ -1,30 +1,33 @@
-using System.Collections.Generic;
 using RoR2;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RPGMod.Questing
 {
     public class Mission
     {
-        private readonly NetworkUser networkUser;
-        private int progress;
+        private readonly NetworkUser _networkUser;
+        private int _progress;
 
         public static readonly Dictionary<MissionType, Events.QuestEvent> EventsByMissionType = new Dictionary<MissionType, Events.QuestEvent>
         {
-            { MissionType.killCommon, Events.CommonKilled },
-            { MissionType.killElite, Events.EliteKilled },
-            { MissionType.killChampion, Events.ChampionKilled },
-            { MissionType.killRed, Events.RedKilled },
-            { MissionType.killHaunted, Events.HauntedKilled },
-            { MissionType.killWhite, Events.WhiteKilled },
-            { MissionType.killPoison, Events.PoisonKilled },
-            { MissionType.killBlue, Events.BlueKilled },
-            { MissionType.killLunar, Events.LunarKilled },
-            { MissionType.killEarthDLC1, Events.EarthKilledDLC1 },
-            { MissionType.killVoidDLC1, Events.VoidKilledDLC1 },
-            { MissionType.killFlying, Events.FlyingKilled },
-            { MissionType.killByBackstab, Events.KilledByBackstab },
-            { MissionType.collectGold, Events.GoldCollected }
+            { MissionType.KillAny, Events.AnyKilled },
+            { MissionType.KillAnyBuff, Events.AnyBuffKilled },
+            { MissionType.KillCommon, Events.CommonKilled },
+            { MissionType.KillElite, Events.EliteKilled },
+            { MissionType.KillChampion, Events.ChampionKilled },
+            { MissionType.KillFlying, Events.FlyingKilled },
+            { MissionType.KillRed, Events.RedKilled },
+            { MissionType.KillHaunted, Events.HauntedKilled },
+            { MissionType.KillWhite, Events.WhiteKilled },
+            { MissionType.KillPoison, Events.PoisonKilled },
+            { MissionType.KillBlue, Events.BlueKilled },
+            { MissionType.KillLunar, Events.LunarKilled },
+            { MissionType.KillEarthDLC1, Events.EarthKilledDLC1 },
+            { MissionType.KillVoidDLC1, Events.VoidKilledDLC1 },
+            { MissionType.KillAurelioniteDLC2, Events.AurelioniteKilledDLC2 },
+            { MissionType.KillBeadDLC2, Events.BeadKilledDLC2 },
+            { MissionType.CollectGold, Events.GoldCollected }
         };
 
         public int Objective { get; }
@@ -33,7 +36,7 @@ namespace RPGMod.Questing
 
         public int Progress
         {
-            get => progress;
+            get => _progress;
             set
             {
                 if (IsCompleted)
@@ -41,29 +44,29 @@ namespace RPGMod.Questing
                     return;
                 }
 
-                progress = value;
+                _progress = value;
 
-                if (progress < Objective)
+                if (_progress < Objective)
                 {
                     return;
                 }
 
                 IsCompleted = true;
                 RemoveListener();
-                Manager.CheckClientData(networkUser);
+                Manager.CheckClientData(_networkUser);
             }
         }
 
         private Mission()
         {
             IsCompleted = false;
-            progress = 0;
+            _progress = 0;
         }
 
         public Mission(MissionType missionType, NetworkUser networkUser) : this()
         {
             MissionType = missionType;
-            this.networkUser = networkUser;
+            _networkUser = networkUser;
             Objective = GenerateObjective(missionType);
 
             EventsByMissionType[missionType].AddListener(Listener);
@@ -73,7 +76,7 @@ namespace RPGMod.Questing
         {
             MissionType = missionType;
             IsCompleted = isCompleted;
-            this.progress = progress;
+            _progress = progress;
             Objective = objective;
         }
 
@@ -84,76 +87,91 @@ namespace RPGMod.Questing
             // TODO: Scale values for difficulty
             switch (missionType)
             {
-                case MissionType.killCommon:
+                case MissionType.KillCommon:
                     // Common enemies start to be less frequent after a few stages so we limit them
                     var commonMultiplier = Mathf.Min(Run.instance.stageClearCount, 5);
 
-                    objective = Random.Range(Config.Questing.killCommonMin, Config.Questing.killCommonMax) * Mathf.Max(1, commonMultiplier);
+                    objective = Random.Range(Config.Questing.KillCommonMin, Config.Questing.KillCommonMax) * Mathf.Max(1, commonMultiplier);
 
                     break;
 
-                case MissionType.killElite:
-                    objective = Random.Range(Config.Questing.killEliteMin, Config.Questing.killEliteMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
+                case MissionType.KillAny:
+                    objective = Random.Range(Config.Questing.KillAnyMin, Config.Questing.KillAnyMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
-                case MissionType.killChampion:
-                    objective = Random.Range(Config.Questing.killChampionMin, Config.Questing.killChampionMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillAnyBuff:
+                    objective = Random.Range(Config.Questing.KillAnyBuffMin, Config.Questing.KillAnyBuffMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killFlying:
-                    objective = Random.Range(Config.Questing.killFlyingMin, Config.Questing.killFlyingMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
+                case MissionType.KillElite:
+                    objective = Random.Range(Config.Questing.KillEliteMin, Config.Questing.KillEliteMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
-                case MissionType.killRed:
-                    objective = Random.Range(Config.Questing.killRedMin, Config.Questing.killRedMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillChampion:
+                    objective = Random.Range(Config.Questing.KillChampionMin, Config.Questing.KillChampionMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killHaunted:
-                    objective = Random.Range(Config.Questing.killHauntedMin, Config.Questing.killHauntedMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillFlying:
+                    objective = Random.Range(Config.Questing.KillFlyingMin, Config.Questing.KillFlyingMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
-                case MissionType.killWhite:
-                    objective = Random.Range(Config.Questing.killWhiteMin, Config.Questing.killWhiteMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillRed:
+                    objective = Random.Range(Config.Questing.KillRedMin, Config.Questing.KillRedMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killPoison:
-                    objective = Random.Range(Config.Questing.killPoisonMin, Config.Questing.killPoisonMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillHaunted:
+                    objective = Random.Range(Config.Questing.KillHauntedMin, Config.Questing.KillHauntedMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killBlue:
-                    objective = Random.Range(Config.Questing.killBlueMin, Config.Questing.killBlueMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillWhite:
+                    objective = Random.Range(Config.Questing.KillWhiteMin, Config.Questing.KillWhiteMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killLunar:
-                    objective = Random.Range(Config.Questing.killLunarMin, Config.Questing.killLunarMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillPoison:
+                    objective = Random.Range(Config.Questing.KillPoisonMin, Config.Questing.KillPoisonMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killEarthDLC1:
-                    objective = Random.Range(Config.Questing.killEarthMin, Config.Questing.killEarthMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillBlue:
+                    objective = Random.Range(Config.Questing.KillBlueMin, Config.Questing.KillBlueMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killVoidDLC1:
-                    objective = Random.Range(Config.Questing.killVoidMin, Config.Questing.killVoidMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillLunar:
+                    objective = Random.Range(Config.Questing.KillLunarMin, Config.Questing.KillLunarMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.killByBackstab:
-                    objective = Random.Range(Config.Questing.killByBackstabMin, Config.Questing.killByBackstabMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                case MissionType.KillEarthDLC1:
+                    objective = Random.Range(Config.Questing.KillEarthMin, Config.Questing.KillEarthMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
-                case MissionType.collectGold:
-                    objective = Run.instance.GetDifficultyScaledCost(Random.Range(Config.Questing.collectGoldMin, Config.Questing.collectGoldMax));
+                case MissionType.KillVoidDLC1:
+                    objective = Random.Range(Config.Questing.KillVoidMin, Config.Questing.KillVoidMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+
+                    break;
+
+                case MissionType.KillAurelioniteDLC2:
+                    objective = Random.Range(Config.Questing.KillAurelioniteMin, Config.Questing.KillAurelioniteMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+
+                    break;
+
+                case MissionType.KillBeadDLC2:
+                    objective = Random.Range(Config.Questing.KillBeadMin, Config.Questing.KillBeadMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+
+                    break;
+
+                case MissionType.CollectGold:
+                    objective = Run.instance.GetDifficultyScaledCost(Random.Range(Config.Questing.CollectGoldMin, Config.Questing.CollectGoldMax));
 
                     break;
 
@@ -169,7 +187,7 @@ namespace RPGMod.Questing
 
         private void Listener(int value, NetworkUser networkUser)
         {
-            if (this.networkUser == networkUser)
+            if (_networkUser == networkUser)
             {
                 Progress += value;
             }
