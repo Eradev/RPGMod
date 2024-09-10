@@ -9,7 +9,9 @@ namespace RPGMod.Questing
     public class QuestData : MessageBase
     {
         public bool Complete { get; private set; }
+        public bool Failed { get; private set; }
         public float CompletionTime { get; private set; }
+        public float LimitTime { get; private set; }
         public List<Mission> QuestComponents { get; private set; }
         public PickupIndex Reward { get; private set; }
         public int Guid { get; private set; }
@@ -19,6 +21,8 @@ namespace RPGMod.Questing
         public QuestData()
         {
             Complete = false;
+            Failed = false;
+            LimitTime = 0;
             CompletionTime = 0;
         }
 
@@ -62,6 +66,10 @@ namespace RPGMod.Questing
 
             var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
 
+
+            var timeLimit = Config.Questing.TimerBase + (QuestComponents.Count - 1) * Config.Questing.TimerExtra;
+            LimitTime = Run.instance.GetRunStopwatch() + timeLimit;
+
             if (!Config.UI.SendNewQuestAnnouncement)
             {
                 return;
@@ -77,7 +85,9 @@ namespace RPGMod.Questing
         {
             writer.Write(Guid);
             writer.Write(Complete);
+            writer.Write(Failed);
             writer.Write(CompletionTime);
+            writer.Write(LimitTime);
             writer.Write(Reward);
             writer.Write(QuestComponents.Count);
 
@@ -91,7 +101,9 @@ namespace RPGMod.Questing
         {
             Guid = reader.ReadInt32();
             Complete = reader.ReadBoolean();
+            Failed = reader.ReadBoolean();
             CompletionTime = reader.ReadSingle();
+            LimitTime = reader.ReadSingle();
             Reward = reader.ReadPickupIndex();
             QuestComponents = new List<Mission>();
 
@@ -147,6 +159,10 @@ namespace RPGMod.Questing
             {
                 CompleteQuest();
             }
+            else if (Run.instance.GetRunStopwatch() > LimitTime)
+            {
+                FailQuest();
+            }
         }
 
         public void CompleteQuest()
@@ -170,6 +186,26 @@ namespace RPGMod.Questing
             }
 
             Networking.SendItemReceivedMessage(new ItemReceived(reward.itemIndex), _networkUser.connectionToClient.connectionId);
+        }
+
+        public void FailQuest()
+        {
+            Server.FailQuest(_networkUser);
+
+            Complete = true;
+            Failed = true;
+            CompletionTime = Run.instance.GetRunStopwatch();
+
+            if (!Config.UI.SendQuestFailedAnnouncement)
+            {
+                return;
+            }
+
+            var message = new Announcement(
+                $"I'm disappointed in you <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>. Maybe you'll do better next time..."
+            );
+
+            Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
         }
     }
 }

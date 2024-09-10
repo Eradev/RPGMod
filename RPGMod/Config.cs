@@ -12,6 +12,8 @@ namespace RPGMod
             public static float ChanceUncommon;
             public static float ChanceLegendary;
             public static float ChanceAdjustmentPercent;
+            public static float TimerBase;
+            public static float TimerExtra;
 
             public static string[] Blacklist;
 
@@ -88,6 +90,7 @@ namespace RPGMod
 
             public static bool SendNewQuestAnnouncement;
             public static bool SendQuestCompleteAnnouncement;
+            public static bool SendQuestFailedAnnouncement;
         }
 
         public static void Load(ConfigFile config, bool reload)
@@ -130,6 +133,19 @@ namespace RPGMod
                 2f,
                 new ConfigDescription("Multiplied by the amount of quests completed, the percentage to increase the chance of uncommon and legendary rewards and decrease the chance of common quests")
             ).Value / 100;
+
+            Questing.TimerBase = config.Bind
+            (
+                new ConfigDefinition("Questing", "Timer base"),
+                300f,
+                new ConfigDescription("Base seconds to complete the quest")
+            ).Value;
+            Questing.TimerExtra = config.Bind
+            (
+                new ConfigDefinition("Questing", "Timer extra"),
+                30f,
+                new ConfigDescription("Extra seconds to complete the quest per extra mission")
+            ).Value;
 
             Questing.Blacklist = config.Bind
             (
@@ -519,6 +535,13 @@ namespace RPGMod
                 new ConfigDefinition("UI", "Send quest complete announcement"),
                 true,
                 new ConfigDescription("Send quest complete announcement")
+            ).Value;
+
+            UI.SendQuestFailedAnnouncement = config.Bind
+            (
+                new ConfigDefinition("UI", "Send quest failed announcement"),
+                true,
+                new ConfigDescription("Send quest failed announcement")
             ).Value;
 
             Blacklist.Recalculate();

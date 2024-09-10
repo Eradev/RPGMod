@@ -10,11 +10,20 @@ namespace RPGMod.Questing
             Server.ClientDatas.RemoveAll(BadClientData);
 
             // Create new quest if necessary
-            foreach (var clientData in Server.ClientDatas
-                         .Where(clientData => clientData.QuestData.Complete &&
-                                              Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown))
+            foreach (var clientData in Server.ClientDatas)
             {
-                clientData.NewQuest();
+                if (clientData.QuestData.Complete &&
+                    Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown)
+                {
+                    clientData.NewQuest();
+
+                    continue;
+                }
+
+                if (Run.instance.GetRunStopwatch() > clientData.QuestData.LimitTime)
+                {
+                    CheckClientData(clientData.NetworkUser);
+                }
             }
 
             if (Server.AllowedTypes.Count <= 0 || !(Run.instance.GetRunStopwatch() - Server.TimeoutStart > 4f))
@@ -38,10 +47,7 @@ namespace RPGMod.Questing
 
         public static void CheckClientData(NetworkUser networkUser)
         {
-            foreach (var clientData in Server.ClientDatas.Where(clientData => clientData.NetworkUser == networkUser))
-            {
-                clientData.QuestData.Check();
-            }
+            Server.ClientDatas.First(clientData => clientData.NetworkUser == networkUser).QuestData.Check();
         }
 
         private static bool BadClientData(ClientData clientData)

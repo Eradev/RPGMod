@@ -12,13 +12,15 @@ namespace RPGMod.Questing
 
         public static void CompletedQuest(NetworkUser networkUser)
         {
-            foreach (var clientData in ClientDatas.Where(clientData => clientData.NetworkUser == networkUser))
-            {
-                clientData.QuestsCompleted += 1;
-            }
+            ClientDatas.First(clientData => clientData.NetworkUser == networkUser).QuestsCompleted += 1;
         }
 
-        public static void CheckAllowedType(MissionType missionType)
+        public static void FailQuest(NetworkUser networkUser)
+        {
+            ClientDatas.First(clientData => clientData.NetworkUser == networkUser).QuestsCompleted -= 1;
+        }
+
+        public static void UnlockMissionType(MissionType missionType)
         {
             if (AllowedTypes.Contains(missionType))
             {

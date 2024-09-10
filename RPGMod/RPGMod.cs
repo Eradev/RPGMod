@@ -56,7 +56,7 @@ namespace RPGMod
             {
                 if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
                 {
-                    Questing.Server.CheckAllowedType(Questing.MissionType.CollectGold);
+                    Questing.Server.UnlockMissionType(Questing.MissionType.CollectGold);
                     Questing.Events.GoldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
                 orig(self, amount);
@@ -74,7 +74,7 @@ namespace RPGMod
                 {
                     if (global::RPGMod.Config.Questing.KillAnyEnabled)
                     {
-                        Questing.Server.CheckAllowedType(Questing.MissionType.KillAny);
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillAny);
                     }
 
                     Questing.Events.AnyKilled.Invoke(1, attackerNetworkUser);
@@ -83,7 +83,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillFlyingEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillFlying);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillFlying);
                         }
 
                         Questing.Events.FlyingKilled.Invoke(1, attackerNetworkUser);
@@ -94,7 +94,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillRedEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillRed);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillRed);
                         }
 
                         Questing.Events.RedKilled.Invoke(1, attackerNetworkUser);
@@ -104,7 +104,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillHauntedEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillHaunted);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillHaunted);
                         }
 
                         Questing.Events.HauntedKilled.Invoke(1, attackerNetworkUser);
@@ -114,7 +114,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillWhiteEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillWhite);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillWhite);
                         }
 
                         Questing.Events.WhiteKilled.Invoke(1, attackerNetworkUser);
@@ -124,7 +124,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillPoisonEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillPoison);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillPoison);
                         }
 
                         Questing.Events.PoisonKilled.Invoke(1, attackerNetworkUser);
@@ -134,7 +134,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillBlueEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillBlue);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillBlue);
                         }
 
                         Questing.Events.BlueKilled.Invoke(1, attackerNetworkUser);
@@ -144,7 +144,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillLunarEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillLunar);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillLunar);
                         }
 
                         Questing.Events.LunarKilled.Invoke(1, attackerNetworkUser);
@@ -156,7 +156,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillEarthEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillEarthDLC1);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillEarthDLC1);
                         }
 
                         Questing.Events.EarthKilledDLC1.Invoke(1, attackerNetworkUser);
@@ -167,7 +167,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillVoidEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillVoidDLC1);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillVoidDLC1);
                         }
 
                         Questing.Events.VoidKilledDLC1.Invoke(1, attackerNetworkUser);
@@ -179,7 +179,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillAurelioniteEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillAurelioniteDLC2);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillAurelioniteDLC2);
                         }
 
                         Questing.Events.AurelioniteKilledDLC2.Invoke(1, attackerNetworkUser);
@@ -190,7 +190,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillBeadEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillBeadDLC2);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillBeadDLC2);
                         }
 
                         Questing.Events.BeadKilledDLC2.Invoke(1, attackerNetworkUser);
@@ -202,7 +202,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillAnyBuffEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillAnyBuff);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillAnyBuff);
                         }
 
                         Questing.Events.AnyBuffKilled.Invoke(1, attackerNetworkUser);
@@ -213,7 +213,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillChampionEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillChampion);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillChampion);
                         }
 
                         Questing.Events.ChampionKilled.Invoke(1, attackerNetworkUser);
@@ -222,7 +222,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillEliteEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillElite);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillElite);
                         }
 
                         Questing.Events.EliteKilled.Invoke(1, attackerNetworkUser);
@@ -231,7 +231,7 @@ namespace RPGMod
                     {
                         if (global::RPGMod.Config.Questing.KillCommonEnabled)
                         {
-                            Questing.Server.CheckAllowedType(Questing.MissionType.KillCommon);
+                            Questing.Server.UnlockMissionType(Questing.MissionType.KillCommon);
                         }
 
                         Questing.Events.CommonKilled.Invoke(1, attackerNetworkUser);

@@ -1,5 +1,6 @@
 using RoR2;
 using RPGMod.Questing;
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace RPGMod.UI
         private readonly GameObject _rewardBacking;
         private readonly GameObject _rewardText;
         private readonly GameObject _reward;
+        private readonly GameObject _timer;
         private float _backgroundVel;
         private readonly float _fadeTime;
         private float _startTime;
@@ -95,18 +97,38 @@ namespace RPGMod.UI
 
             _questTitle.GetComponent<RectTransform>().sizeDelta = _questTitle.GetComponent<TextMeshProUGUI>().GetPreferredValues();
 
+            // timer
+            _timer = new GameObject();
+
+            _timer.AddComponent<RectTransform>();
+            _timer.AddComponent<TextMeshProUGUI>();
+
+            _timer.transform.SetParent(_questTitle.transform);
+
+            _timer.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
+            _timer.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
+            _timer.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
+            _timer.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+
+            _timer.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            _timer.GetComponent<TextMeshProUGUI>().font = RoR2.UI.HGTextMeshProUGUI.defaultLanguageFont;
+            _timer.GetComponent<TextMeshProUGUI>().fontSize = 20;
+            _timer.GetComponent<TextMeshProUGUI>().text = "Remaining time: 00:00";
+
+            _timer.GetComponent<RectTransform>().sizeDelta = _timer.GetComponent<TextMeshProUGUI>().GetPreferredValues();
+
             // rewardBacking
             _rewardBacking = new GameObject();
 
             _rewardBacking.AddComponent<RectTransform>();
             _rewardBacking.AddComponent<Image>();
 
-            _rewardBacking.transform.SetParent(_questTitle.transform);
+            _rewardBacking.transform.SetParent(_timer.transform);
 
             _rewardBacking.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
             _rewardBacking.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
             _rewardBacking.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 1);
-            _rewardBacking.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -5, 0);
+            _rewardBacking.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, -10, 0);
             _rewardBacking.GetComponent<RectTransform>().sizeDelta = new Vector2(240, 65);
 
             _rewardBacking.GetComponent<Image>().color = new Color(0, 0, 0, 0.5f);
@@ -199,10 +221,13 @@ namespace RPGMod.UI
                     }
 
                     _questUI.transform.SetParent(transform);
-                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _clientData.QuestComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y);
+                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _clientData.QuestComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y);
                     _questUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
                     _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.ScreenSize.x * Config.UI.QuestPositionX + 60, Utils.ScreenSize.y * Config.UI.QuestPositionY);
                     _questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.HudScale, Utils.HudScale, Utils.HudScale);
+
+                    _timer.GetComponent<TextMeshProUGUI>().text = "Time limit: 00:00";
+                    _timer.GetComponent<TextMeshProUGUI>().color = Color.white;
 
                     _state = UIState.Updating;
 
@@ -210,7 +235,7 @@ namespace RPGMod.UI
 
                 case UIState.Updating:
 
-                    if (_clientData!.Complete && !_finished)
+                    if ((_clientData!.Complete || _clientData.Failed) && !_finished)
                     {
                         _startTime = Run.instance.GetRunStopwatch();
                         _targetAlpha = 0;
@@ -218,25 +243,49 @@ namespace RPGMod.UI
                         _finished = true;
                     }
 
-                    for (var i = _questComponents.Count - 1; i >= 0; i--)
-                    {
-                        _questComponents[i].UpdateData(_clientData.QuestComponents[_questComponents[i].Index], i);
+                    var remainingTime = Math.Max(0f, _clientData.LimitTime - Run.instance.GetRunStopwatch());
 
-                        if (!_clientData.QuestComponents[_questComponents[i].Index].IsCompleted)
+                    if (_clientData.Failed || remainingTime == 0f)
+                    {
+                        _timer.GetComponent<TextMeshProUGUI>().text = "QUEST FAILED";
+                        _timer.GetComponent<TextMeshProUGUI>().color = Color.red;
+
+                        for (var i = _questComponents.Count - 1; i >= 0; i--)
                         {
-                            continue;
+                            _questComponents[i].Destroy();
+                            Destroy(_questComponents[i]);
+                            _questComponents.RemoveAt(i);
+                        }
+                    }
+                    else
+                    {
+                        for (var i = _questComponents.Count - 1; i >= 0; i--)
+                        {
+                            _questComponents[i].UpdateData(_clientData.QuestComponents[_questComponents[i].Index], i);
+
+                            if (!_clientData.QuestComponents[_questComponents[i].Index].IsCompleted)
+                            {
+                                continue;
+                            }
+
+                            _questComponents[i].Destroy();
+                            Destroy(_questComponents[i]);
+                            _questComponents.RemoveAt(i);
                         }
 
-                        _questComponents[i].Destroy();
-                        Destroy(_questComponents[i]);
-                        _questComponents.RemoveAt(i);
+                        _timer.GetComponent<TextMeshProUGUI>().text = $"Time limit: {TimeSpan.FromSeconds(remainingTime):mm':'ss}";
+
+                        if (remainingTime < 60f)
+                        {
+                            _timer.GetComponent<TextMeshProUGUI>().color = Color.red;
+                        }
                     }
 
                     var questUiRectTransform = _questUI.GetComponent<RectTransform>();
 
                     _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUiRectTransform.anchoredPosition.x, _targetX, ref _moveVel, _fadeTime), Utils.ScreenSize.y * Config.UI.QuestPositionY);
                     _questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(_questUI.GetComponent<CanvasGroup>().alpha, _targetAlpha, ref _alphaVel, _fadeTime);
-                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUiRectTransform.sizeDelta.y, _questTitle.GetComponent<RectTransform>().sizeDelta.y + 13.5f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _questComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y, ref _backgroundVel, 0.7f));
+                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUiRectTransform.sizeDelta.y, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _questComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y, ref _backgroundVel, 0.7f));
                     _questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUiRectTransform.sizeDelta.x + 2, questUiRectTransform.sizeDelta.y + 2);
 
                     break;
