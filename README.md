@@ -49,6 +49,9 @@ This mod has a config with many values to change to your desire with the ability
 ## Changelog
 
 ```text
+- 3.5.0
+ * Added a configurable timer for quest.
+ 
 - 3.4.0
  * Added options to disable sending announcements. (Host)
  * Fixed some options' description. Please check your settings if you have changed the default values.
