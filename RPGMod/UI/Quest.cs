@@ -12,7 +12,7 @@ namespace RPGMod.UI
         public static readonly Dictionary<MissionType, string> QuestTypeDict = new Dictionary<MissionType, string>
         {
             { MissionType.KillAny, "Kill any enemies" },
-            { MissionType.KillAnyBuff, "Kill any buffed elite enemies" },
+            { MissionType.KillAnyBuff, "Kill any buffed enemies" },
             { MissionType.KillCommon, "Kill common enemies" },
             { MissionType.KillElite, "Kill elite enemies" },
             { MissionType.KillChampion, "Kill champion enemies" },

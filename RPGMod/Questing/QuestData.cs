@@ -62,6 +62,11 @@ namespace RPGMod.Questing
 
             var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
 
+            if (!Config.UI.SendNewQuestAnnouncement)
+            {
+                return;
+            }
+
             var message = new Announcement(
                 $"Alright <b><color=orange>{this._networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(rewardDef.baseColor)}>{Language.GetString(rewardDef.nameToken)}</color></b>");
 
@@ -153,13 +158,17 @@ namespace RPGMod.Questing
             var player = PlayerCharacterMasterController.instances.Single(x => x.networkUser == _networkUser);
             var reward = PickupCatalog.GetPickupDef(Reward);
 
-            player.master.inventory.GiveItem(reward.itemIndex);
+            player.master.inventory.GiveItem(reward!.itemIndex);
 
-            var message = new Announcement(
-                $"Good work <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
-            );
+            if (Config.UI.SendQuestCompleteAnnouncement)
+            {
+                var message = new Announcement(
+                    $"Good work <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
+                );
 
-            Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
+                Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
+            }
+
             Networking.SendItemReceivedMessage(new ItemReceived(reward.itemIndex), _networkUser.connectionToClient.connectionId);
         }
     }

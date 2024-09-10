@@ -11,7 +11,8 @@ namespace RPGMod.Questing
 
             // Create new quest if necessary
             foreach (var clientData in Server.ClientDatas
-                         .Where(clientData => clientData.QuestData.Complete && Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown))
+                         .Where(clientData => clientData.QuestData.Complete &&
+                                              Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown))
             {
                 clientData.NewQuest();
             }

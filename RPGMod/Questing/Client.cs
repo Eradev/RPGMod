@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using RoR2;
+﻿using RoR2;
+using System.Collections.Generic;
 
 namespace RPGMod.Questing
 {
@@ -24,7 +24,7 @@ namespace RPGMod.Questing
                     return;
                 }
 
-                if (_questUI == null && !((bool)_questData?.Complete))
+                if (_questUI == null && !(_questData!.Complete))
                 {
                     var localUser = LocalUserManager.GetFirstLocalUser();
 

@@ -85,6 +85,9 @@ namespace RPGMod
             public static float QuestPositionY;
             public static float AnnouncerScaleX;
             public static float AnnouncerPositionY;
+
+            public static bool SendNewQuestAnnouncement;
+            public static bool SendQuestCompleteAnnouncement;
         }
 
         public static void Load(ConfigFile config, bool reload)
@@ -156,19 +159,19 @@ namespace RPGMod
 
             Questing.KillAnyBuffEnabled = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed elite kill enabled"),
+                new ConfigDefinition("Questing", "Any buffed enemy kill enabled"),
                 true,
-                new ConfigDescription("Enable Kill any buffed elite enemies mission")
+                new ConfigDescription("Enable Kill any buffed enemies mission")
             ).Value;
             Questing.KillAnyBuffMin = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed elite kill goal minimum"),
+                new ConfigDefinition("Questing", "Any buffed enemy kill goal minimum"),
                 1,
                 new ConfigDescription("The minimum amount for the range of the kill goal")
             ).Value;
             Questing.KillAnyBuffMax = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed elite kill goal maximum"),
+                new ConfigDefinition("Questing", "Any buffed enemy kill goal maximum"),
                 3,
                 new ConfigDescription("The maximum amount for the range of the kill goal")
             ).Value;
@@ -471,11 +474,11 @@ namespace RPGMod
             (
                 new ConfigDefinition("UI", "Use game HUD scale"),
                 true,
-                new ConfigDescription("Determines whether or not the ingame HUD Scale setting is used")
+                new ConfigDescription("Determines whether or not the in-game HUD Scale setting is used")
             ).Value;
             UI.OverrideHUDScale = config.Bind
             (
-                new ConfigDefinition("UI", "HUD Scale override"),
+                new ConfigDefinition("UI", "HUD scale override"),
                 1f,
                 new ConfigDescription("If useHUDScale is false, this value is used to determine scale instead")
             ).Value / 100;
@@ -493,9 +496,9 @@ namespace RPGMod
             ).Value / 100;
             UI.AnnouncerScaleX = config.Bind
             (
-                new ConfigDefinition("UI", "Scale of announcer (x axis)"),
+                new ConfigDefinition("UI", "Width scale of announcer (x axis)"),
                 0.3f,
-                new ConfigDescription("Controls the percentage screen width (x axis) used for the announcer box")
+                new ConfigDescription("Percentage of screen width (x axis) used for the announcer box")
             ).Value;
             UI.AnnouncerPositionY = config.Bind
             (
@@ -504,7 +507,23 @@ namespace RPGMod
                 new ConfigDescription("Location of the announcer on the screen (y axis), represented by screen height percentage")
             ).Value;
 
+            UI.SendNewQuestAnnouncement = config.Bind
+            (
+                new ConfigDefinition("UI", "Send new quest announcement"),
+                true,
+                new ConfigDescription("Send new quest announcement")
+            ).Value;
+
+            UI.SendQuestCompleteAnnouncement = config.Bind
+            (
+                new ConfigDefinition("UI", "Send quest complete announcement"),
+                true,
+                new ConfigDescription("Send quest complete announcement")
+            ).Value;
+
             Blacklist.Recalculate();
+
+            RpgMod.Log.LogDebug("Config loaded.");
         }
     }
 }

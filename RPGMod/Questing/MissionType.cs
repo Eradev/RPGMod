@@ -15,7 +15,6 @@
         KillLunar,
         KillEarthDLC1,
         KillVoidDLC1,
-        KillByBackstab,
         KillAurelioniteDLC2,
         KillBeadDLC2,
         KillAny,
