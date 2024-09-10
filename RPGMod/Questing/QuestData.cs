@@ -1,4 +1,5 @@
 using RoR2;
+using RPGMod.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -128,7 +129,7 @@ namespace RPGMod.Questing
             weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.ChanceLegendary + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
 
             var pickupList = weightedSelection.Evaluate(Random.value);
-            var pickupIndex = pickupList[Random.Range(0, pickupList.Count)];
+            var pickupIndex = pickupList.Random();
 
             return pickupIndex;
         }
@@ -143,7 +144,7 @@ namespace RPGMod.Questing
                 MissionType missionType;
                 do
                 {
-                    missionType = Server.AllowedTypes[Run.instance.runRNG.RangeInt(0, Server.AllowedTypes.Count)];
+                    missionType = Server.AllowedTypes.Random();
                 } while (usedTypes.Contains(missionType));
 
                 usedTypes.Add(missionType);
