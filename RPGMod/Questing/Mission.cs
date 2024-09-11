@@ -37,7 +37,7 @@ namespace RPGMod.Questing
         public int Progress
         {
             get => _progress;
-            set
+            private set
             {
                 if (IsCompleted)
                 {
@@ -51,8 +51,7 @@ namespace RPGMod.Questing
                     return;
                 }
 
-                IsCompleted = true;
-                RemoveListener();
+                Abort();
                 Manager.CheckClientData(_networkUser);
             }
         }
@@ -183,6 +182,12 @@ namespace RPGMod.Questing
             }
 
             return objective;
+        }
+
+        public void Abort()
+        {
+            IsCompleted = true;
+            RemoveListener();
         }
 
         private void Listener(int value, NetworkUser networkUser)

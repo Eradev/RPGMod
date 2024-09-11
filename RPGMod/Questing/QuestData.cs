@@ -13,7 +13,7 @@ namespace RPGMod.Questing
         public bool Failed { get; private set; }
         public float CompletionTime { get; private set; }
         public float LimitTime { get; private set; }
-        public List<Mission> QuestComponents { get; private set; }
+        public List<Mission> Missions { get; private set; }
         public PickupIndex Reward { get; private set; }
         public int Guid { get; private set; }
 
@@ -49,15 +49,15 @@ namespace RPGMod.Questing
             switch (rewardTier)
             {
                 case ItemTier.Tier1:
-                    QuestComponents = GenerateQuestComponents(1, this._networkUser);
+                    Missions = GenerateQuestComponents(1, this._networkUser);
                     break;
 
                 case ItemTier.Tier2:
-                    QuestComponents = GenerateQuestComponents(2, this._networkUser);
+                    Missions = GenerateQuestComponents(2, this._networkUser);
                     break;
 
                 case ItemTier.Tier3:
-                    QuestComponents = GenerateQuestComponents(3, this._networkUser);
+                    Missions = GenerateQuestComponents(3, this._networkUser);
                     break;
 
                 default:
@@ -65,10 +65,10 @@ namespace RPGMod.Questing
                     break;
             }
 
-            var missions = QuestComponents.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
+            var missions = Missions.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
 
 
-            var timeLimit = Config.Questing.TimerBase + (QuestComponents.Count - 1) * Config.Questing.TimerExtra;
+            var timeLimit = Config.Questing.TimerBase + (Missions.Count - 1) * Config.Questing.TimerExtra;
             LimitTime = Run.instance.GetRunStopwatch() + timeLimit;
 
             if (!Config.UI.SendNewQuestAnnouncement)
@@ -90,9 +90,9 @@ namespace RPGMod.Questing
             writer.Write(CompletionTime);
             writer.Write(LimitTime);
             writer.Write(Reward);
-            writer.Write(QuestComponents.Count);
+            writer.Write(Missions.Count);
 
-            foreach (var questComponent in QuestComponents)
+            foreach (var questComponent in Missions)
             {
                 writer.Write(questComponent);
             }
@@ -106,12 +106,12 @@ namespace RPGMod.Questing
             CompletionTime = reader.ReadSingle();
             LimitTime = reader.ReadSingle();
             Reward = reader.ReadPickupIndex();
-            QuestComponents = new List<Mission>();
+            Missions = new List<Mission>();
 
             var questCount = reader.ReadInt32();
             for (var i = 0; i < questCount; i++)
             {
-                QuestComponents.Add(reader.ReadMission());
+                Missions.Add(reader.ReadMission());
             }
         }
 
@@ -156,7 +156,12 @@ namespace RPGMod.Questing
 
         public void Check()
         {
-            if (QuestComponents.Count(x => x.IsCompleted) == QuestComponents.Count)
+            if (Complete)
+            {
+                return;
+            }
+
+            if (Missions.Count(x => x.IsCompleted) == Missions.Count)
             {
                 CompleteQuest();
             }
@@ -168,7 +173,13 @@ namespace RPGMod.Questing
 
         public void CompleteQuest()
         {
+            if (Complete)
+            {
+                return;
+            }
+
             Server.CompletedQuest(_networkUser);
+
             Complete = true;
             CompletionTime = Run.instance.GetRunStopwatch();
 
@@ -191,11 +202,21 @@ namespace RPGMod.Questing
 
         public void FailQuest()
         {
+            if (Complete)
+            {
+                return;
+            }
+
             Server.FailQuest(_networkUser);
 
             Complete = true;
             Failed = true;
             CompletionTime = Run.instance.GetRunStopwatch();
+
+            foreach (var mission in Missions)
+            {
+                mission.Abort();
+            }
 
             if (!Config.UI.SendQuestFailedAnnouncement)
             {

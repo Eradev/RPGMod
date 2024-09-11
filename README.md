@@ -49,8 +49,11 @@ This mod has a config with many values to change to your desire with the ability
 ## Changelog
 
 ```text
+- 3.5.1
+ * Fixed quest check when timer runs out.
+
 - 3.5.0
- * Added a configurable timer for quest.
+ * Added a configurable timer for quests.
  
 - 3.4.0
  * Added options to disable sending announcements. (Host)

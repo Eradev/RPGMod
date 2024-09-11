@@ -44,7 +44,7 @@ namespace RPGMod.UI
         private float _alphaVel;
         private float _targetX;
         private float _targetAlpha;
-        private List<Mission> _questComponents;
+        private List<Mission> _missionComponents;
         private bool _finished;
         private UIState _state;
         private QuestData _clientData;
@@ -212,16 +212,16 @@ namespace RPGMod.UI
                     _rewardText.GetComponent<TextMeshProUGUI>().color = pickupDef.baseColor;
                     _reward.GetComponent<RawImage>().texture = pickupDef.iconTexture;
 
-                    _questComponents = new List<Mission>();
-                    for (var i = 0; i < _clientData.QuestComponents.Count; i++)
+                    _missionComponents = new List<Mission>();
+                    for (var i = 0; i < _clientData.Missions.Count; i++)
                     {
-                        var questComponent = _rewardText.AddComponent<Mission>();
-                        questComponent.Index = i;
-                        _questComponents.Add(questComponent);
+                        var missionComponent = _rewardText.AddComponent<Mission>();
+                        missionComponent.Index = i;
+                        _missionComponents.Add(missionComponent);
                     }
 
                     _questUI.transform.SetParent(transform);
-                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _clientData.QuestComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y);
+                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _clientData.Missions.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y);
                     _questUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
                     _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.ScreenSize.x * Config.UI.QuestPositionX + 60, Utils.ScreenSize.y * Config.UI.QuestPositionY);
                     _questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.HudScale, Utils.HudScale, Utils.HudScale);
@@ -250,27 +250,27 @@ namespace RPGMod.UI
                         _timer.GetComponent<TextMeshProUGUI>().text = "QUEST FAILED";
                         _timer.GetComponent<TextMeshProUGUI>().color = Color.red;
 
-                        for (var i = _questComponents.Count - 1; i >= 0; i--)
+                        for (var i = _missionComponents.Count - 1; i >= 0; i--)
                         {
-                            _questComponents[i].Destroy();
-                            Destroy(_questComponents[i]);
-                            _questComponents.RemoveAt(i);
+                            _missionComponents[i].Destroy();
+                            Destroy(_missionComponents[i]);
+                            _missionComponents.RemoveAt(i);
                         }
                     }
                     else
                     {
-                        for (var i = _questComponents.Count - 1; i >= 0; i--)
+                        for (var i = _missionComponents.Count - 1; i >= 0; i--)
                         {
-                            _questComponents[i].UpdateData(_clientData.QuestComponents[_questComponents[i].Index], i);
+                            _missionComponents[i].UpdateData(_clientData.Missions[_missionComponents[i].Index], i);
 
-                            if (!_clientData.QuestComponents[_questComponents[i].Index].IsCompleted)
+                            if (!_clientData.Missions[_missionComponents[i].Index].IsCompleted)
                             {
                                 continue;
                             }
 
-                            _questComponents[i].Destroy();
-                            Destroy(_questComponents[i]);
-                            _questComponents.RemoveAt(i);
+                            _missionComponents[i].Destroy();
+                            Destroy(_missionComponents[i]);
+                            _missionComponents.RemoveAt(i);
                         }
 
                         _timer.GetComponent<TextMeshProUGUI>().text = $"Time limit: {TimeSpan.FromSeconds(remainingTime):mm':'ss}";
@@ -285,7 +285,7 @@ namespace RPGMod.UI
 
                     _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUiRectTransform.anchoredPosition.x, _targetX, ref _moveVel, _fadeTime), Utils.ScreenSize.y * Config.UI.QuestPositionY);
                     _questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(_questUI.GetComponent<CanvasGroup>().alpha, _targetAlpha, ref _alphaVel, _fadeTime);
-                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUiRectTransform.sizeDelta.y, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _questComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y, ref _backgroundVel, 0.7f));
+                    _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUiRectTransform.sizeDelta.y, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _missionComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y, ref _backgroundVel, 0.7f));
                     _questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUiRectTransform.sizeDelta.x + 2, questUiRectTransform.sizeDelta.y + 2);
 
                     break;

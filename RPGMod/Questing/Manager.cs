@@ -9,20 +9,21 @@ namespace RPGMod.Questing
         {
             Server.ClientDatas.RemoveAll(BadClientData);
 
-            // Create new quest if necessary
             foreach (var clientData in Server.ClientDatas)
             {
-                if (clientData.QuestData.Complete &&
-                    Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown)
+                switch (clientData.QuestData.Complete)
                 {
-                    clientData.NewQuest();
+                    // Create new quest if necessary
+                    case true when Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown:
+                        clientData.NewQuest();
 
-                    continue;
-                }
+                        break;
 
-                if (Run.instance.GetRunStopwatch() > clientData.QuestData.LimitTime)
-                {
-                    CheckClientData(clientData.NetworkUser);
+                    // Fail quests that exceeded the time limit
+                    case false when Run.instance.GetRunStopwatch() > clientData.QuestData.LimitTime:
+                        CheckClientData(clientData.NetworkUser);
+
+                        break;
                 }
             }
 
