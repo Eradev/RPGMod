@@ -48,6 +48,7 @@ namespace RPGMod
         public static void Write(this NetworkWriter writer, Mission mission)
         {
             writer.Write(mission.MissionType);
+            writer.Write(mission.MissionSpecification);
             writer.Write(mission.IsCompleted);
             writer.Write(mission.Progress);
             writer.Write(mission.Objective);
@@ -68,6 +69,7 @@ namespace RPGMod
         {
             return new Mission(
                 reader.ReadMissionType(),
+                reader.ReadString(),
                 reader.ReadBoolean(),
                 reader.ReadInt32(),
                 reader.ReadInt32()

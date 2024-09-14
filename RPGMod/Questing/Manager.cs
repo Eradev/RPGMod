@@ -60,6 +60,8 @@ namespace RPGMod.Questing
         {
             Server.ClientDatas.Clear();
             Server.AllowedTypes.Clear();
+            Server.AllowedMonsterTypes.Clear();
+            Server.AllowedBuffTypes.Clear();
             Server.TimeoutStart = 0f;
             Client.CleanUp();
 

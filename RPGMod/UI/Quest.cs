@@ -13,22 +13,13 @@ namespace RPGMod.UI
         public static readonly Dictionary<MissionType, string> QuestTypeDict = new Dictionary<MissionType, string>
         {
             { MissionType.KillAny, "Kill any enemies" },
-            { MissionType.KillAnyBuff, "Kill any buffed enemies" },
             { MissionType.KillCommon, "Kill common enemies" },
             { MissionType.KillElite, "Kill elite enemies" },
             { MissionType.KillChampion, "Kill champion enemies" },
             { MissionType.KillFlying, "Kill flying enemies" },
-            { MissionType.KillRed, "Kill Blazing enemies" },
-            { MissionType.KillHaunted, "Kill Celestine enemies" },
-            { MissionType.KillWhite, "Kill Glacial enemies" },
-            { MissionType.KillPoison, "Kill Malachite enemies" },
-            { MissionType.KillBlue, "Kill Overloading enemies" },
-            { MissionType.KillLunar, "Kill Perfected enemies" },
-            { MissionType.KillEarthDLC1, "Kill Mending enemies" },
-            { MissionType.KillVoidDLC1, "Kill Voidtouched enemies" },
-            { MissionType.KillAurelioniteDLC2, "Kill Gilded enemies" },
-            { MissionType.KillBeadDLC2, "Kill Twisted enemies" },
-            { MissionType.CollectGold, "Collect gold" }
+            { MissionType.CollectGold, "Collect gold" },
+            { MissionType.KillSpecificName, "Kill {0}" },
+            { MissionType.KillSpecificBuff, "Kill {0} enemies" },
         };
 
         private readonly GameObject _questUI;

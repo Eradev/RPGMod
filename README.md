@@ -49,6 +49,14 @@ This mod has a config with many values to change to your desire with the ability
 ## Changelog
 
 ```text
+- 3.6.0
+ * Added a dynamic Kill specific enemies mission.
+ * Added an option to disable Collect gold mission.
+ * Added options to specify the number of missions to generate per item tier.
+ * Added new announcement messages.
+ * Removed all hardcoded kill enemies with EliteBuff missions with a dynamic one.
+ * Removed kill any buffed enemies mission.
+
 - 3.5.1
  * Fixed quest check when timer runs out.
 

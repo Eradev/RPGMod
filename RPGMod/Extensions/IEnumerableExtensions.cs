@@ -15,9 +15,7 @@ namespace RPGMod.Extensions
         {
             var enumerable = q.ToList();
 
-            return !enumerable.Any()
-                ? default(T)
-                : enumerable.Skip(new Random().Next(enumerable.Count())).FirstOrDefault();
+            return enumerable.Skip(new Random().Next(enumerable.Count)).FirstOrDefault();
         }
     }
 }

@@ -20,9 +20,6 @@ namespace RPGMod
             public static bool KillAnyEnabled;
             public static int KillAnyMin;
             public static int KillAnyMax;
-            public static bool KillAnyBuffEnabled;
-            public static int KillAnyBuffMin;
-            public static int KillAnyBuffMax;
 
             public static bool KillCommonEnabled;
             public static int KillCommonMin;
@@ -38,39 +35,26 @@ namespace RPGMod
             public static int KillFlyingMin;
             public static int KillFlyingMax;
 
-            public static bool KillRedEnabled;
-            public static int KillRedMin;
-            public static int KillRedMax;
-            public static bool KillHauntedEnabled;
-            public static int KillHauntedMin;
-            public static int KillHauntedMax;
-            public static bool KillWhiteEnabled;
-            public static int KillWhiteMin;
-            public static int KillWhiteMax;
-            public static bool KillPoisonEnabled;
-            public static int KillPoisonMin;
-            public static int KillPoisonMax;
-            public static bool KillBlueEnabled;
-            public static int KillBlueMin;
-            public static int KillBlueMax;
-            public static bool KillLunarEnabled;
-            public static int KillLunarMin;
-            public static int KillLunarMax;
-            public static bool KillEarthEnabled;
-            public static int KillEarthMin;
-            public static int KillEarthMax;
-            public static bool KillVoidEnabled;
-            public static int KillVoidMin;
-            public static int KillVoidMax;
-            public static bool KillAurelioniteEnabled;
-            public static int KillAurelioniteMin;
-            public static int KillAurelioniteMax;
-            public static bool KillBeadEnabled;
-            public static int KillBeadMin;
-            public static int KillBeadMax;
+            public static bool KillSpecificNameEnabled;
+            public static int KillSpecificNameMin;
+            public static int KillSpecificNameMax;
 
+            public static bool KillSpecificBuffEnabled;
+            public static int KillSpecificBuffMin;
+            public static int KillSpecificBuffMax;
+
+            public static bool CollectGoldEnabled;
             public static int CollectGoldMin;
             public static int CollectGoldMax;
+
+            public static int MinNumMissionsTier1;
+            public static int MaxNumMissionsTier1;
+
+            public static int MinNumMissionsTier2;
+            public static int MaxNumMissionsTier2;
+
+            public static int MinNumMissionsTier3;
+            public static int MaxNumMissionsTier3;
         }
 
         public struct Networking
@@ -137,7 +121,7 @@ namespace RPGMod
             Questing.TimerBase = config.Bind
             (
                 new ConfigDefinition("Questing", "Timer base"),
-                300f,
+                180f,
                 new ConfigDescription("Base seconds to complete the quest")
             ).Value;
             Questing.TimerExtra = config.Bind
@@ -169,26 +153,26 @@ namespace RPGMod
             Questing.KillAnyMax = config.Bind
             (
                 new ConfigDefinition("Questing", "Any kill goal maximum"),
-                25,
+                20,
                 new ConfigDescription("The maximum amount for the range of the kill goal")
             ).Value;
 
-            Questing.KillAnyBuffEnabled = config.Bind
+            Questing.KillSpecificNameEnabled = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed enemy kill enabled"),
+                new ConfigDefinition("Questing", "Specific enemy kill enabled"),
                 true,
-                new ConfigDescription("Enable Kill any buffed enemies mission")
+                new ConfigDescription("Enable Kill specific enemies mission")
             ).Value;
-            Questing.KillAnyBuffMin = config.Bind
+            Questing.KillSpecificNameMin = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed enemy kill goal minimum"),
-                1,
+                new ConfigDefinition("Questing", "Specific enemy kill goal minimum"),
+                2,
                 new ConfigDescription("The minimum amount for the range of the kill goal")
             ).Value;
-            Questing.KillAnyBuffMax = config.Bind
+            Questing.KillSpecificNameMax = config.Bind
             (
-                new ConfigDefinition("Questing", "Any buffed enemy kill goal maximum"),
-                3,
+                new ConfigDefinition("Questing", "Specific enemy kill goal maximum"),
+                5,
                 new ConfigDescription("The maximum amount for the range of the kill goal")
             ).Value;
 
@@ -268,207 +252,84 @@ namespace RPGMod
                 new ConfigDescription("The maximum amount for the range of the kill goal")
             ).Value;
 
-            Questing.KillRedEnabled = config.Bind
+            Questing.KillSpecificBuffEnabled = config.Bind
             (
-                new ConfigDefinition("Questing", "Blazing kill enabled"),
+                new ConfigDefinition("Questing", "Specific buff kill enabled"),
                 true,
-                new ConfigDescription("Enable Kill Blazing enemies mission")
+                new ConfigDescription("Enable Kill enemies with specific buff mission")
             ).Value;
-            Questing.KillRedMin = config.Bind
+            Questing.KillSpecificBuffMin = config.Bind
             (
-                new ConfigDefinition("Questing", "Blazing kill goal minimum"),
+                new ConfigDefinition("Questing", "Specific buff kill goal minimum"),
                 1,
                 new ConfigDescription("The minimum amount for the range of the kill goal")
             ).Value;
-            Questing.KillRedMax = config.Bind
+            Questing.KillSpecificBuffMax = config.Bind
             (
-                new ConfigDefinition("Questing", "Blazing kill goal maximum"),
+                new ConfigDefinition("Questing", "Specific buff kill goal maximum"),
                 2,
                 new ConfigDescription("The maximum amount for the range of the kill goal")
             ).Value;
 
-            Questing.KillHauntedEnabled = config.Bind
+            Questing.CollectGoldEnabled = config.Bind
             (
-                new ConfigDefinition("Questing", "Celestine kill enabled"),
+                new ConfigDefinition("Questing", "Collect gold mission enabled"),
                 true,
-                new ConfigDescription("Enable Kill Celestine enemies mission")
+                new ConfigDescription("Enable Collect gold mission")
             ).Value;
-            Questing.KillHauntedMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Celestine kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillHauntedMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Celestine kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillWhiteEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Glacial kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Glacial enemies mission")
-            ).Value;
-            Questing.KillWhiteMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Glacial kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillWhiteMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Glacial kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillPoisonEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Malachite kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Malachite enemies mission")
-            ).Value;
-            Questing.KillPoisonMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Malachite kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillPoisonMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Malachite kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillBlueEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Overloading kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Overloading enemies mission")
-            ).Value;
-            Questing.KillBlueMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Overloading kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillBlueMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Overloading kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillLunarEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Perfected kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Perfected enemies mission")
-            ).Value;
-            Questing.KillLunarMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Perfected kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillLunarMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Perfected kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillEarthEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Mending kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Mending enemies mission")
-            ).Value;
-            Questing.KillEarthMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Mending kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillEarthMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Mending kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillVoidEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Void kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Void enemies mission")
-            ).Value;
-            Questing.KillVoidMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Void kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillVoidMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Void kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillAurelioniteEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Gilded kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Gilded enemies mission")
-            ).Value;
-            Questing.KillAurelioniteMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Gilded kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillAurelioniteMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Gilded kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
-            Questing.KillBeadEnabled = config.Bind
-            (
-                new ConfigDefinition("Questing", "Twisted kill enabled"),
-                true,
-                new ConfigDescription("Enable Kill Twisted enemies mission")
-            ).Value;
-            Questing.KillBeadMin = config.Bind
-            (
-                new ConfigDefinition("Questing", "Twisted kill goal minimum"),
-                1,
-                new ConfigDescription("The minimum amount for the range of the kill goal")
-            ).Value;
-            Questing.KillBeadMax = config.Bind
-            (
-                new ConfigDefinition("Questing", "Twisted kill goal maximum"),
-                2,
-                new ConfigDescription("The maximum amount for the range of the kill goal")
-            ).Value;
-
             Questing.CollectGoldMin = config.Bind
             (
-                new ConfigDefinition("Questing", "Collect gold goal minimum"),
+                new ConfigDefinition("Questing", "Collect gold mission minimum"),
                 12,
-                new ConfigDescription("The minimum amount for the range of the gold goal, before difficulty scaling (refer to this as the start of the game cost)")
+                new ConfigDescription("The minimum amount for the range of the gold mission, before difficulty scaling (refer to this as the start of the game cost)")
             ).Value;
             Questing.CollectGoldMax = config.Bind
             (
-                new ConfigDefinition("Questing", "Collect gold goal maximum"),
+                new ConfigDefinition("Questing", "Collect gold mission maximum"),
                 31,
-                new ConfigDescription("The maximum amount for the range of the gold goal, before difficulty scaling (refer to this as the start of the game cost)")
+                new ConfigDescription("The maximum amount for the range of the gold mission, before difficulty scaling (refer to this as the start of the game cost)")
+            ).Value;
+
+            Questing.MinNumMissionsTier1 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Minimum missions for Tier 1 items"),
+                1,
+                new ConfigDescription("The minimum amount of missions to generate for Tier 1 items")
+            ).Value;
+
+            Questing.MaxNumMissionsTier1 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Maximum missions for Tier 1 items"),
+                1,
+                new ConfigDescription("The maximum amount of missions to generate for Tier 1 items")
+            ).Value;
+
+            Questing.MinNumMissionsTier2 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Minimum missions for Tier 2 items"),
+                2,
+                new ConfigDescription("The minimum amount of missions to generate for Tier 1 items")
+            ).Value;
+
+            Questing.MaxNumMissionsTier2 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Maximum missions for Tier 2 items"),
+                2,
+                new ConfigDescription("The maximum amount of missions to generate for Tier 2 items")
+            ).Value;
+
+            Questing.MinNumMissionsTier3 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Minimum missions for Tier 3 items"),
+                3,
+                new ConfigDescription("The minimum amount of missions to generate for Tier 3 items")
+            ).Value;
+
+            Questing.MaxNumMissionsTier3 = config.Bind
+            (
+                new ConfigDefinition("Questing", "Maximum missions for Tier 3 items"),
+                4,
+                new ConfigDescription("The maximum amount of missions to generate for Tier 3 items")
             ).Value;
 
             // Networking

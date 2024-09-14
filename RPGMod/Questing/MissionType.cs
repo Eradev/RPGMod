@@ -7,17 +7,8 @@
         KillChampion,
         CollectGold,
         KillFlying,
-        KillRed,
-        KillHaunted,
-        KillWhite,
-        KillPoison,
-        KillBlue,
-        KillLunar,
-        KillEarthDLC1,
-        KillVoidDLC1,
-        KillAurelioniteDLC2,
-        KillBeadDLC2,
         KillAny,
-        KillAnyBuff
+        KillSpecificName,
+        KillSpecificBuff
     }
 }

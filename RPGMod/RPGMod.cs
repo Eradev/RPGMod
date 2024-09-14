@@ -1,6 +1,8 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 using RoR2;
+using RPGMod.Extensions;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -54,11 +56,14 @@ namespace RPGMod
 
             On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
             {
-                if (NetworkServer.active && self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
+                if (global::RPGMod.Config.Questing.CollectGoldEnabled &&
+                    NetworkServer.active &&
+                    self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
                 {
                     Questing.Server.UnlockMissionType(Questing.MissionType.CollectGold);
-                    Questing.Events.GoldCollected.Invoke((int)amount, self.GetComponent<PlayerCharacterMasterController>().networkUser);
+                    Questing.Events.GoldCollected.Invoke((int)amount, null, self.GetComponent<PlayerCharacterMasterController>().networkUser);
                 }
+
                 orig(self, amount);
             };
 
@@ -68,173 +73,55 @@ namespace RPGMod
                 var damageInfo = damageReport.damageInfo;
                 var attackerBody = damageInfo?.attacker?.GetComponent<CharacterBody>();
                 var attackerNetworkUser = GetKillerNetworkUser(attackerBody?.masterObject?.GetComponent<CharacterMaster>());
-                var enemyHasBuff = false;
 
                 if (enemyBody != null && attackerBody != null && attackerNetworkUser?.netId != null)
                 {
                     if (global::RPGMod.Config.Questing.KillAnyEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillAny);
+                        Questing.Events.AnyKilled.Invoke(1, null, attackerNetworkUser);
                     }
 
-                    Questing.Events.AnyKilled.Invoke(1, attackerNetworkUser);
-
-                    if (enemyBody.isFlying)
+                    if (enemyBody.isFlying && global::RPGMod.Config.Questing.KillFlyingEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillFlyingEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillFlying);
-                        }
-
-                        Questing.Events.FlyingKilled.Invoke(1, attackerNetworkUser);
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillFlying);
+                        Questing.Events.FlyingKilled.Invoke(1, null, attackerNetworkUser);
                     }
 
-                    // Buffs
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixRed))
+                    // Dynamic
+                    if (!enemyBody.isBoss && global::RPGMod.Config.Questing.KillSpecificNameEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillRedEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillRed);
-                        }
-
-                        Questing.Events.RedKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixHaunted))
-                    {
-                        if (global::RPGMod.Config.Questing.KillHauntedEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillHaunted);
-                        }
-
-                        Questing.Events.HauntedKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixWhite))
-                    {
-                        if (global::RPGMod.Config.Questing.KillWhiteEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillWhite);
-                        }
-
-                        Questing.Events.WhiteKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixPoison))
-                    {
-                        if (global::RPGMod.Config.Questing.KillPoisonEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillPoison);
-                        }
-
-                        Questing.Events.PoisonKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixBlue))
-                    {
-                        if (global::RPGMod.Config.Questing.KillBlueEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillBlue);
-                        }
-
-                        Questing.Events.BlueKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-                    if (enemyBody.HasBuff(RoR2Content.Buffs.AffixLunar))
-                    {
-                        if (global::RPGMod.Config.Questing.KillLunarEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillLunar);
-                        }
-
-                        Questing.Events.LunarKilled.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillSpecificName);
+                        Questing.Server.UnlockMonsterType(enemyBody);
+                        Questing.Events.SpecificNameKilled.Invoke(1, enemyBody.baseNameToken, attackerNetworkUser);
                     }
 
-                    // DLC1
-                    if (enemyBody.HasBuff(DLC1Content.Buffs.EliteEarth))
+                    if (enemyBody.isElite && global::RPGMod.Config.Questing.KillSpecificBuffEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillEarthEnabled)
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillSpecificBuff);
+
+                        foreach (var buff in enemyBody.ActiveBuffsList().Select(BuffCatalog.GetBuffDef).Where(x => x.isElite))
                         {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillEarthDLC1);
+                            Questing.Server.UnlockBuffType(buff);
+                            Questing.Events.SpecificBuffKilled.Invoke(1, buff.eliteDef.modifierToken, attackerNetworkUser);
                         }
-
-                        Questing.Events.EarthKilledDLC1.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-
-                    if (enemyBody.HasBuff(DLC1Content.Buffs.EliteVoid))
-                    {
-                        if (global::RPGMod.Config.Questing.KillVoidEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillVoidDLC1);
-                        }
-
-                        Questing.Events.VoidKilledDLC1.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-
-                    // DLC2
-                    if (enemyBody.HasBuff(DLC2Content.Buffs.EliteAurelionite))
-                    {
-                        if (global::RPGMod.Config.Questing.KillAurelioniteEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillAurelioniteDLC2);
-                        }
-
-                        Questing.Events.AurelioniteKilledDLC2.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-
-                    if (enemyBody.HasBuff(DLC2Content.Buffs.EliteBead))
-                    {
-                        if (global::RPGMod.Config.Questing.KillBeadEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillBeadDLC2);
-                        }
-
-                        Questing.Events.BeadKilledDLC2.Invoke(1, attackerNetworkUser);
-                        enemyHasBuff = true;
-                    }
-
-                    // Kill any with buff
-                    if (enemyHasBuff)
-                    {
-                        if (global::RPGMod.Config.Questing.KillAnyBuffEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillAnyBuff);
-                        }
-
-                        Questing.Events.AnyBuffKilled.Invoke(1, attackerNetworkUser);
                     }
 
                     // By rarity
-                    if (enemyBody.isChampion)
+                    if (enemyBody.isChampion && global::RPGMod.Config.Questing.KillChampionEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillChampionEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillChampion);
-                        }
-
-                        Questing.Events.ChampionKilled.Invoke(1, attackerNetworkUser);
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillChampion);
+                        Questing.Events.ChampionKilled.Invoke(1, null, attackerNetworkUser);
                     }
-                    else if (enemyBody.isElite)
+                    else if (enemyBody.isElite && global::RPGMod.Config.Questing.KillEliteEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillEliteEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillElite);
-                        }
-
-                        Questing.Events.EliteKilled.Invoke(1, attackerNetworkUser);
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillElite);
+                        Questing.Events.EliteKilled.Invoke(1, null, attackerNetworkUser);
                     }
-                    else
+                    else if (global::RPGMod.Config.Questing.KillCommonEnabled)
                     {
-                        if (global::RPGMod.Config.Questing.KillCommonEnabled)
-                        {
-                            Questing.Server.UnlockMissionType(Questing.MissionType.KillCommon);
-                        }
-
-                        Questing.Events.CommonKilled.Invoke(1, attackerNetworkUser);
+                        Questing.Server.UnlockMissionType(Questing.MissionType.KillCommon);
+                        Questing.Events.CommonKilled.Invoke(1, null, attackerNetworkUser);
                     }
                 }
 

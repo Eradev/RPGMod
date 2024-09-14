@@ -1,9 +1,11 @@
 using RoR2;
 using RPGMod.Extensions;
+using RPGMod.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Networking;
+using Random = System.Random;
 
 namespace RPGMod.Questing
 {
@@ -35,38 +37,38 @@ namespace RPGMod.Questing
                 Guid = System.Guid.NewGuid().GetHashCode();
             } while (Guid == oldGuid);
 
-            this._networkUser = networkUser;
+            _networkUser = networkUser;
 
             ItemTier rewardTier;
-            PickupDef rewardDef;
+
             do
             {
                 Reward = GenerateReward(questsCompleted);
-                rewardDef = PickupCatalog.GetPickupDef(Reward);
+                var rewardDef = PickupCatalog.GetPickupDef(Reward);
                 rewardTier = ItemCatalog.GetItemDef(rewardDef!.itemIndex).tier;
-            } while (!((int)rewardTier < Server.AllowedTypes.Count));
+            } while (rewardTier > Server.MaxAllowedRewardTier);
+
+            var r = new Random();
 
             switch (rewardTier)
             {
                 case ItemTier.Tier1:
-                    Missions = GenerateQuestComponents(1, this._networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier1, Config.Questing.MaxNumMissionsTier1), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 case ItemTier.Tier2:
-                    Missions = GenerateQuestComponents(2, this._networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier2, Config.Questing.MaxNumMissionsTier2), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 case ItemTier.Tier3:
-                    Missions = GenerateQuestComponents(3, this._networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier3, Config.Questing.MaxNumMissionsTier3), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 default:
-                    RpgMod.Log.LogError(rewardTier);
+                    RpgMod.Log.LogError($"Reward tier not supported: {rewardTier}");
+
                     break;
             }
-
-            var missions = Missions.Select(questComponent => UI.Quest.QuestTypeDict[questComponent.MissionType]).ToList();
-
 
             var timeLimit = Config.Questing.TimerBase + (Missions.Count - 1) * Config.Questing.TimerExtra;
             LimitTime = Run.instance.GetRunStopwatch() + timeLimit;
@@ -76,10 +78,9 @@ namespace RPGMod.Questing
                 return;
             }
 
-            var message = new Announcement(
-                $"Alright <b><color=orange>{this._networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, we'll be needing you to do these missions: <b>({string.Join(", ", missions)}),</b> to receive <b><color=#{ColorUtility.ToHtmlStringRGBA(rewardDef.baseColor)}>{Language.GetString(rewardDef.nameToken)}</color></b>");
+            var message = new Announcement(string.Format(Messages.NewQuestAnnouncement, _networkUser.GetNetworkPlayerName().GetResolvedName()));
 
-            Networking.SendAnnouncement(message, this._networkUser.connectionToClient.connectionId);
+            Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
         }
 
         public override void Serialize(NetworkWriter writer)
@@ -128,27 +129,36 @@ namespace RPGMod.Questing
             weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, Config.Questing.ChanceUncommon + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
             weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.ChanceLegendary + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
 
-            var pickupList = weightedSelection.Evaluate(Random.value);
+            var pickupList = weightedSelection.Evaluate(UnityEngine.Random.value);
             var pickupIndex = pickupList.Random();
 
             return pickupIndex;
         }
 
-        public List<Mission> GenerateQuestComponents(int amount, NetworkUser networkUser)
+        public List<Mission> GenerateMissionComponents(int amount, NetworkUser networkUser)
         {
             var questComponents = new List<Mission>();
-            var usedTypes = new List<MissionType>();
+            var usedTypes = new List<(MissionType, string)>();
 
             for (var i = 0; i < amount; i++)
             {
                 MissionType missionType;
+                string missionSpecification;
+
                 do
                 {
                     missionType = Server.AllowedTypes.Random();
-                } while (usedTypes.Contains(missionType));
 
-                usedTypes.Add(missionType);
-                questComponents.Add(new Mission(missionType, networkUser));
+                    missionSpecification = missionType switch
+                    {
+                        MissionType.KillSpecificName => Server.AllowedMonsterTypes.Random(),
+                        MissionType.KillSpecificBuff => Server.AllowedBuffTypes.Random(),
+                        _ => null
+                    };
+                } while (usedTypes.Contains((missionType, missionSpecification)));
+
+                usedTypes.Add((missionType, missionSpecification));
+                questComponents.Add(new Mission(missionType, missionSpecification, networkUser));
             }
 
             return questComponents;
@@ -190,9 +200,7 @@ namespace RPGMod.Questing
 
             if (Config.UI.SendQuestCompleteAnnouncement)
             {
-                var message = new Announcement(
-                    $"Good work <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>, you have been rewarded with <b>{Language.GetString(reward.nameToken)}</b>."
-                );
+                var message = new Announcement(string.Format(Messages.QuestCompleteAnnouncement, _networkUser.GetNetworkPlayerName().GetResolvedName()));
 
                 Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
             }
@@ -223,9 +231,7 @@ namespace RPGMod.Questing
                 return;
             }
 
-            var message = new Announcement(
-                $"I'm disappointed in you <b><color=orange>{_networkUser.GetNetworkPlayerName().GetResolvedName()}</color></b>. Maybe you'll do better next time..."
-            );
+            var message = new Announcement(string.Format(Messages.QuestFailedAnnouncement, _networkUser.GetNetworkPlayerName().GetResolvedName()));
 
             Networking.SendAnnouncement(message, _networkUser.connectionToClient.connectionId);
         }

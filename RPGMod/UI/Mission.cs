@@ -1,3 +1,5 @@
+using RoR2;
+using RPGMod.Extensions;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -114,7 +116,7 @@ namespace RPGMod.UI
 
         private void Update()
         {
-            _missionUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = Quest.QuestTypeDict[_mission.MissionType];
+            _missionUI.transform.Find("description").GetComponent<TextMeshProUGUI>().text = string.Format(Quest.QuestTypeDict[_mission.MissionType], Language.GetString(_mission.MissionSpecification).RemoveReplacementTokens());
             _missionUI.transform.Find("description").GetComponent<RectTransform>().sizeDelta = _missionUI.transform.Find("description").GetComponent<TextMeshProUGUI>().GetPreferredValues();
             _missionUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().text = $"{_mission.Progress}/{_mission.Objective}";
             _missionUI.transform.Find("progress").GetComponent<RectTransform>().sizeDelta = _missionUI.transform.Find("progress").GetComponent<TextMeshProUGUI>().GetPreferredValues();
