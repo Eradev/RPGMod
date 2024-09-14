@@ -6,7 +6,7 @@
     <PackageId>com.ghasttear1.rpgmod</PackageId>
     <Description>A Risk of Rain 2 mod.</Description>
     <Company>com.ghasttear1.rpgmod</Company>
-    <Version>3.6.1</Version>
+    <Version>3.6.2</Version>
     <LangVersion>8</LangVersion>
   </PropertyGroup>
 

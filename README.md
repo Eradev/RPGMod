@@ -49,6 +49,9 @@ This mod has a config with many values to change to your desire with the ability
 ## Changelog
 
 ```text
+- 3.6.2
+ * Fixed a bug in mission generation.
+ 
 - 3.6.1
  * Fixed a bug in mission generation.
  
