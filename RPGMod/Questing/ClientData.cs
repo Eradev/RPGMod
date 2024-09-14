@@ -18,7 +18,7 @@ namespace RPGMod.Questing
 
         public void NewQuest()
         {
-            if (Server.MaxAvailableUniqueMissions < Server.MinUniqueMissionsRequired)
+            if (Server.MinUniqueMissionsRequired > Server.MaxAvailableUniqueMissions)
             {
                 return;
             }

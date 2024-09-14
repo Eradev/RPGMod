@@ -15,8 +15,8 @@ namespace RPGMod.Questing
 
         public static int MaxAvailableUniqueMissions =>
             AllowedTypes.Count +
-            (Config.Questing.KillSpecificBuffEnabled ? AllowedBuffTypes.Count - 1 : 0) +
-            (Config.Questing.KillSpecificNameEnabled ? AllowedMonsterTypes.Count - 1 : 0);
+            (Config.Questing.KillSpecificBuffEnabled ? AllowedBuffTypes.Count : 0) +
+            (Config.Questing.KillSpecificNameEnabled ? AllowedMonsterTypes.Count : 0);
 
         public static int MinUniqueMissionsRequired =>
             new[]
