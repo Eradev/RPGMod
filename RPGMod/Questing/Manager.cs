@@ -14,7 +14,7 @@ namespace RPGMod.Questing
                 switch (clientData.QuestData.Complete)
                 {
                     // Create new quest if necessary
-                    case true when Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > Config.Questing.Cooldown:
+                    case true when Run.instance.GetRunStopwatch() - clientData.QuestData.CompletionTime > ConfigValues.Questing.Cooldown:
                         clientData.NewQuest();
 
                         break;
@@ -27,7 +27,7 @@ namespace RPGMod.Questing
                 }
             }
 
-            if (Server.AllowedTypes.Count <= 0 || !(Run.instance.GetRunStopwatch() - Server.TimeoutStart > 4f))
+            if (Server.AllowedMissionTypes.Count <= 0 || !(Run.instance.GetRunStopwatch() - Server.TimeoutStart > 4f))
             {
                 return;
             }
@@ -59,7 +59,7 @@ namespace RPGMod.Questing
         public static void CleanUp()
         {
             Server.ClientDatas.Clear();
-            Server.AllowedTypes.Clear();
+            Server.AllowedMissionTypes.Clear();
             Server.AllowedMonsterTypes.Clear();
             Server.AllowedBuffTypes.Clear();
             Server.TimeoutStart = 0f;

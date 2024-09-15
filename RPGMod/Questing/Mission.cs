@@ -9,7 +9,7 @@ namespace RPGMod.Questing
         private readonly NetworkUser _networkUser;
         private int _progress;
 
-        public static readonly Dictionary<MissionType, Events.QuestEvent> EventsByMissionType = new Dictionary<MissionType, Events.QuestEvent>
+        public static readonly Dictionary<MissionType, Events.QuestEvent> EventsByMissionType = new()
         {
             { MissionType.KillAny, Events.AnyKilled },
             { MissionType.KillCommon, Events.CommonKilled },
@@ -84,42 +84,42 @@ namespace RPGMod.Questing
                     // Common enemies start to be less frequent after a few stages so we limit them
                     var commonMultiplier = Mathf.Min(Run.instance.stageClearCount, 5);
 
-                    objective = Random.Range(Config.Questing.KillCommonMin, Config.Questing.KillCommonMax) * Mathf.Max(1, commonMultiplier);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillCommonMin, ConfigValues.Questing.MissionKillCommonMax) * Mathf.Max(1, commonMultiplier);
 
                     break;
 
                 case MissionType.KillAny:
-                    objective = Random.Range(Config.Questing.KillAnyMin, Config.Questing.KillAnyMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillAnyMin, ConfigValues.Questing.MissionKillAnyMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
                 case MissionType.KillSpecificName:
-                    objective = Random.Range(Config.Questing.KillSpecificNameMin, Config.Questing.KillSpecificNameMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                    objective = Random.Range(ConfigValues.Questing.KillSpecificNameMin, ConfigValues.Questing.KillSpecificNameMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
                 case MissionType.KillSpecificBuff:
-                    objective = Random.Range(Config.Questing.KillSpecificBuffMin, Config.Questing.KillSpecificBuffMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillSpecificBuffMin, ConfigValues.Questing.MissionKillSpecificBuffMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
                 case MissionType.KillElite:
-                    objective = Random.Range(Config.Questing.KillEliteMin, Config.Questing.KillEliteMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillEliteMin, ConfigValues.Questing.MissionKillEliteMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
                 case MissionType.KillChampion:
-                    objective = Random.Range(Config.Questing.KillChampionMin, Config.Questing.KillChampionMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillChampionMin, ConfigValues.Questing.MissionKillChampionMax) * Mathf.Max(1, Run.instance.stageClearCount / 3);
 
                     break;
 
                 case MissionType.KillFlying:
-                    objective = Random.Range(Config.Questing.KillFlyingMin, Config.Questing.KillFlyingMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
+                    objective = Random.Range(ConfigValues.Questing.MissionKillFlyingMin, ConfigValues.Questing.MissionKillFlyingMax) * Mathf.Max(1, Run.instance.stageClearCount / 2);
 
                     break;
 
                 case MissionType.CollectGold:
-                    objective = Run.instance.GetDifficultyScaledCost(Random.Range(Config.Questing.CollectGoldMin, Config.Questing.CollectGoldMax));
+                    objective = Run.instance.GetDifficultyScaledCost(Random.Range(ConfigValues.Questing.MissionCollectGoldMin, ConfigValues.Questing.MissionCollectGoldMax));
 
                     break;
 

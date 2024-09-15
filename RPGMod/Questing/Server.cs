@@ -7,27 +7,27 @@ namespace RPGMod.Questing
 {
     internal static class Server
     {
-        public static List<MissionType> AllowedTypes { get; } = new List<MissionType>();
-        public static List<string> AllowedMonsterTypes { get; } = new List<string>();
-        public static List<string> AllowedBuffTypes { get; } = new List<string>();
-        public static List<ClientData> ClientDatas { get; } = new List<ClientData>();
+        public static List<MissionType> AllowedMissionTypes { get; } = [];
+        public static List<string> AllowedMonsterTypes { get; } = [];
+        public static List<string> AllowedBuffTypes { get; } = [];
+        public static List<ClientData> ClientDatas { get; } = [];
         public static float TimeoutStart;
 
         public static int MaxAvailableUniqueMissions =>
-            AllowedTypes.Count +
-            (Config.Questing.KillSpecificBuffEnabled && AllowedTypes.Contains(MissionType.KillSpecificBuff)
+            AllowedMissionTypes.Count +
+            (ConfigValues.Questing.MissionKillSpecificBuffEnabled && AllowedMissionTypes.Contains(MissionType.KillSpecificBuff)
                 ? AllowedBuffTypes.Count - 1
                 : 0) +
-            (Config.Questing.KillSpecificNameEnabled && AllowedTypes.Contains(MissionType.KillSpecificName)
+            (ConfigValues.Questing.KillSpecificTypeEnabled && AllowedMissionTypes.Contains(MissionType.KillSpecificName)
                 ? AllowedMonsterTypes.Count - 1
                 : 0);
 
         public static int MinUniqueMissionsRequired =>
             new[]
             {
-                Config.Questing.MinNumMissionsTier1,
-                Config.Questing.MinNumMissionsTier2,
-                Config.Questing.MinNumMissionsTier3
+                ConfigValues.Questing.NumMissionsCommonMin,
+                ConfigValues.Questing.NumMissionsUncommonMin,
+                ConfigValues.Questing.NumMissionsRareMin
             }.Min();
 
         public static ItemTier MaxAllowedRewardTier
@@ -36,12 +36,12 @@ namespace RPGMod.Questing
             {
                 var maxUniqueMissions = MaxAvailableUniqueMissions;
 
-                if (maxUniqueMissions >= Config.Questing.MinNumMissionsTier3)
+                if (maxUniqueMissions >= ConfigValues.Questing.NumMissionsRareMin)
                 {
                     return ItemTier.Tier3;
                 }
 
-                return maxUniqueMissions >= Config.Questing.MinNumMissionsTier2
+                return maxUniqueMissions >= ConfigValues.Questing.NumMissionsUncommonMin
                     ? ItemTier.Tier2
                     : ItemTier.Tier1;
             }
@@ -59,12 +59,12 @@ namespace RPGMod.Questing
 
         public static void UnlockMissionType(MissionType missionType)
         {
-            if (AllowedTypes.Contains(missionType))
+            if (AllowedMissionTypes.Contains(missionType))
             {
                 return;
             }
 
-            AllowedTypes.Add(missionType);
+            AllowedMissionTypes.Add(missionType);
             RpgMod.Log.LogDebug($"Unlocked mission type {missionType}");
 
             TimeoutStart = Run.instance.GetRunStopwatch();
@@ -72,25 +72,26 @@ namespace RPGMod.Questing
 
         public static void UnlockMonsterType(CharacterBody enemy)
         {
-            if (AllowedMonsterTypes.Contains(enemy.baseNameToken))
+            if (AllowedMonsterTypes.Contains(enemy.baseNameToken) ||
+                ConfigValues.Questing.EnemyTypeBlacklist.Contains(enemy.baseNameToken))
             {
                 return;
             }
 
             AllowedMonsterTypes.Add(enemy.baseNameToken);
-            RpgMod.Log.LogDebug($"Unlocked enemy type {Language.GetString(enemy.baseNameToken)}");
+            RpgMod.Log.LogDebug($"Unlocked enemy type {Language.GetString(enemy.baseNameToken)} ({enemy.baseNameToken})");
         }
 
         public static void UnlockBuffType(BuffDef buffDef)
         {
-
-            if (AllowedBuffTypes.Contains(buffDef.eliteDef.modifierToken))
+            if (AllowedBuffTypes.Contains(buffDef.eliteDef.modifierToken) ||
+                ConfigValues.Questing.EliteBuffBlacklist.Contains(buffDef.name))
             {
                 return;
             }
 
             AllowedBuffTypes.Add(buffDef.eliteDef.modifierToken);
-            RpgMod.Log.LogDebug($"Unlocked buff type {buffDef.GetDisplayName().RemoveReplacementTokens()}");
+            RpgMod.Log.LogDebug($"Unlocked buff type {buffDef.GetDisplayName().RemoveReplacementTokens()} ({buffDef.name})");
         }
     }
 }

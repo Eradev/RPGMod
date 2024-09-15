@@ -1,19 +1,20 @@
 using RoR2;
 using RPGMod.Extensions;
+using RPGMod.Questing;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace RPGMod.UI
 {
-    public class Mission : MonoBehaviour
+    public class MissionComponent : MonoBehaviour
     {
         private float _progressVel;
         private readonly GameObject _missionUI;
-        private Questing.Mission _mission;
+        private Mission _mission;
         public int Index;
 
-        private Mission()
+        private MissionComponent()
         {
             _progressVel = 0.0f;
 
@@ -108,7 +109,7 @@ namespace RPGMod.UI
             progressBar.GetComponent<RectTransform>().localScale = new Vector3(0, 1, 1);
         }
 
-        public void UpdateData(Questing.Mission mission, int i)
+        public void UpdateData(Mission mission, int i)
         {
             _mission = mission;
             _missionUI.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, (-55 * i), 0);

@@ -12,9 +12,9 @@ namespace RPGMod
         {
             var client = NetworkManager.singleton.client;
 
-            client.RegisterHandler(Config.Networking.MsgType, QuestData.Handler);
-            client.RegisterHandler((short)(Config.Networking.MsgType + 1), Announcement.Handler);
-            client.RegisterHandler((short)(Config.Networking.MsgType + 2), ItemReceived.Handler);
+            client.RegisterHandler(ConfigValues.Networking.MsgType, QuestData.Handler);
+            client.RegisterHandler((short)(ConfigValues.Networking.MsgType + 1), Announcement.Handler);
+            client.RegisterHandler((short)(ConfigValues.Networking.MsgType + 2), ItemReceived.Handler);
         }
 
         public static void Setup()
@@ -26,14 +26,14 @@ namespace RPGMod
 
         public static void Sync()
         {
-            if (Config.Networking.UpdateRate != 0 && !(Run.instance.GetRunStopwatch() - _lastUpdate >= Config.Networking.UpdateRate / 1000f))
+            if (ConfigValues.Networking.UpdateRate != 0 && !(Run.instance.GetRunStopwatch() - _lastUpdate >= ConfigValues.Networking.UpdateRate / 1000f))
             {
                 return;
             }
 
             foreach (var clientData in Server.ClientDatas)
             {
-                NetworkServer.SendToClient(clientData.NetworkUser.connectionToClient.connectionId, Config.Networking.MsgType, clientData.QuestData);
+                NetworkServer.SendToClient(clientData.NetworkUser.connectionToClient.connectionId, ConfigValues.Networking.MsgType, clientData.QuestData);
             }
 
             _lastUpdate = Run.instance.GetRunStopwatch();
@@ -56,12 +56,12 @@ namespace RPGMod
 
         public static void SendAnnouncement(Announcement message, int connectionId)
         {
-            NetworkServer.SendToClient(connectionId, (short)(Config.Networking.MsgType + 1), message);
+            NetworkServer.SendToClient(connectionId, (short)(ConfigValues.Networking.MsgType + 1), message);
         }
 
         public static void SendItemReceivedMessage(ItemReceived itemReceived, int connectionId)
         {
-            NetworkServer.SendToClient(connectionId, (short)(Config.Networking.MsgType + 2), itemReceived);
+            NetworkServer.SendToClient(connectionId, (short)(ConfigValues.Networking.MsgType + 2), itemReceived);
         }
 
         // NetworkReader methods

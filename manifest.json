@@ -1,6 +1,6 @@
 {
     "name": "RPGMod",
-    "version_number": "3.6.2",
+    "version_number": "3.7.0",
     "website_url": "https://github.com/Eradev/RPGMod",
     "description": "This mod is configurable and allows you to have quests in singleplayer and with friends. (Unofficial update)",
     "dependencies": [

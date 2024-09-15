@@ -1,6 +1,5 @@
 using RoR2;
 using RPGMod.Extensions;
-using RPGMod.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,15 +52,15 @@ namespace RPGMod.Questing
             switch (rewardTier)
             {
                 case ItemTier.Tier1:
-                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier1, Config.Questing.MaxNumMissionsTier1), Server.MaxAvailableUniqueMissions), _networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(ConfigValues.Questing.NumMissionsCommonMin, ConfigValues.Questing.NumMissionsCommonMax), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 case ItemTier.Tier2:
-                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier2, Config.Questing.MaxNumMissionsTier2), Server.MaxAvailableUniqueMissions), _networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(ConfigValues.Questing.NumMissionsUncommonMin, ConfigValues.Questing.NumMissionsUncommonMax), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 case ItemTier.Tier3:
-                    Missions = GenerateMissionComponents(Math.Min(r.Next(Config.Questing.MinNumMissionsTier3, Config.Questing.MaxNumMissionsTier3), Server.MaxAvailableUniqueMissions), _networkUser);
+                    Missions = GenerateMissionComponents(Math.Min(r.Next(ConfigValues.Questing.NumMissionsRareMin, ConfigValues.Questing.NumMissionsRareMax), Server.MaxAvailableUniqueMissions), _networkUser);
                     break;
 
                 default:
@@ -70,10 +69,10 @@ namespace RPGMod.Questing
                     break;
             }
 
-            var timeLimit = Config.Questing.TimerBase + (Missions.Count - 1) * Config.Questing.TimerExtra;
+            var timeLimit = ConfigValues.Questing.TimerBase + (Missions.Count - 1) * ConfigValues.Questing.TimerExtra;
             LimitTime = Run.instance.GetRunStopwatch() + timeLimit;
 
-            if (!Config.UI.SendNewQuestAnnouncement)
+            if (!ConfigValues.UI.SendNewQuestAnnouncement)
             {
                 return;
             }
@@ -125,9 +124,9 @@ namespace RPGMod.Questing
         {
             var weightedSelection = new WeightedSelection<List<PickupIndex>>();
 
-            weightedSelection.AddChoice(Blacklist.AvailableTier1DropList, Config.Questing.ChanceCommon - questsCompleted * Config.Questing.ChanceAdjustmentPercent);
-            weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, Config.Questing.ChanceUncommon + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
-            weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, Config.Questing.ChanceLegendary + questsCompleted * Config.Questing.ChanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier1DropList, ConfigValues.Questing.RewardChanceCommon - questsCompleted * ConfigValues.Questing.RewardChanceAdjustmentPercent);
+            weightedSelection.AddChoice(Blacklist.AvailableTier2DropList, ConfigValues.Questing.RewardChanceUncommon + questsCompleted * ConfigValues.Questing.RewardChanceAdjustmentPercent / 2);
+            weightedSelection.AddChoice(Blacklist.AvailableTier3DropList, ConfigValues.Questing.RewardChanceRare + questsCompleted * ConfigValues.Questing.RewardChanceAdjustmentPercent / 2);
 
             var pickupList = weightedSelection.Evaluate(UnityEngine.Random.value);
             var pickupIndex = pickupList.Random();
@@ -147,7 +146,7 @@ namespace RPGMod.Questing
 
                 do
                 {
-                    missionType = Server.AllowedTypes.Random();
+                    missionType = Server.AllowedMissionTypes.Random();
 
                     missionSpecification = missionType switch
                     {
@@ -198,7 +197,7 @@ namespace RPGMod.Questing
 
             player.master.inventory.GiveItem(reward!.itemIndex);
 
-            if (Config.UI.SendQuestCompleteAnnouncement)
+            if (ConfigValues.UI.SendQuestCompleteAnnouncement)
             {
                 var message = new Announcement(string.Format(Messages.QuestCompleteAnnouncement, _networkUser.GetNetworkPlayerName().GetResolvedName()));
 
@@ -226,7 +225,7 @@ namespace RPGMod.Questing
                 mission.Abort();
             }
 
-            if (!Config.UI.SendQuestFailedAnnouncement)
+            if (!ConfigValues.UI.SendQuestFailedAnnouncement)
             {
                 return;
             }

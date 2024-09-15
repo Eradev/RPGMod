@@ -1,12 +1,12 @@
 ﻿using RPGMod.Extensions;
 using System.Collections.Generic;
 
-namespace RPGMod.UI
+namespace RPGMod.Questing
 {
-    internal static class Messages
+    public static class Messages
     {
-        private static readonly List<string> _newQuest = new List<string>
-        {
+        private static readonly List<string> _newQuest =
+        [
             "It's time to work again, <b><color=orange>{0}</color></b>! Can you complete these on time?",
             "Here are your new orders, <b><color=orange>{0}</color></b>. Get on it!",
             "You wanted more work? I deliver!",
@@ -14,12 +14,22 @@ namespace RPGMod.UI
             "What is this? A shiny new toy? Complete these missions and you'll be gifted with it!",
             "How about you work on these tasks while you're at it? You'll be well rewarded.",
             "Hello <b><color=orange>{0}</color></b>. New orders. Be quick. Bye."
-        };
+        ];
 
         public static string NewQuestAnnouncement => _newQuest.Random();
 
-        private static readonly List<string> _questFailed = new List<string>
+        public static void ClearNewQuestAnnouncement()
         {
+            _newQuest.Clear();
+        }
+
+        public static void AddNewQuestAnnouncement(string newAnnouncement)
+        {
+            _newQuest.Add(newAnnouncement);
+        }
+
+        private static readonly List<string> _questFailed =
+        [
             "I'm disappointed in you, <b><color=orange>{0}</color></b>. I hope you'll do better next time.",
             "*sigh* I'm surprised you survived so long with your skills, or lack thereof.",
             "I was looking forward to good results. Maybe I should ask another survivor...",
@@ -29,12 +39,22 @@ namespace RPGMod.UI
             "It would take a month to explain to you my disappointment.",
             "Was it too hard, <b><color=orange>{0}</color></b>? I'll keep it in mind for next time.",
             "It's ok <b><color=orange>{0}</color></b>. I wasn't expecting much from you."
-        };
+        ];
 
         public static string QuestFailedAnnouncement => _questFailed.Random();
 
-        private static readonly List<string> _questComplete = new List<string>
+        public static void ClearQuestFailedAnnouncement()
         {
+            _questFailed.Clear();
+        }
+
+        public static void AddQuestFailedAnnouncement(string newAnnouncement)
+        {
+            _questFailed.Add(newAnnouncement);
+        }
+
+        private static readonly List<string> _questComplete =
+        [
             "Mission accomplished! Take your reward. You earned it.",
             "I knew I could count on you, <b><color=orange>{0}</color></b>!",
             "Here, take this. Good work <b><color=orange>{0}</color></b>!",
@@ -45,8 +65,18 @@ namespace RPGMod.UI
             "Nothing tastes better than success... except the reward you just got!",
             "Hell yeah, <b><color=orange>{0}</color></b>! You really came through!",
             "<b>UES : Safe Travels</b> is lucky to have you, <b><color=orange>{0}</color></b>!"
-        };
+        ];
 
         public static string QuestCompleteAnnouncement => _questComplete.Random();
+
+        public static void ClearQuestCompleteAnnouncement()
+        {
+            _questComplete.Clear();
+        }
+
+        public static void AddQuestCompleteAnnouncement(string newAnnouncement)
+        {
+            _questComplete.Add(newAnnouncement);
+        }
     }
 }

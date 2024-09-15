@@ -24,7 +24,7 @@ namespace RPGMod.UI
             IsReady = false;
             var hudConVar = Console.instance.FindConVar("hud_scale");
 
-            if (Config.UI.UseHUDScale)
+            if (ConfigValues.UI.UseHUDScale)
             {
                 if (hudConVar != null && TextSerialization.TryParseInvariant(hudConVar.GetString(), out float num))
                 {
@@ -33,7 +33,7 @@ namespace RPGMod.UI
             }
             else
             {
-                HudScale = Config.UI.OverrideHUDScale;
+                HudScale = ConfigValues.UI.HUDScaleOverride;
             }
 
             while (!IsReady)

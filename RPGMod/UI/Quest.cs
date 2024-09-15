@@ -10,7 +10,7 @@ namespace RPGMod.UI
 {
     public class Quest : MonoBehaviour
     {
-        public static readonly Dictionary<MissionType, string> QuestTypeDict = new Dictionary<MissionType, string>
+        public static readonly Dictionary<MissionType, string> QuestTypeDict = new()
         {
             { MissionType.KillAny, "Kill any enemies" },
             { MissionType.KillCommon, "Kill common enemies" },
@@ -35,14 +35,14 @@ namespace RPGMod.UI
         private float _alphaVel;
         private float _targetX;
         private float _targetAlpha;
-        private List<Mission> _missionComponents;
+        private List<MissionComponent> _missionComponents;
         private bool _finished;
         private UIState _state;
         private QuestData _clientData;
 
         private Quest()
         {
-            _targetX = Utils.ScreenSize.x * Config.UI.QuestPositionX;
+            _targetX = Utils.ScreenSize.x * ConfigValues.UI.QuestPositionX;
             _backgroundVel = 0.0f;
             _fadeTime = 0.7f;
             _finished = false;
@@ -203,10 +203,10 @@ namespace RPGMod.UI
                     _rewardText.GetComponent<TextMeshProUGUI>().color = pickupDef.baseColor;
                     _reward.GetComponent<RawImage>().texture = pickupDef.iconTexture;
 
-                    _missionComponents = new List<Mission>();
+                    _missionComponents = new List<MissionComponent>();
                     for (var i = 0; i < _clientData.Missions.Count; i++)
                     {
-                        var missionComponent = _rewardText.AddComponent<Mission>();
+                        var missionComponent = _rewardText.AddComponent<MissionComponent>();
                         missionComponent.Index = i;
                         _missionComponents.Add(missionComponent);
                     }
@@ -214,7 +214,7 @@ namespace RPGMod.UI
                     _questUI.transform.SetParent(transform);
                     _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _clientData.Missions.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y);
                     _questUI.GetComponent<RectTransform>().localPosition = new Vector3(0, 0, 0);
-                    _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.ScreenSize.x * Config.UI.QuestPositionX + 60, Utils.ScreenSize.y * Config.UI.QuestPositionY);
+                    _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Utils.ScreenSize.x * ConfigValues.UI.QuestPositionX + 60, Utils.ScreenSize.y * ConfigValues.UI.QuestPositionY);
                     _questUI.GetComponent<RectTransform>().localScale = new Vector3(Utils.HudScale, Utils.HudScale, Utils.HudScale);
 
                     _timer.GetComponent<TextMeshProUGUI>().text = "Time limit: 00:00";
@@ -230,7 +230,7 @@ namespace RPGMod.UI
                     {
                         _startTime = Run.instance.GetRunStopwatch();
                         _targetAlpha = 0;
-                        _targetX = Utils.ScreenSize.x * Config.UI.QuestPositionX + 60;
+                        _targetX = Utils.ScreenSize.x * ConfigValues.UI.QuestPositionX + 60;
                         _finished = true;
                     }
 
@@ -274,7 +274,7 @@ namespace RPGMod.UI
 
                     var questUiRectTransform = _questUI.GetComponent<RectTransform>();
 
-                    _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUiRectTransform.anchoredPosition.x, _targetX, ref _moveVel, _fadeTime), Utils.ScreenSize.y * Config.UI.QuestPositionY);
+                    _questUI.GetComponent<RectTransform>().anchoredPosition = new Vector2(Mathf.SmoothDamp(questUiRectTransform.anchoredPosition.x, _targetX, ref _moveVel, _fadeTime), Utils.ScreenSize.y * ConfigValues.UI.QuestPositionY);
                     _questUI.GetComponent<CanvasGroup>().alpha = Mathf.SmoothDamp(_questUI.GetComponent<CanvasGroup>().alpha, _targetAlpha, ref _alphaVel, _fadeTime);
                     _questUI.GetComponent<RectTransform>().sizeDelta = new Vector2(300, Mathf.SmoothDamp(questUiRectTransform.sizeDelta.y, _timer.GetComponent<RectTransform>().sizeDelta.y + _questTitle.GetComponent<RectTransform>().sizeDelta.y + 27f + _rewardBacking.GetComponent<RectTransform>().sizeDelta.y + (55 * _missionComponents.Count) + _rewardText.GetComponent<RectTransform>().sizeDelta.y, ref _backgroundVel, 0.7f));
                     _questUI.transform.Find("border").GetComponent<RectTransform>().sizeDelta = new Vector2(questUiRectTransform.sizeDelta.x + 2, questUiRectTransform.sizeDelta.y + 2);

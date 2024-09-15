@@ -12,9 +12,9 @@ This mod offers a networked questing system that is synced with others who have 
 
 ## Version 3.1.0+
 
-Versions starting from 3.1.0 aren't official updates from the original mod creator ghasttear1. I will remove this version if ghasttear1 decides to work on it again, or want me to merge into his repo.
+A new maintainer has taken over the original mod starting from version 3.1.0. If you have any issues, please create an issue at <https://github.com/Eradev/RPGMod/issues>.
 
-If you have any issues, please create an issue at <https://github.com/Eradev/RPGMod/issues>.
+Huge thanks to the original creator, ghasttear1, for this wonderful mod.
 
 ## Installation
 
@@ -36,19 +36,15 @@ When updating simply replace the mod files and run the game, the config may chan
 
 ## Configuration
 
-This mod has a config with many values to change to your desire with the ability to reload on the go by pressing **F6**.
-
-**Steps on how to configure:**
-
-1. Navigate to the `Risk of Rain 2\BepInEx\config` folder
-2. Open the `RPGMod.cfg` file using your preferred text editor
-3. Edit the values as you wish.
-4. Importantly, don't forget to save the file. If ingame press **F6** to recieve the changes, otherwise starting the game normally will load the new values.
-5. Enjoy!
+This mod has a config with various options to tailor it to your playgroup! Compatible with Risk of Options if you wish to set it up directly in-game!
 
 ## Changelog
 
 ```text
+- 3.7.0
+ * Rewrote all options and added support for Risk of Options.
+ * Added options to blacklist enemy types and elite buffs.
+
 - 3.6.2
  * Fixed a bug in mission generation.
  

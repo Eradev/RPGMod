@@ -23,7 +23,7 @@ namespace RPGMod.UI
             _finished = false;
             _vel = 0;
             _vel2 = 0;
-            _targetY = Utils.ScreenSize.y * Config.UI.AnnouncerPositionY;
+            _targetY = Utils.ScreenSize.y * ConfigValues.UI.AnnouncerPositionY;
             _targetAlpha = 1;
             _fadeTime = 0.7f;
 
@@ -37,7 +37,7 @@ namespace RPGMod.UI
             _announcerUI.GetComponent<RectTransform>().anchorMin = new Vector2(0.5f, 0);
             _announcerUI.GetComponent<RectTransform>().anchorMax = new Vector2(0.5f, 0);
             _announcerUI.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0);
-            _announcerUI.GetComponent<RectTransform>().sizeDelta = new Vector2(Utils.ScreenSize.x * Config.UI.AnnouncerScaleX, 100);
+            _announcerUI.GetComponent<RectTransform>().sizeDelta = new Vector2(Utils.ScreenSize.x * ConfigValues.UI.AnnouncerScaleX, 100);
 
             _announcerUI.GetComponent<Image>().color = new Color(0.16f, 0.16f, 0.16f, 0.9f);
 

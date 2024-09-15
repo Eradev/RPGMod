@@ -6,23 +6,28 @@ namespace RPGMod.Questing
 {
     public static class Blacklist
     {
-        private static ItemMask _cachedAvailableItems = new ItemMask();
-        private static ItemMask _blacklistedItems = new ItemMask();
+        private static ItemMask _cachedAvailableItems = [];
+        private static ItemMask _blacklistedItems = [];
 
         // ReSharper disable InconsistentNaming
-        private static readonly List<PickupIndex> _availableTier1DropList = new List<PickupIndex>();
-        private static readonly List<PickupIndex> _availableTier2DropList = new List<PickupIndex>();
-        private static readonly List<PickupIndex> _availableTier3DropList = new List<PickupIndex>();
+        private static readonly List<PickupIndex> _availableTier1DropList = [];
+        private static readonly List<PickupIndex> _availableTier2DropList = [];
+        private static readonly List<PickupIndex> _availableTier3DropList = [];
         // ReSharper enable InconsistentNaming
 
         public static List<PickupIndex> AvailableTier1DropList => Get(_availableTier1DropList);
         public static List<PickupIndex> AvailableTier2DropList => Get(_availableTier2DropList);
         public static List<PickupIndex> AvailableTier3DropList => Get(_availableTier3DropList);
 
+        public static void ClearCache()
+        {
+            _cachedAvailableItems = [];
+        }
+
         private static void LoadBlackListItems()
         {
-            _blacklistedItems = new ItemMask();
-            foreach (var itemName in Config.Questing.Blacklist)
+            _blacklistedItems = [];
+            foreach (var itemName in ConfigValues.Questing.RewardBlacklist)
             {
                 var item = ItemCatalog.FindItemIndex(itemName);
 
@@ -35,13 +40,11 @@ namespace RPGMod.Questing
             }
         }
 
-        public static void Recalculate() => _cachedAvailableItems = new ItemMask();
-
         private static void ValidateItemCache()
         {
             if (Run.instance == null)
             {
-                Recalculate();
+                ClearCache();
 
                 return;
             }

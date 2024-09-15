@@ -40,7 +40,7 @@ namespace RPGMod.Questing
             }
         }
 
-        public static List<Announcement> Announcements { get; set; } = new List<Announcement>();
+        public static List<Announcement> Announcements { get; set; } = new();
 
         private static UI.Announcer _announcerUI;
 

@@ -2,6 +2,7 @@
 using BepInEx.Logging;
 using RoR2;
 using RPGMod.Extensions;
+using RPGMod.SoftDependencies;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace RPGMod
         Ending
     }
 
+    [BepInDependency(DependenciesManager.RiskOfOptionsGuid, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     public class RpgMod : BaseUnityPlugin
     {
@@ -24,11 +26,15 @@ namespace RPGMod
 
         public static ManualLogSource Log;
 
+        public static RpgMod Instance;
+
+        internal ModState ModState => _modState;
+
         private void Awake()
         {
+            Instance = this;
             Log = Logger;
 
-            global::RPGMod.Config.Load(Config, false);
             _modState = ModState.Awaiting;
 
             // Load AssetBundle
@@ -40,6 +46,9 @@ namespace RPGMod
             {
                 return;
             }
+
+            DependenciesManager.CheckForDependencies();
+            ConfigurationManager.Init(Config);
 
             // Hooks
             On.RoR2.Run.Start += (orig, self) =>
@@ -56,7 +65,7 @@ namespace RPGMod
 
             On.RoR2.CharacterMaster.GiveMoney += (orig, self, amount) =>
             {
-                if (global::RPGMod.Config.Questing.CollectGoldEnabled &&
+                if (ConfigValues.Questing.MissionCollectGoldEnabled &&
                     NetworkServer.active &&
                     self?.GetComponent<PlayerCharacterMasterController>()?.networkUser?.netId != null)
                 {
@@ -76,27 +85,27 @@ namespace RPGMod
 
                 if (enemyBody != null && attackerBody != null && attackerNetworkUser?.netId != null)
                 {
-                    if (global::RPGMod.Config.Questing.KillAnyEnabled)
+                    if (ConfigValues.Questing.MissionKillAnyEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillAny);
                         Questing.Events.AnyKilled.Invoke(1, null, attackerNetworkUser);
                     }
 
-                    if (enemyBody.isFlying && global::RPGMod.Config.Questing.KillFlyingEnabled)
+                    if (enemyBody.isFlying && ConfigValues.Questing.MissionKillFlyingEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillFlying);
                         Questing.Events.FlyingKilled.Invoke(1, null, attackerNetworkUser);
                     }
 
                     // Dynamic
-                    if (!enemyBody.isBoss && global::RPGMod.Config.Questing.KillSpecificNameEnabled)
+                    if (!enemyBody.isBoss && ConfigValues.Questing.KillSpecificTypeEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillSpecificName);
                         Questing.Server.UnlockMonsterType(enemyBody);
                         Questing.Events.SpecificNameKilled.Invoke(1, enemyBody.baseNameToken, attackerNetworkUser);
                     }
 
-                    if (enemyBody.isElite && global::RPGMod.Config.Questing.KillSpecificBuffEnabled)
+                    if (enemyBody.isElite && ConfigValues.Questing.MissionKillSpecificBuffEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillSpecificBuff);
 
@@ -108,17 +117,17 @@ namespace RPGMod
                     }
 
                     // By rarity
-                    if (enemyBody.isChampion && global::RPGMod.Config.Questing.KillChampionEnabled)
+                    if (enemyBody.isChampion && ConfigValues.Questing.MissionKillChampionEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillChampion);
                         Questing.Events.ChampionKilled.Invoke(1, null, attackerNetworkUser);
                     }
-                    else if (enemyBody.isElite && global::RPGMod.Config.Questing.KillEliteEnabled)
+                    else if (enemyBody.isElite && ConfigValues.Questing.MissionKillEliteEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillElite);
                         Questing.Events.EliteKilled.Invoke(1, null, attackerNetworkUser);
                     }
-                    else if (global::RPGMod.Config.Questing.KillCommonEnabled)
+                    else if (ConfigValues.Questing.MissionKillCommonEnabled)
                     {
                         Questing.Server.UnlockMissionType(Questing.MissionType.KillCommon);
                         Questing.Events.CommonKilled.Invoke(1, null, attackerNetworkUser);
@@ -166,37 +175,22 @@ namespace RPGMod
 
                     break;
             }
-
-            // Reload config
-            // ReSharper disable once InvertIf
-            if (Input.GetKeyDown(KeyCode.F6))
-            {
-                global::RPGMod.Config.Load(Config, true);
-                if (_modState == ModState.Started)
-                {
-                    StartCoroutine(UI.Utils.Setup());
-                }
-                Questing.Client.CleanUp();
-            }
-
-            // if (Input.GetKeyDown(KeyCode.F8))
-            // {
-            //     Questing.Server.ClientDatas[0].QuestData.CompleteQuest();
-            // }
-            // if (Input.GetKeyDown(KeyCode.F7)) {
-            //     Debug.Log(PlayerCharacterMasterController.instances[0].GetComponent<CharacterBody>().transform.position);
-            // }
         }
 
         private void Setup()
         {
             Networking.Setup();
-            StartCoroutine(UI.Utils.Setup());
+            RefreshUI();
         }
 
         private static void CleanUp()
         {
             Questing.Manager.CleanUp();
+        }
+
+        internal void RefreshUI()
+        {
+            StartCoroutine(UI.Utils.Setup());
         }
 
         private static NetworkUser GetKillerNetworkUser(CharacterMaster master)
