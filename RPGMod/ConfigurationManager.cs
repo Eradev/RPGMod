@@ -143,7 +143,7 @@ namespace RPGMod
             (
                 new ConfigDefinition("Questing", "RewardBlacklist"),
                 string.Empty,
-                new ConfigDescription("Items ID to blacklist as quest reward. Separated with a comma.")
+                new ConfigDescription("Items' internal name to blacklist as quest reward. Separated with a comma.")
             ).AddOptionString();
             Questing.RewardBlacklist.SettingChanged += (_, _) => Blacklist.ClearCache();
 
